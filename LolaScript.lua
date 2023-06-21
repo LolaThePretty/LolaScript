@@ -1,7 +1,7 @@
 -- LolaScript
 -- by LolaTheSquishy
 
-local SCRIPT_VERSION = "0.1"
+local SCRIPT_VERSION = "1.0.3"
 
 -- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
 local status, auto_updater = pcall(require, "auto-updater")
@@ -84,6 +84,11 @@ auto_updater.run_auto_update(auto_update_config)
 --Bigger Hamsterball, Thunderball for rocket voltics
 --sharks spawed around a boat
 
+--unload cargoplane when far of it in epic plane jump
+--make squadron lfy ur own plane with random planes following
+
+--Translate script
+
 
 
 
@@ -135,21 +140,82 @@ end
     
 
     
-
-
-
-
-
-
-
 	
 --	end)
+local EveryAnimalHashList = {"Rats", "A_C_Rabbit_01", "A_C_Rabbit_02", "A_C_Cat_01", "A_C_Poodle", "A_C_Westy", "A_C_Pug", "A_C_Pug_02", "A_C_Rottweiler", "A_C_Retriever", "A_C_shepherd", "A_C_Husky", "A_C_Coyote", "A_C_Coyote_02", "A_C_MtLion", "A_C_MtLion_02", "A_C_Panther", "A_C_Rhesus", "A_C_Chimp_02", "A_C_Pig", "A_C_Boar", "A_C_Boar_02", "A_C_Cow", "A_C_Deer", "A_C_Deer_02", "A_C_Fish", "A_C_Stingray", "A_C_Dolphin", "A_C_SharkHammer", "A_C_SharkTiger", "A_C_KillerWhale", "A_C_HumpBack", "A_C_Pigeon", "A_C_Crow", "A_C_Hen", "A_C_Seagull", "A_C_Chickenhawk", "A_C_Cormorant"}
+
+
+local function spawn_animal(pid, AnimalHash)
+
+    
+        util.request_model(AnimalHash)
+        local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+
+        local radius = math.random(50, 300)
+        local radius2 = math.random(50, 300)
+
+        local SavedPlayerPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+        
+        local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius2, radius2), math.random(-radius, radius), 5)
+
+        for i = 20, 1, -1 do
+            AnimalHash = util.joaat(EveryAnimalHashList[math.random(1, #EveryAnimalHashList)])
+            radius = math.random(50, 300)
+            radius2 = math.random(50, 300)
+
+            local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius2, radius2), math.random(-radius, radius), 5)
+
+            local PopAnimal = entities.create_ped(28, AnimalHash, SpawnOffset, 0)
+            SET_ENTITY_INVINCIBLE(PopAnimal, true)
+            
+
+           -- util.yield(10)
+           -- SET_ENTITY_COORDS(pedm, SpawnOffset.x, SpawnOffset.y, SpawnOffset.z)
+           -- util.yield(1000)
+           -- SET_ENTITY_COORDS(pedm, SavedPlayerPos.x, SavedPlayerPos.y, SavedPlayerPos.z)
+           -- util.toast("boop")
+            util.create_tick_handler(function()
+                if HAS_ENTITY_COLLIDED_WITH_ANYTHING(PopAnimal) then
+                    SET_ENTITY_INVINCIBLE(PopAnimal, false)
+                    return false
+                end
+            
+            end)
+        end
+        --util.toast("blep")
+
+       
+end
+
+local function spawn_animals_all(AnimalHash)
+    for k,p in pairs(players.list(true, true, true)) do
+        spawn_animal(p, AnimalHash)
+    end
+end
+
+
+
+
+
+
 
 
  local myListVehicleSpawner = menu.list(myListVehicle, "Vehicle Spawner", {}, "Vehicle Spawner Options")
  local myListVehicleSettings = menu.list(myListVehicle, "Vehicle Settings", {}, "Vehicle Settings")
  local myListFunSettings = menu.list(menu.my_root(), "Fun", {}, "Fun Options")
  local myListMiscSettings = menu.list(menu.my_root(), "Misc", {}, "Miscellaneous Options")
+ 
+
+ 
+
+ local myListFunAnimalsSettings = menu.list(myListFunSettings, "Animals", {}, "Animals Options")
+    local myListFunAnimalsWildSettings = menu.list(myListFunAnimalsSettings, "Wild", {}, "Wild Animals Options")
+    local myListFunAnimalsPetSettings = menu.list(myListFunAnimalsSettings, "Pet", {}, "Pet Animals Options")
+    menu.action(myListFunAnimalsSettings, "Populate world !", {}, "Will spawn a lot of random animals here and there around the every player", function ()
+        
+        spawn_animals_all(util.joaat(EveryAnimalHashList[math.random(1, #EveryAnimalHashList)]))
+
+    end)
 
 
  --menu.toggle(myListVehicle, "Toggle!", {}, "Description of Toggle", function (on_change)
@@ -308,7 +374,7 @@ menu.action(myListVehicle, "RemoveVehicle Godmode ?", {}, "This will make the ve
 
 end)
 
-local KittyRingSettings = {"Default", "Invincible"}
+--[[local KittyRingSettings = {"Default", "Invincible"}
 
     menu.textslider(myListFunSettings, "Spawn Kitties", {}, "Spawns a ring of kitties with selected settings", KittyRingSettings, function (index, name) -- changed these value names to be more sense
 
@@ -403,11 +469,688 @@ local KittyRingSettings = {"Default", "Invincible"}
                 SET_ENTITY_INVINCIBLE(entities.create_ped(0, hashDoggy, pos8, 0), true)
 
             end
+    end)--]]
+
+    local SelectedWildAnimal
+    local SelectedPetAnimal
+     --------------------------------------------------------------------------------------------
+ players.add_command_hook(function(pid, root) --[[you will need the pid for most things and the root is the root of the players
+    menu. You can make a divider for the name of your script in the player menu]]
+       menu.player_root(pid):divider("Lola Script")
+   
+       --[[Adding COMMANDPERM_FRIENDLY to the end like it was done here makes it to where if friendly options are set for
+       chat commands. ]]
+   
+       --root:action("Teleport to them", {"tptoplayer"}, "Teleport yourself to them", function()
+       --    local target = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid) --first you will want to get their Player Ped
+       --    local tar_coords = ENTITY.GET_ENTITY_COORDS(target, true) --next get their coordinates
+       --    ENTITY.SET_ENTITY_COORDS(players.user_ped(), tar_coords.x, tar_coords.y, tar_coords.z, false, false, false, false)
+           --finally teleport to them, you can use players.user_ped() to get your player ped
+       --end, nil, nil, COMMANDPERM_FRIENDLY)
+   
+       --to make a list in the players menu
+       local PlayerSpectate = menu.player_root(pid)
+       local PlayerTrollingList =  root:list('Trolling', {'Trolling'}, 'Trolling Options')
+       local PlayerFriendlyList =  root:list('Friendly', {'Friendly'}, 'Friendly Options')
+            local PlayerFriendlyPetList =  PlayerFriendlyList:list('Pet', {'Pet'}, 'Pet Options')
+    
+-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+----------------------------------PETS
+-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Rat", {}, "Spawns a pet rat near this player (must spectate or be near or it to work properly)", function ()
+    
+    SelectedPetAnimal = util.joaat("A_C_Rat")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Rabbit", {}, "Spawns a pet rabbit near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Rabbit_01")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Giant Rabbit", {}, "Spawns a pet giant rabbit near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Rabbit_02")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Kitty", {}, "Spawns a pet kitty near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Cat_01")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Poodle", {}, "Spawns a pet poodle near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Poodle")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Westy", {}, "Spawns a pet westy near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Westy")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Pug", {}, "Spawns a pet pug near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Pug")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Zombie Pug", {}, "Spawns a pet zombie pug near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Pug_02")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Rottweiler", {}, "Spawns a pet rottweiler near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Rottweiler")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Retriever", {}, "Spawns a pet retriever near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Retriever")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Shepherd", {}, "Spawns a pet shepherd near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_shepherd")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Husky", {}, "Spawns a pet husky near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Husky")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Coyote", {}, "Spawns a pet coyote near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Coyote")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Zombie Coyote", {}, "Spawns a pet zombie coyote near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Coyote_02")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Mountain Lion", {}, "Spawns a pet mountain lion near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_MtLion")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Zombie Mountain Lion", {}, "Spawns a pet zombie mountain lion near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_MtLion_02")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Panther", {}, "Spawns a pet panther near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Panther")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Rhesus", {}, "Spawns a pet rhesus near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Rhesus")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Chimp", {}, "Spawns a pet chimp near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Chimp_02")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Pig", {}, "Spawns a pet pig near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Pig")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Boar", {}, "Spawns a pet boar near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Boar")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet zombie boar", {}, "Spawns a pet zombie boar near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Boar_02")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Cow", {}, "Spawns a pet cow near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Cow")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Deer", {}, "Spawns a pet deer near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Deer")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Zombie Deer", {}, "Spawns a pet zombie deer near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Deer_02")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Fishy", {}, "Spawns a pet fishy near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Fish")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Stingray", {}, "Spawns a pet stingray near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Stingray")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Dolphin", {}, "Spawns a pet dolphin near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Dolphin")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Hammerhead Shark", {}, "Spawns a pet hammerhead shark near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_SharkHammer")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Tiger Shark", {}, "Spawns a pet tiger shark near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_SharkTiger")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Killer Whale", {}, "Spawns a pet killer whale near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_KillerWhale")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Hump Back Whale", {}, "Spawns a pet hump back whale near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_HumpBack")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Pigeon", {}, "Spawns a pet pigeon near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Pigeon")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Crow", {}, "Spawns a pet Crow near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Crow")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Hen", {}, "Spawns a pet hen near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Hen")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Seagull", {}, "Spawns a pet seagull near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Seagull")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Chickehawk", {}, "Spawns a pet chickenhawk near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Chickenhawk")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+menu.action(PlayerFriendlyPetList, "Spawn a Pet Cormorant", {}, "Spawns a pet cormorant near this player (must spectate or be near or it to work properly)", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Cormorant")
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    SpawnPetAnimal(SelectedPetAnimal, pedm)
+
+end)
+
+   
+
+-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+----------------------------------WILD
+-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Rats", {}, "Spawns a random ammount of rats near you", function ()
+    
+    SelectedWildAnimal = util.joaat("A_C_Rat")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Rabbits", {}, "Spawns a random ammount of rabbits near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Rabbit_01")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Giant Rabbits", {}, "Spawns a random ammount of giant rabbits near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Rabbit_02")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Kitties", {}, "Spawns a random ammount of kitties near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Cat_01")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Poodles", {}, "Spawns a random ammount of poodles near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Poodle")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Westies", {}, "Spawns a random ammount of westies near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Westy")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Pugs", {}, "Spawns a random ammount of pugs near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Pug")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Zombie Pugs", {}, "Spawns a random ammount of zombie pugs near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Pug_02")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Rottweilers", {}, "Spawns a random ammount of rottweilers near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Rottweiler")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Retrievers", {}, "Spawns a random ammount of retrievers near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Retriever")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Shepherds", {}, "Spawns a random ammount of shepherds near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_shepherd")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Huskies", {}, "Spawns a random ammount of huskies near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Husky")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Coyotes", {}, "Spawns a random ammount of coyotes near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Coyote")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Zombie Coyotes", {}, "Spawns a random ammount of zombie coyotes near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Coyote_02")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Mountain Lions", {}, "Spawns a random ammount of mountain lions near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_MtLion")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Zombie Mountain Lions", {}, "Spawns a random ammount of zombie mountain lions near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_MtLion_02")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Panthers", {}, "Spawns a random ammount of panthers near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Panther")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Rhesuses", {}, "Spawns a random ammount of rhesuses near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Rhesus")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Chimps", {}, "Spawns a random ammount of chimps near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Chimp_02")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Pigs", {}, "Spawns a random ammount of pigs near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Pig")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Boars", {}, "Spawns a random ammount of boars near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Boar")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn zombie boars", {}, "Spawns a random ammount of zombie boars near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Boar_02")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Cows", {}, "Spawns a random ammount of cows near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Cow")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Deers", {}, "Spawns a random ammount of deers near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Deer")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Zombie Deers", {}, "Spawns a random ammount of zombie deers near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Deer_02")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Fishies", {}, "Spawns a random ammount of fishies near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Fish")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Stingrays", {}, "Spawns a random ammount of stingrays near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Stingray")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Dolphins", {}, "Spawns a random ammount of dolphins near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Dolphin")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Hammerhead Sharks", {}, "Spawns a random ammount of hammerhead sharks near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_SharkHammer")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Tiger Sharks", {}, "Spawns a random ammount of tiger sharks near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_SharkTiger")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Killer Whales", {}, "Spawns a random ammount of killer whales near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_KillerWhale")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Hump Back Whales", {}, "Spawns a random ammount of hump back whales near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_HumpBack")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Pigeons", {}, "Spawns a random ammount of pigeons near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Pigeon")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Crows", {}, "Spawns a random ammount of crows near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Crow")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Hens", {}, "Spawns a random ammount of hens near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Hen")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Seagulls", {}, "Spawns a random ammount of seagulls near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Seagull")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Chickehawks", {}, "Spawns a random ammount of chickenhawks near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Chickenhawk")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+menu.action(myListFunAnimalsWildSettings, "Spawn Cormorants", {}, "Spawns a random ammount of cormorants near you", function ()
+
+    SelectedWildAnimal = util.joaat("A_C_Cormorant")
+    SpawnWildAnimal(SelectedWildAnimal)
+
+end)
+
+local PetNamesList = {"Ako", "Niko", "Izika", "Whiskers", "Nina", "Caramel", "Leonardo", "Jack", "Doodle", "Sonic", "Mario", "Sakuro", "Johnathan", "Therese", "Asuka", "Rei", "Hanna", "Dawn", "Sunshine", "Midnight", "Apauline", "Ernest", "Charles", "Sugar", "Squishy", "boo", "Peepo", "Raphael"}
+
+    function SpawnWildAnimal (SelectedWildAnimal)
+ 
+        local AnimalHash = SelectedWildAnimal
+        util.request_model(AnimalHash)
+        local pedm = players.user_ped()
+
+        local radius = math.random(8, 22)
+        local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+        local randomWildAnimalNumber = math.random(1, 30)
+
+        for i = randomWildAnimalNumber, 0, -1 do
+            radius = math.random(8, 22)
+            randomWildAnimalNumber = math.random(1, 30)
+            SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+            local Animal = entities.create_ped(28, AnimalHash, SpawnOffset, 0)
+        end
+
+    end
+
+    function SpawnPetAnimal (SelectedPetAnimal, Target)
+
+        local AnimalHash = SelectedPetAnimal
+        util.request_model(AnimalHash)
+        local pedm = Target
+
+        local radius = math.random(8, 22)
+        local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+
+
+            radius = math.random(8, 22)
+            SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+            local PetAnimal = entities.create_ped(28, AnimalHash, SpawnOffset, 0)
+            NETWORK_REQUEST_CONTROL_OF_ENTITY(PetAnimal)
+    
+    
+
+        util.create_tick_handler(function()
+        
+            local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+            SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PetAnimal, true)
+            TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, pos.x, pos.y, pos.z, 5.0, 0, false, 0, 0.0)
+            local KittyOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PetAnimal, 0, 0, 0)
+            util.yield(1500)
+        
+            if IS_ENTITY_DEAD(PetAnimal) then
+                entities.delete(PetAnimal)
+                return false
+            end
     end)
 
-    menu.divider(myListFunSettings, "------")
+    util.create_tick_handler(function()
     
-    menu.action(myListFunSettings, "Kitty Friend", {}, "Spawns a kitty friend that will follow you", function(on)
+        if IS_ENTITY_DEAD(PetAnimal) then
+            entities.delete(PetAnimal)
+            util.toast("RIP " .. PetNamesList[math.random(1, #PetNamesList)] .. " :'(")
+            return false
+        end
+end)
+
+    end
+
+
+
+
+
+    --menu.divider(myListFunSettings, "------")
+    
+    --[[menu.action(myListFunAnimalsPetSettings, "Kitty Friend", {}, "Spawns a kitty friend that will follow you", function(on)
 
         local Kitty = util.joaat("A_C_Cat_01")
         util.request_model(Kitty)
@@ -438,7 +1181,7 @@ local KittyRingSettings = {"Default", "Invincible"}
     end)
 
 
-    menu.action(myListFunSettings, "Doggy Friend", {}, "Spawns a Doggy friend that will follow you", function(on)
+    menu.action(myListFunAnimalsPetSettings, "Doggy Friend", {}, "Spawns a Doggy friend that will follow you", function(on)
 
         local Doggy = util.joaat("a_c_chop")
         util.request_model(Doggy)
@@ -466,7 +1209,7 @@ local KittyRingSettings = {"Default", "Invincible"}
                 end
         end)
     
-    end)
+    end)--]]
 
 
     menu.divider(myListFunSettings, "------")
@@ -592,9 +1335,18 @@ end)
         util.create_tick_handler(function()
             Timer = Timer - 1
             util.draw_centred_text("You can jump in : " .. Timer)
+
+            local currPlaneLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(Plane, 0, 0, 0)
+            local currPlayerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+            
+            if currPlaneLoc:distance(currPlayerLoc) > 300.0 then
+                entities.delete(Plane)
+                return false
+            end
+
             if Timer < 0 then
                 SET_VEHICLE_DOOR_OPEN(Plane, 2, false, false)
-                return false
+                
             end
         end)
 
@@ -602,9 +1354,7 @@ end)
 
         --local doors = GET_NUMBER_OF_VEHICLE_DOORS(Plane)
         --util.toast(doors)
-
-        util.yield(60000)
-        entities.delete(Plane)
+        
 
 
     end)
@@ -616,10 +1366,105 @@ end)
     local JetSquadronSettings = {"Lazer",--[["Raiju",--]] "V-65 Molotok", "Pyro", "B-11 Strikeforce", "Seabreeze", "Howard NX-25", "Besra", "LF-22 Starling", "Rogue", "Alpha-Z1", "Mallard", "Nimbus", "Luxor Deluxe", "Mogul", "Streamer216", "Vestra", "Cuban 800", "Dodo", "Velum", "Mammatus", "Duster", "Ultralight"}
     local JetSquadronRealNames = {"Lazer",--[["raiju",--]] "molotok", "pyro", "strikeforce", "seabreeze" , "howard", "besra", "starling", "rogue", "Stunt", "alphaz1", "nimbus", "luxor2", "mogul", "streamer216", "vestra", "cuban800", "dodo", "velum", "mammatus", "duster", "microlight"}
 
-    menu.textslider(myListFunSquadron, "Plane Type", {}, "Select your type of plane", JetSquadronSettings, function (index, name)
+    local PlayerSquadronPlane = util.joaat("Lazer")
+    local hashJet
+    menu.textslider(myListFunSquadron, "Plane Type", {}, "Select your type of plane, if you want a plane that's not in here simply get inside the plane yourself and click this button again regardless of the selected plane", JetSquadronSettings, function (index, name)
     
-        SquadronPlane = util.joaat(JetSquadronRealNames[index])
-        util.toast(JetSquadronSettings[index] .. " selected !")
+        local pedm = players.user_ped()
+        
+        if IS_PED_IN_ANY_PLANE(pedm) then
+            local name = GET_VEHICLE_PED_IS_IN(pedm, true)
+            if IS_VEHICLE_MODEL(name, 621481054) then
+                hashJet = util.joaat("luxor")
+                
+            elseif IS_VEHICLE_MODEL(name, 1058115860) then
+                hashJet = util.joaat("jet")
+            elseif IS_VEHICLE_MODEL(name, 368211810) then
+                hashJet = util.joaat("cargoplane")
+            elseif IS_VEHICLE_MODEL(name, 2336777441) then
+                hashJet = util.joaat("cargoplane2")
+            elseif IS_VEHICLE_MODEL(name, 1981688531) then
+                hashJet = util.joaat("titan")
+            elseif IS_VEHICLE_MODEL(name, 165154707) then
+                hashJet = util.joaat("Miljet")
+            elseif IS_VEHICLE_MODEL(name, 2176659152) then
+                hashJet = util.joaat("avenger")
+            elseif IS_VEHICLE_MODEL(name, 408970549) then
+                hashJet = util.joaat("avenger2")
+            elseif IS_VEHICLE_MODEL(name, 3868033424) then
+                hashJet = util.joaat("avenger3")
+            elseif IS_VEHICLE_MODEL(name, 4225674290) then
+                hashJet = util.joaat("avenger4")
+            elseif IS_VEHICLE_MODEL(name, 447548909) then
+                hashJet = util.joaat("volatol")
+            elseif IS_VEHICLE_MODEL(name, 3929093893) then
+                hashJet = util.joaat("alkonost")
+            elseif IS_VEHICLE_MODEL(name, 1077420264) then
+                hashJet = util.joaat("velum2")
+            elseif IS_VEHICLE_MODEL(name, 970385471) then
+                hashJet = util.joaat("hydra")
+            elseif IS_VEHICLE_MODEL(name, 4262088844) then
+                hashJet = util.joaat("bombushka")
+            elseif IS_VEHICLE_MODEL(name, 1043222410) then
+                hashJet = util.joaat("tula")
+            elseif IS_VEHICLE_MODEL(name, 1036591958) then
+                hashJet = util.joaat("nokota")
+            elseif IS_VEHICLE_MODEL(name, 239897677) then
+                hashJet = util.joaat("raiju")
+            elseif IS_VEHICLE_MODEL(name, 3650256867) then
+                hashJet = util.joaat("cuban800")
+            elseif IS_VEHICLE_MODEL(name, 970356638) then
+                hashJet = util.joaat("duster")
+            elseif IS_VEHICLE_MODEL(name, 2172210288) then
+                hashJet = util.joaat("Stunt")
+            elseif IS_VEHICLE_MODEL(name, 2548391185) then
+                hashJet = util.joaat("mammatus")
+            elseif IS_VEHICLE_MODEL(name, 2621610858) then
+                hashJet = util.joaat("velum")
+            elseif IS_VEHICLE_MODEL(name, 3080461301) then
+                hashJet = util.joaat("Shamal")
+            elseif IS_VEHICLE_MODEL(name, 3013282534) then
+                hashJet = util.joaat("Lazer")
+            elseif IS_VEHICLE_MODEL(name, 1341619767) then
+                hashJet = util.joaat("vestra")
+            elseif IS_VEHICLE_MODEL(name, 1824333165) then
+                hashJet = util.joaat("besra")
+            elseif IS_VEHICLE_MODEL(name, 3393804037) then
+                hashJet = util.joaat("dodo")
+            elseif IS_VEHICLE_MODEL(name, 3080673438) then
+                hashJet = util.joaat("luxor2")
+            elseif IS_VEHICLE_MODEL(name, 2999939664) then
+                hashJet = util.joaat("nimbus")
+            elseif IS_VEHICLE_MODEL(name, 3287439187) then
+                hashJet = util.joaat("howard")
+            elseif IS_VEHICLE_MODEL(name, 2771347558) then
+                hashJet = util.joaat("alphaz1")
+            elseif IS_VEHICLE_MODEL(name, 3902291871) then
+                hashJet = util.joaat("seabreeze")
+            elseif IS_VEHICLE_MODEL(name, 1565978651) then
+                hashJet = util.joaat("molotok")
+            elseif IS_VEHICLE_MODEL(name, 2594093022) then
+                hashJet = util.joaat("starling")
+            elseif IS_VEHICLE_MODEL(name, 2531412055) then
+                hashJet = util.joaat("microlight")
+            elseif IS_VEHICLE_MODEL(name, 3319621991) then
+                hashJet = util.joaat("rogue")
+            elseif IS_VEHICLE_MODEL(name, 2908775872) then
+                hashJet = util.joaat("pyro")
+            elseif IS_VEHICLE_MODEL(name, 3545667823) then
+                hashJet = util.joaat("mogul")
+            elseif IS_VEHICLE_MODEL(name, 1692272545) then
+                hashJet = util.joaat("strikeforce")
+            elseif IS_VEHICLE_MODEL(name, 191916658) then
+                hashJet = util.joaat("streamer216")
+            end
+
+            util.toast("You are inside a plane, it will be used instead of the plane you clicked on !")
+        else
+            SquadronPlane = util.joaat(JetSquadronRealNames[index])
+            util.toast(JetSquadronSettings[index] .. " selected !")
+            hashJet=SquadronPlane
+        end
 
         if index >= 7 then
             slowPlaneOffset = 20
@@ -636,9 +1481,12 @@ end)
     
         local heading = GET_ENTITY_HEADING(players.user_ped())
 
-        local hashJet = SquadronPlane --seabreeze:3902291871 --Lazer:3013282534 --raiju:239897677
-        local hashPilot = 2872052743 --S_M_Y_Pilot_01:2872052743
+        --util.toast(hashJet)
+
+         --seabreeze:3902291871 --Lazer:3013282534 --raiju:239897677
         local hashTarget = 1082797888 --:1082797888
+        local PlayerhashJet = PlayerSquadronPlane --seabreeze:3902291871 --Lazer:3013282534 --raiju:239897677
+        local hashPilot = 2872052743 --S_M_Y_Pilot_01:2872052743
         util.request_model(hashJet)
         util.request_model(hashTarget)
         local aJetSpeed
@@ -660,7 +1508,13 @@ end)
     
         if not DOES_ENTITY_EXIST(PlayerJet) then
             
-            PlayerJet = entities.create_vehicle(hashJet, PlayerJetOffset, heading)
+            if IS_PED_IN_ANY_PLANE(pedm) then
+                PlayerJet = GET_VEHICLE_PED_IS_IN(pedm, true)
+                SET_ENTITY_COORDS_NO_OFFSET(PlayerJet, PlayerJetOffset.x, PlayerJetOffset.y, PlayerJetOffset.z, false, false, false)
+            else
+                PlayerJet = entities.create_vehicle(hashJet, PlayerJetOffset, heading)
+                
+            end
             
             aTarget = entities.create_object(hashTarget, aJetAimLoc)
             bTarget = entities.create_object(hashTarget, bJetAimLoc)
@@ -1052,7 +1906,101 @@ end, function()
     entities.delete(OBJ17)
 end)
 
+menu.toggle_loop(myListFunSettings, "Giant Hamsterball", {}, "Spawns a Giant Hamsterball (Make sure only ONE Giant hamsterball is loaded in the world to avoid bugs)", function(on)
+    local hashLoop = 430430733 --2138347493 --util.joaat("Snowball") 1768956181 -1125864094- 234083239 430430733
 
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    local owner = players.user_ped()
+    local Offset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(owner, 0, 0, 37)
+    GHexist = 0
+
+    if not DOES_ENTITY_EXIST(gOBJ) and GHexist == 0 then
+---------------------------------------------------------------------------------------------
+        GHexist = 1
+        gOBJ = entities.create_object(hashLoop, Offset)
+        gOBJ1 = entities.create_object(hashLoop, Offset)
+        gOBJ2 = entities.create_object(hashLoop, Offset)
+        gOBJ3 = entities.create_object(hashLoop, Offset)
+        gOBJ4 = entities.create_object(hashLoop, Offset)
+        gOBJ5 = entities.create_object(hashLoop, Offset)
+        gOBJ6 = entities.create_object(hashLoop, Offset)
+        gOBJ7 = entities.create_object(hashLoop, Offset)
+        gOBJ8 = entities.create_object(hashLoop, Offset)
+        gOBJ9 = entities.create_object(hashLoop, Offset)
+        gOBJ10 = entities.create_object(hashLoop, Offset)
+        gOBJ11 = entities.create_object(hashLoop, Offset)
+        gOBJ12 = entities.create_object(hashLoop, Offset)
+        gOBJ13 = entities.create_object(hashLoop, Offset)
+        gOBJ14 = entities.create_object(hashLoop, Offset)
+        gOBJ15 = entities.create_object(hashLoop, Offset)
+        gOBJ16 = entities.create_object(hashLoop, Offset)
+        gOBJ17 = entities.create_object(hashLoop, Offset)
+---------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------
+        SET_ENTITY_ROTATION(gOBJ, 0, 90, 0)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ1, 0, 90, 20)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ2, 0, 90, 40)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ3, 0, 90, 60)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ4, 0, 90, 80)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ5, 0, 90, 100)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ6, 0, 90, 120)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ7, 0, 90, 140)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ8, 0, 90, 160)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ9, 0, 90, 180)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ10, 0, 90, 200)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ11, 0, 90, 220)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ12, 0, 90, 240)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ13, 0, 90, 260)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ14, 0, 90, 280)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ15, 0, 90, 300)
+        util.yield(100)
+        SET_ENTITY_ROTATION(gOBJ16, 0, 90, 320)
+        util.yield(100)
+    SET_ENTITY_ROTATION(gOBJ17, 0, 90, 340)
+        util.yield(100)
+---------------------------------------------------------------------------------------------
+        
+    end
+    
+        --util.toast("loop")
+
+    
+end, function() 
+    GHexist = 0
+    entities.delete(gOBJ)
+    entities.delete(gOBJ1)
+    entities.delete(gOBJ2)
+    entities.delete(gOBJ3)
+    entities.delete(gOBJ4)
+    entities.delete(gOBJ5)
+    entities.delete(gOBJ6)
+    entities.delete(gOBJ7)
+    entities.delete(gOBJ8)
+    entities.delete(gOBJ9)
+    entities.delete(gOBJ10)
+    entities.delete(gOBJ11)
+    entities.delete(gOBJ12)
+    entities.delete(gOBJ13)
+    entities.delete(gOBJ14)
+    entities.delete(gOBJ15)
+    entities.delete(gOBJ16)
+    entities.delete(gOBJ17)
+end)
 
 
 
@@ -1069,8 +2017,295 @@ menu.toggle_loop(myListMiscSettings, "Diplay Location", {}, "Diplays Global Loca
 
 end, function() 
 
+    
+
 end)
 
+menu.action(myListMiscSettings, "Clear World", {"clearworld"}, "Deletes any entity in the world.", function(on_click) --Generously brought to me by Miracle
+    local count = 0
+    for i, entity in pairs(entities.get_all_vehicles_as_handles()) do
+        entities.delete_by_handle(entity)
+        count = count + 1
+    end
+    for i, entity in pairs(entities.get_all_peds_as_handles()) do
+        if not IS_PED_A_PLAYER(entity) then
+            entities.delete_by_handle(entity)
+        end
+        count = count + 1
+    end
+    for i, entity in pairs(entities.get_all_objects_as_handles()) do
+        entities.delete_by_handle(entity)
+        count = count + 1
+    end
+    util.toast("Clear World executed succesfully, " .. count .. " entities removed. :)")
+end)
+
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Rat", {}, "Spawns a pet rat near you", function ()
+    
+    SelectedPetAnimal = util.joaat("A_C_Rat")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Rabbit", {}, "Spawns a pet rabbit near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Rabbit_01")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Giant Rabbit", {}, "Spawns a pet giant rabbit near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Rabbit_02")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Kitty", {}, "Spawns a pet kitty near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Cat_01")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Poodle", {}, "Spawns a pet poodle near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Poodle")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Westy", {}, "Spawns a pet westy near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Westy")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Pug", {}, "Spawns a pet pug near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Pug")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Zombie Pug", {}, "Spawns a pet zombie pug near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Pug_02")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Rottweiler", {}, "Spawns a pet rottweiler near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Rottweiler")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Retriever", {}, "Spawns a pet retriever near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Retriever")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Shepherd", {}, "Spawns a pet shepherd near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_shepherd")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Husky", {}, "Spawns a pet husky near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Husky")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Coyote", {}, "Spawns a pet coyote near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Coyote")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Zombie Coyote", {}, "Spawns a pet zombie coyote near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Coyote_02")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Mountain Lion", {}, "Spawns a pet mountain lion near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_MtLion")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Zombie Mountain Lion", {}, "Spawns a pet zombie mountain lion near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_MtLion_02")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Panther", {}, "Spawns a pet panther near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Panther")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Rhesus", {}, "Spawns a pet rhesus near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Rhesus")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Chimp", {}, "Spawns a pet chimp near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Chimp_02")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Pig", {}, "Spawns a pet pig near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Pig")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Boar", {}, "Spawns a pet boar near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Boar")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet zombie boar", {}, "Spawns a pet zombie boar near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Boar_02")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Cow", {}, "Spawns a pet cow near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Cow")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Deer", {}, "Spawns a pet deer near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Deer")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Zombie Deer", {}, "Spawns a pet zombie deer near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Deer_02")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Fishy", {}, "Spawns a pet fishy near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Fish")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Stingray", {}, "Spawns a pet stingray near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Stingray")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Dolphin", {}, "Spawns a pet dolphin near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Dolphin")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Hammerhead Shark", {}, "Spawns a pet hammerhead shark near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_SharkHammer")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Tiger Shark", {}, "Spawns a pet tiger shark near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_SharkTiger")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Killer Whale", {}, "Spawns a pet killer whale near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_KillerWhale")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Hump Back Whale", {}, "Spawns a pet hump back whale near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_HumpBack")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Pigeon", {}, "Spawns a pet pigeon near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Pigeon")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Crow", {}, "Spawns a pet Crow near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Crow")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Hen", {}, "Spawns a pet hen near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Hen")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Seagull", {}, "Spawns a pet seagull near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Seagull")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Chickehawk", {}, "Spawns a pet chickenhawk near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Chickenhawk")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
+
+menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Cormorant", {}, "Spawns a pet cormorant near you", function ()
+
+    SelectedPetAnimal = util.joaat("A_C_Cormorant")
+    SpawnPetAnimal(SelectedPetAnimal, players.user_ped())
+
+end)
 
 -------------------------------------------------------------------------------------------------------
 -------------------------------------------------------------------------------------------------------
@@ -1357,25 +2592,7 @@ end)
 
 
 
- --------------------------------------------------------------------------------------------
- players.add_command_hook(function(pid, root) --[[you will need the pid for most things and the root is the root of the players
-    menu. You can make a divider for the name of your script in the player menu]]
-       menu.player_root(pid):divider("Lola Script")
-   
-       --[[Adding COMMANDPERM_FRIENDLY to the end like it was done here makes it to where if friendly options are set for
-       chat commands. ]]
-   
-       --root:action("Teleport to them", {"tptoplayer"}, "Teleport yourself to them", function()
-       --    local target = PLAYER.GET_PLAYER_PED_SCRIPT_INDEX(pid) --first you will want to get their Player Ped
-       --    local tar_coords = ENTITY.GET_ENTITY_COORDS(target, true) --next get their coordinates
-       --    ENTITY.SET_ENTITY_COORDS(players.user_ped(), tar_coords.x, tar_coords.y, tar_coords.z, false, false, false, false)
-           --finally teleport to them, you can use players.user_ped() to get your player ped
-       --end, nil, nil, COMMANDPERM_FRIENDLY)
-   
-       --to make a list in the players menu
-       local PlayerSpectate = menu.player_root(pid)
-       local PlayerTrollingList =  root:list('Trolling', {'Trolling'}, 'Trolling Options')
-       local PlayerFriendlyList =  root:list('Friendly', {'Friendly'}, 'Friendly Options')
+
        
        local PlayerFunnyList =  root:list('Funny', {'Funny'}, 'Funny Options')
        local PlayerFunnyVehicleList =  PlayerFunnyList:list('Vehicle', {'Vehicle'}, 'Funny Vehicle Options')
