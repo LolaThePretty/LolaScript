@@ -1,7 +1,7 @@
 -- LolaScript
 -- by LolaTheSquishy
 
-local SCRIPT_VERSION = "1.0.4"
+local SCRIPT_VERSION = "1.0.5"
 
 -- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
 local status, auto_updater = pcall(require, "auto-updater")
@@ -3760,18 +3760,18 @@ end)
 --- About LolaScript Menu
 ---
 
-local script_meta_menu = menu.list(menu.my_root(), t("About LolaScript"), {}, t("Information and options about the script itself."))
-menu.divider(script_meta_menu, t("LolaScript"))
-menu.readonly(script_meta_menu, t("Version"), SCRIPT_VERSION)
-menu.toggle(script_meta_menu, t("Auto-Update"), {}, t("Automatically install updates as they are released. Disable if you cannot successfully fetch updates as normal."), function()  end, config.auto_update)
-menu.action(script_meta_menu, t("Check for Update"), {}, t("The script will automatically check for updates at most daily, but you can manually check using this option anytime."), function()
+local script_meta_menu = menu.list(menu.my_root(),"About LolaScript", {},"Information and options about the script itself.")
+menu.divider(script_meta_menu,"LolaScript")
+menu.readonly(script_meta_menu,"Version", SCRIPT_VERSION)
+menu.toggle(script_meta_menu,"Auto-Update", {},"Automatically install updates as they are released. Disable if you cannot successfully fetch updates as normal.", function()  end, config.auto_update)
+menu.action(script_meta_menu,"Check for Update", {},"The script will automatically check for updates at most daily, but you can manually check using this option anytime.", function()
     auto_update_config.check_interval = 0
     if auto_updater.run_auto_update(auto_update_config) then
-        util.toast(t("No updates found"))
+        util.toast("No updates found")
     end
 end)
-menu.action(script_meta_menu, t("Clean Reinstall"), {}, t("Force an update to the latest version, regardless of current version."), function()
+menu.action(script_meta_menu,"Clean Reinstall"), {},"Force an update to the latest version, regardless of current version.", function()
     auto_update_config.clean_reinstall = true
     auto_updater.run_auto_update(auto_update_config)
 end)
-menu.hyperlink(script_meta_menu, t("Github Source"), "https://github.com/LolaThePretty/LolaScript", t("View source files on Github"))
+menu.hyperlink(script_meta_menu,"Github Source", "https://github.com/LolaThePretty/LolaScript","View source files on Github")
