@@ -1,7 +1,7 @@
 -- LolaScript
 -- by LolaTheSquishy
 
-local SCRIPT_VERSION = "1.0.6"
+local SCRIPT_VERSION = "1.0.7"
 
 -- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
 local status, auto_updater = pcall(require, "auto-updater")
@@ -89,12 +89,23 @@ auto_updater.run_auto_update(auto_update_config)
 
 --Translate script
 
+
+
+
+
 --make a blender with windmills on the player
 --do a guess which car is the correct and if u wrong it spawn a kamikaze or a blender
 
 --spawn invisble dogs around someone to sound spam them
 
 --PvP enhancer
+
+--auto give guns and u select which ones are auto given with a toggle loop for each
+
+--giant baguette whatever this suggestion means Lol
+--adding player peds as pet
+
+--make a flappy bird feature with sideway cam
 
 
 
@@ -250,6 +261,15 @@ end)
 
 
 
+local myListFunAnimalsSettings = menu.list(myListFunSettings, "Animals", {}, "Animals Options")
+local myListFunAnimalsWildSettings = menu.list(myListFunAnimalsSettings, "Wild", {}, "Wild Animals Options")
+local myListFunAnimalsPetSettings = menu.list(myListFunAnimalsSettings, "Pet", {}, "Pet Animals Options")
+menu.action(myListFunAnimalsSettings, "Populate world !", {}, "Will spawn a lot of random animals here and there around the every player", function ()
+
+    spawn_animals_all(util.joaat(EveryAnimalHashList[math.random(1, #EveryAnimalHashList)]))
+
+end)
+
     --[[local tigers = {}
 
     menu.action(myListFunSettings, "Hopeless Boat", {}, "Spawns a boat in infested shark waters", function(on)
@@ -298,7 +318,7 @@ end)
 
 
 
-   --menu.divider(myListFunSettings, "------")
+  menu.divider(myListFunSettings, "------")
 
    --Spawn Ramp
    menu.action(myListFunSettings, "Spawn Ramp", {}, "This will spawn a ramp in front of you (Works best with small vehicles)", function()
@@ -600,14 +620,6 @@ end)
    end)
 
 
-local myListFunAnimalsSettings = menu.list(myListFunSettings, "Animals", {}, "Animals Options")
-local myListFunAnimalsWildSettings = menu.list(myListFunAnimalsSettings, "Wild", {}, "Wild Animals Options")
-local myListFunAnimalsPetSettings = menu.list(myListFunAnimalsSettings, "Pet", {}, "Pet Animals Options")
-menu.action(myListFunAnimalsSettings, "Populate world !", {}, "Will spawn a lot of random animals here and there around the every player", function ()
-
-    spawn_animals_all(util.joaat(EveryAnimalHashList[math.random(1, #EveryAnimalHashList)]))
-
-end)
 
 
 --menu.toggle(myListVehicle, "Toggle!", {}, "Description of Toggle", function (on_change)
@@ -730,7 +742,7 @@ end)
 --Spawn Vehicle Settings
 ---------------------------
 
---menu.divider(myListVehicle, "------")
+menu.divider(myListVehicle, "------")
 
 
 --Freeze driving vehicle
@@ -1140,7 +1152,7 @@ local SelectedPetAnimal
 
     end)
 
-    local PetNamesList = {"Ako", "Niko", "Izika", "Whiskers", "Nina", "Caramel", "Leonardo", "Jack", "Doodle", "Sonic", "Mario", "Sakuro", "Johnathan", "Therese", "Asuka", "Rei", "Hanna", "Dawn", "Sunshine", "Midnight", "Apauline", "Ernest", "Charles", "Sugar", "Squishy", "boo", "Peepo", "Raphael"}
+    local PetNamesList = {"Ako", "Niko", "Izika", "Whiskers", "Nina", "Caramel", "Leonardo", "Jack", "Doodle", "Sonic", "Mario", "Sakuro", "Johnathan", "Therese", "Asuka", "Rei", "Hanna", "Dawn", "Sunshine", "Midnight", "Apauline", "Ernest", "Charles", "Sugar", "Squishy", "boo", "Peepo", "Raphael", "Sebastian", "Orlando", "Alyssa", "Yannis", "Joshua", "Peter", "Soup", "Dracula", "Alucard", "teemo", "yuki", "daboo", "pashoo", "squat", "Felix", "Lola", "Tigris", "Isoa", "Hannah", "Capucine", "Minette", "Tamagochi", "Pikachu", "Eevee", "Evely"}
 
     function SpawnWildAnimal (SelectedWildAnimal)
 
@@ -1207,7 +1219,7 @@ local SelectedPetAnimal
 
 
 
-    --menu.divider(myListFunSettings, "------")
+    menu.divider(myListFunSettings, "------")
 
     --[[menu.action(myListFunAnimalsPetSettings, "Kitty Friend", {}, "Spawns a kitty friend that will follow you", function(on)
 
@@ -2231,7 +2243,7 @@ local SelectedPetAnimal
 
 
 
-    --menu.divider(myListFunSettings, "------")
+    menu.divider(myListFunSettings, "------")
 
 
 
@@ -2263,6 +2275,57 @@ local SelectedPetAnimal
 
 
     end)
+
+
+
+
+    --menu.toggle(myListMiscSettings, "add divider", {}, "Trap the player within its car", function(on_change)
+
+    --    if on_change == true then
+    --        divider_1(on_change)
+    --    else
+    --        divider_1()
+    --    end
+
+    --end)
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 --------------------------------------------------------------------------------------------
 players.add_command_hook(function(pid, root) --[[you will need the pid for most things and the root is the root of the players
     menu. You can make a divider for the name of your script in the player menu]]
@@ -2282,7 +2345,47 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
     local PlayerSpectate = menu.player_root(pid)
     local PlayerTrollingList =  root:list('Trolling', {'Trolling'}, 'Trolling Options')
     local PlayerFriendlyList =  root:list('Friendly', {'Friendly'}, 'Friendly Options')
+
+
+    
+    ---------------------------
+    --Friendly
+    ---------------------------
+
+
+    local PlayerFriendlyVehicleList = menu.list(PlayerFriendlyList, "Vehicle", {}, "Vehicle Settings")
+
+    PlayerFriendlyVehicleList:textslider("Spawn Vehicle", {}, "Spawns the selected vehicle", SpawnableVehicles, function (index, name) -- changed these value names to be more sense
+        local hash = util.joaat(vehicles[index])
+        local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+        util.request_model(hash) -- its better to call as less functions as possible because more performance
+        local offset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 3, 0) -- changed the name to be offset u can still pick pos but i like offset more because it tells u what it is
+        local heading = GET_ENTITY_HEADING(pedm) -- changed to heading same reason as above
+        local spawnedCar = entities.create_vehicle(hash, offset, heading) -- only put heading in here because you already got the heading of ur own ped and there is no need to get the heading of the heading you already got
+        SET_PED_INTO_VEHICLE(pedm, spawnedCar, -1)
+    end)
+
+
+
+    PlayerFriendlyVehicleList:action('Fix Vehicle', {}, 'Fixes the current vehicle', function ()
+        --to do it better it would be good to specatate them first as things tend to work better that way
+        --menu.trigger_commands('spectate'..pname)
+        --util.yield(1500) --yield for 1500 ms or 1.5 secs to give it time to spectate
+        -- get the players model
+
+        local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid) -- get the players model
+        if IS_PED_IN_ANY_VEHICLE(pedm, true) then --checking if they are in a vehicle
+            local vmod = GET_VEHICLE_PED_IS_IN(pedm, true) --get the vehicle they are in
+            Get_Entity(vmod) --get control
+            SET_VEHICLE_DEFORMATION_FIXED(vmod)
+            SET_VEHICLE_FIXED(vmod)
+        end
+
+    end)
+
+
     local PlayerFriendlyPetList =  PlayerFriendlyList:list('Pet', {'Pet'}, 'Pet Options')
+
 
     -----------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------
@@ -2291,6 +2394,8 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
     -----------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------
+
+
 
     menu.action(PlayerFriendlyPetList, "Spawn a Pet Rat", {}, "Spawns a pet rat near this player (must spectate or be near or it to work properly)", function ()
 
@@ -2612,12 +2717,26 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     local PlayerFunnyList =  root:list('Funny', {'Funny'}, 'Funny Options')
     local PlayerFunnyVehicleList =  PlayerFunnyList:list('Vehicle', {'Vehicle'}, 'Funny Vehicle Options')
+    local PlayerTeleportList =  root:list('Teleport', {'Teleport'}, 'Teleport Options')
 
     menu.action(PlayerSpectate, "Spectate Player ?", {}, "Spectate Player On/Off", function (on_change)
         local  pname = GET_PLAYER_NAME(pid)
         menu.trigger_commands('spectate'.. pname)
     end)
 
+    menu.action(PlayerTeleportList, "Teleport to Player ?", {}, "Teleport to Player", function (on_change)
+        local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+        local User = players.user_ped()
+        local Coords = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm ,0 ,0 , 1)
+        SET_ENTITY_COORDS(User, Coords.x, Coords.y, Coords.z)
+    end)
+
+    menu.action(PlayerTeleportList, "Teleport to Player to me ?", {}, "Teleport the Player to me", function (on_change)
+        local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+        local User = players.user_ped()
+        local Coords = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(User ,0 ,0 , 1)
+        SET_ENTITY_COORDS(pedm, Coords.x, Coords.y, Coords.z)
+    end)
 
     function Get_Entity(entity)
         local tick = 0
@@ -2666,7 +2785,6 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     local PlayerTrollingVehicleList = menu.list(PlayerTrollingList, "Vehicle", {}, "Vehicle Settings")
     local PlayerTrollingPedList = menu.list(PlayerTrollingList, "Ped", {}, "Ped Settings")
-    local PlayerFriendlyVehicleList = menu.list(PlayerFriendlyList, "Vehicle", {}, "Vehicle Settings")
 
 
     menu.action(PlayerTrollingVehicleList, "Bonk Player", {}, "Spawns a wall to bonk their vehicle", function()
@@ -2838,9 +2956,1119 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     --SET_ENTITY_SHOULD_FREEZE_WAITING_ON_COLLISION
 
+    menu.action(PlayerTrollingVehicleList, "Blender", {}, "Grinds the player to shreds", function(on)
+
+        local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+        local windmillHash = 1952396163
+        util.request_model(windmillHash)
+        local heading = GET_ENTITY_HEADING(pedm)
+    
+        local Wind1playerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, -8, 1-1, -30)
+        local windmill_1 = entities.create_object(windmillHash, Wind1playerLoc, 0)
+        SET_ENTITY_ROTATION(windmill_1, 0, 0, heading)
+        
+        local Wind2playerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 8, -3-1, -30)
+        local windmill_2 = entities.create_object(windmillHash, Wind2playerLoc, 0)
+        SET_ENTITY_ROTATION(windmill_2, 0, 0, heading+180)
+
+        local Wind3playerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, -8, 1+2, -30)
+        local windmill_3 = entities.create_object(windmillHash, Wind3playerLoc, 0)
+        SET_ENTITY_ROTATION(windmill_3, 0, 0, heading)
+        
+        local Wind4playerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 8, -3+2, -30)
+        local windmill_4 = entities.create_object(windmillHash, Wind4playerLoc, 0)
+        SET_ENTITY_ROTATION(windmill_4, 0, 0, heading+180)
 
 
-    --menu.divider(PlayerTrollingVehicleList, "------")
+        
+        local Wind5playerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 2, 10, -30)
+        local windmill_5 = entities.create_object(windmillHash, Wind5playerLoc, 0)
+        SET_ENTITY_ROTATION(windmill_5, 0, 0, heading-90)
+        
+        local Wind6playerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, -2, -10, -30)
+        local windmill_6 = entities.create_object(windmillHash, Wind6playerLoc, 0)
+        SET_ENTITY_ROTATION(windmill_6, 0, 0, heading+90)
+        
+        local Wind7playerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 2-1, 10, -30)
+        local windmill_7 = entities.create_object(windmillHash, Wind7playerLoc, 0)
+        SET_ENTITY_ROTATION(windmill_7, 0, 0, heading-90)
+        
+        local Wind8playerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, -2+1, -10, -30)
+        local windmill_8 = entities.create_object(windmillHash, Wind8playerLoc, 0)
+        SET_ENTITY_ROTATION(windmill_8, 0, 0, heading+90)
+    
+    
+    
+    
+    
+        util.yield(3000)
+        entities.delete(windmill_1)
+        entities.delete(windmill_2)
+        entities.delete(windmill_3)
+        entities.delete(windmill_4)
+        entities.delete(windmill_5)
+        entities.delete(windmill_6)
+        entities.delete(windmill_7)
+        entities.delete(windmill_8)
+    
+    
+    end)
+
+function divider_1 (on)
+
+    if on == true then
+        --divider = 
+    else
+        --menu.delete(divider)
+    end
+
+
+end
+
+menu.divider(PlayerFunnyList, "------")
+
+local myListFunMinigamesSettings = root.list(PlayerFunnyList, "Minigames", {}, "Play Minigames !")
+
+menu.action(myListFunMinigamesSettings, "Flappy flap", {}, "Totally not a rip off of flappy bird that allows you to play using your own car and to flap using the space key", function()
+    FlappyFlapminigamestarted = 0
+    if IS_CONTROL_PRESSED(0, 68) and FlappyFlapminigamestarted == 0 then
+        FlappyFlapminigamestarted= 1
+        util.yield(1000)
+    local time = 0
+    
+
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    local playerVehicle = GET_VEHICLE_PED_IS_IN(pedm)
+    local FlappyCam = CREATE_CAMERA(26379945, true)
+
+    local FloorHash = util.joaat("stt_prop_stunt_landing_zone_01")
+    local RoofHash = util.joaat("stt_prop_stunt_landing_zone_01")
+    local Pillar = util.joaat("port_xr_cont_03")
+    util.request_model(FloorHash)
+    util.request_model(RoofHash)
+    util.request_model(Pillar)
+    
+    
+        local floorloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(floor, 0, -5, 0)
+        local roofloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(roof, 0, 5, 0)
+
+
+
+    if IS_PED_IN_VEHICLE(pedm, playerVehicle, false) then
+        
+
+        HARD_ATTACH_CAM_TO_ENTITY(FlappyCam, playerVehicle, 0, 0, 90, 12, 0, 0, true)
+                            --                          xrot,yrot,zrot,xloc,yloc,zloc
+        RENDER_SCRIPT_CAMS(true, true, 500, 1, 0, 0);
+
+        local heading = 0 --GET_ENTITY_HEADING(playerVehicle)
+        SET_ENTITY_VELOCITY(playerVehicle, 0, 0, 0)
+        SET_ENTITY_ROTATION(playerVehicle, 0, 0, heading)
+        util.yield(10)
+        SET_ENTITY_VELOCITY(playerVehicle, 0, 0, 100)
+        util.yield(500)
+
+        
+        local FloorOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, -10)
+        local RoofOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 10)
+
+        floor = entities.create_object(FloorHash, FloorOffset, heading)
+        roof = entities.create_object(FloorHash, RoofOffset, heading)
+        local roofloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(roof, 0, 5, 0)
+        SET_ENTITY_COLLISION(floor, false, false)
+        SET_ENTITY_COLLISION(roof, false, false)
+
+        util.create_tick_handler(function ()
+            util.toast("Hold Right Mouse Click few seconds to give up")
+
+            SET_ENTITY_ROTATION(playerVehicle, 0, 0, heading)
+
+            if IS_CONTROL_PRESSED(0, 179) then
+                --util.toast("blep")
+                SET_ENTITY_VELOCITY(playerVehicle, 0, 0, 12)
+            else
+                SET_ENTITY_VELOCITY(playerVehicle, 0, 0, -7)
+            end
+
+            if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) or FlappyFlapminigamestarted == 0 then
+                --util.toast("boop")
+                RENDER_SCRIPT_CAMS(false, true, 500, 1, 0, 0);
+                DESTROY_CAM(FlappyCam, true)
+                FlappyFlapminigamestarted = 0
+                entities.delete(floor)
+                entities.delete(roof)
+                return false
+            end
+
+
+            if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
+                RENDER_SCRIPT_CAMS(false, true, 500, 1, 0, 0);
+                DESTROY_CAM(FlappyCam, true)
+
+                entities.delete(floor)
+                entities.delete(roof)
+                util.toast("Total score of this run : " .. time)
+                FlappyFlapminigamestarted = 0
+                return false
+            end
+
+
+            
+
+        end)
+        util.yield(500)
+util.create_tick_handler(function ()
+        
+    local floorloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(floor, 0, -5, 0)
+        local currLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerVehicle, 0, 0, 0)
+    if currLoc:distance(floorloc) > 19 then
+        RENDER_SCRIPT_CAMS(false, true, 500, 1, 0, 0);
+        DESTROY_CAM(FlappyCam, true)
+
+        entities.delete(floor)
+        entities.delete(roof)
+        util.toast("Total score of this run : " .. time)
+        FlappyFlapminigamestarted = 0
+        return false
+    end
+    if currLoc:distance(roofloc) > 18 then
+        RENDER_SCRIPT_CAMS(false, true, 500, 1, 0, 0);
+        DESTROY_CAM(FlappyCam, true)
+
+        entities.delete(floor)
+        entities.delete(roof)
+        util.toast("Total score of this run : " .. time)
+        FlappyFlapminigamestarted = 0
+        return false
+    end
+    
+end)
+
+
+        util.create_tick_handler(function ()
+        
+            FlappyFlapPillar()
+            util.yield(500)
+
+
+            if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
+                --util.toast("boop")
+
+                return false
+            end
+
+        end)
+
+
+        util.create_tick_handler(function()
+        
+
+            time = time + 1
+            util.yield(1000)
+    
+    
+            if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
+                return false
+            end
+        end)
+        
+        util.create_tick_handler(function()
+            util.draw_debug_text("you survived : " .. time .. "  seconds")
+            SET_ENTITY_ROTATION(playerVehicle, 0, 0, heading)
+
+            if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
+                FlappyFlapminigamestarted = 0
+                
+                return false
+            end
+        end)
+
+
+
+
+
+        
+    else
+        util.toast("Player is not in a vehicle !")
+    end
+
+
+else
+    util.toast("Please hold right click for 5 seconds to prevent bugs. Then hold right click while you start the minigame and release, the game will start within a second :)")
+end
+end)
+
+function FlappyFlapPillar()
+
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    local playerVehicle = GET_VEHICLE_PED_IS_IN(pedm)
+    local heading = 0 --GET_ENTITY_HEADING(playerVehicle)
+
+    
+    local PillarHash = util.joaat("port_xr_cont_03")
+    util.request_model(PillarHash)
+
+    local randomFlappyPillarHeight = math.random(2, 14)
+    PillarSpawnPoint = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(floor, 0, 20, 5 + randomFlappyPillarHeight) -- + 2
+    PillarSpawnPoint2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(floor, 0, 20, 5 + randomFlappyPillarHeight - 16.5) -- + 2 -- + 14
+
+
+    local Pillar = entities.create_object(PillarHash, PillarSpawnPoint, heading)
+    local Pillar2 = entities.create_object(PillarHash, PillarSpawnPoint2, heading)
+    
+
+    util.create_tick_handler(function()
+
+        if FlappyFlapminigamestarted == 1 then
+        SET_ENTITY_VELOCITY(Pillar, 0, -10, 0)
+        SET_ENTITY_ROTATION(Pillar, 90, 90, heading)
+        
+        SET_ENTITY_VELOCITY(Pillar2, 0, -10, 0)
+        SET_ENTITY_ROTATION(Pillar2, 90, 90, heading)
+
+
+        if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
+            --util.toast("boop")
+
+            entities.delete(Pillar)
+            entities.delete(Pillar2)
+            FlappyFlapminigamestarted = 0
+            return false
+        end
+        
+    end
+    end)
+    
+    
+
+    
+    util.yield(3500)
+
+    entities.delete(Pillar)
+    entities.delete(Pillar2)
+
+end
+
+menu.action(myListFunMinigamesSettings, "Choose Your Fate", {}, "Let the player choose his fate by selecting one of 6 cars, 4 of them will kill them", function()
+        
+    
+
+    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+    local spawnArena = 0
+
+    local FloorHash = util.joaat("stt_prop_stunt_landing_zone_01")
+    local WallAHash = util.joaat("stt_prop_stunt_landing_zone_01")
+    local WallBHash = util.joaat("stt_prop_stunt_landing_zone_01")
+    local WallCHash = util.joaat("stt_prop_stunt_landing_zone_01")
+    local WallDHash = util.joaat("stt_prop_stunt_landing_zone_01")
+    local CarHash = util.joaat("emperor")
+    local RewardHash = util.joaat("raiju")
+    
+    local ArrowHash = util.joaat("prop_mk_arrow_3d") -- prop_ar_arrow_3
+    util.request_model(FloorHash)
+    util.request_model(WallAHash)
+    util.request_model(WallBHash)
+    util.request_model(WallCHash)
+    util.request_model(WallDHash)
+    util.request_model(CarHash)
+    util.request_model(ArrowHash)
+    util.request_model(RewardHash)
+
+    if IS_PED_IN_ANY_VEHICLE(pedm, true) and not IS_PED_IN_MODEL(pedm, CarHash) and spawnArena == 0 then --checking if they are in a vehicle
+        local vmod = GET_VEHICLE_PED_IS_IN(pedm, true) --get the vehicle they are in
+        Get_Entity(vmod) --get controls
+        --util.toast("Vehicle deleted !")
+        FREEZE_ENTITY_POSITION(vmod, true)
+        util.yield(100)
+        FREEZE_ENTITY_POSITION(vmod, false)
+        SET_ENTITY_VELOCITY(vmod, 0, 0, 500)
+        util.yield(1000)
+        spawnArena = 1
+        FREEZE_ENTITY_POSITION(vmod, true)
+        util.yield(100)
+        FREEZE_ENTITY_POSITION(vmod, false)
+        util.yield(3000)
+        entities.delete_by_handle(vmod)
+    else
+        util.toast("Player is not in a vehicle ! (if the player is in an Emperor, wait for him to change car)")
+    end
+    
+    --util.yield(1300)
+
+if spawnArena == 1 then
+    
+
+
+    local heading = GET_ENTITY_HEADING(pedm)
+    local VictimSpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 3)
+    local BadSongOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, -5, 30, 5)
+    local GoodSongOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 5, 30, 5)
+    local FloorVictimOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, -4)
+    local WallAVictimOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 40, -4)
+    local WallBVictimOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, -5, -4)
+    local WallCVictimOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 25, 0, -4)
+    local WallDVictimOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, -25, 0, -4)
+    
+    local RewardSpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 5)
+    
+    local Car1Offset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, -7.5, 30, 0)
+    local Car2Offset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, -2.5, 30, 0)
+    local Car3Offset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 2.5, 30, 0)
+    local Car4Offset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 7.5, 30, 0)
+    local Car5Offset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, -12.5, 30, 0)
+    local Car6Offset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 12.5, 30, 0)
+
+    
+    
+    FREEZE_ENTITY_POSITION(pedm, true)
+
+        local TPoffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+        SET_ENTITY_COORDS(players.user(), TPoffset.x, TPoffset.y, TPoffset.z)
+    
+        BadSong = entities.create_vehicle(CarHash, BadSongOffset, heading)
+        GoodSong = entities.create_vehicle(CarHash, GoodSongOffset, heading)
+   
+        Floor = entities.create_object(FloorHash, FloorVictimOffset, heading)
+        WallA = entities.create_object(WallAHash, WallAVictimOffset, heading)
+        WallB = entities.create_object(WallBHash, WallBVictimOffset, heading)
+        WallC = entities.create_object(WallCHash, WallCVictimOffset, heading)
+        WallD = entities.create_object(WallDHash, WallDVictimOffset, heading)
+        
+        Car1 = entities.create_vehicle(CarHash, Car1Offset, 180 + heading)
+        Car2 = entities.create_vehicle(CarHash, Car2Offset, 180 + heading)
+        Car3 = entities.create_vehicle(CarHash, Car3Offset, 180 + heading)
+        Car4 = entities.create_vehicle(CarHash, Car4Offset, 180 + heading)
+        Car5 = entities.create_vehicle(CarHash, Car5Offset, 180 + heading)
+        Car6 = entities.create_vehicle(CarHash, Car6Offset, 180 + heading)
+        
+        Arrow1 = entities.create_object(ArrowHash, Car1Offset, heading)
+        Arrow2 = entities.create_object(ArrowHash, Car2Offset, heading)
+        Arrow3 = entities.create_object(ArrowHash, Car3Offset, heading)
+        Arrow4 = entities.create_object(ArrowHash, Car4Offset, heading)
+        Arrow5 = entities.create_object(ArrowHash, Car5Offset, heading)
+        Arrow6 = entities.create_object(ArrowHash, Car6Offset, heading)
+        
+        Arrow1o1 = entities.create_object(ArrowHash, Car1Offset, heading)
+        Arrow2o1 = entities.create_object(ArrowHash, Car2Offset, heading)
+        Arrow3o1 = entities.create_object(ArrowHash, Car3Offset, heading)
+        Arrow4o1 = entities.create_object(ArrowHash, Car4Offset, heading)
+        Arrow5o1 = entities.create_object(ArrowHash, Car5Offset, heading)
+        Arrow6o1 = entities.create_object(ArrowHash, Car6Offset, heading)
+        
+        Arrow1o2 = entities.create_object(ArrowHash, Car1Offset, heading)
+        Arrow2o2 = entities.create_object(ArrowHash, Car2Offset, heading)
+        Arrow3o2 = entities.create_object(ArrowHash, Car3Offset, heading)
+        Arrow4o2 = entities.create_object(ArrowHash, Car4Offset, heading)
+        Arrow5o2 = entities.create_object(ArrowHash, Car5Offset, heading)
+        Arrow6o2 = entities.create_object(ArrowHash, Car6Offset, heading)
+
+        SET_ENTITY_COORDS(Arrow1, Car1Offset.x, Car1Offset.y, Car1Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow2, Car2Offset.x, Car2Offset.y, Car2Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow3, Car3Offset.x, Car3Offset.y, Car3Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow4, Car4Offset.x, Car4Offset.y, Car4Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow5, Car5Offset.x, Car5Offset.y, Car5Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow6, Car6Offset.x, Car6Offset.y, Car6Offset.z + 1)
+
+        SET_ENTITY_COORDS(Arrow1o1, Car1Offset.x, Car1Offset.y, Car1Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow2o1, Car2Offset.x, Car2Offset.y, Car2Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow3o1, Car3Offset.x, Car3Offset.y, Car3Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow4o1, Car4Offset.x, Car4Offset.y, Car4Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow5o1, Car5Offset.x, Car5Offset.y, Car5Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow6o1, Car6Offset.x, Car6Offset.y, Car6Offset.z + 1)
+
+        SET_ENTITY_COORDS(Arrow1o2, Car1Offset.x, Car1Offset.y, Car1Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow2o2, Car2Offset.x, Car2Offset.y, Car2Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow3o2, Car3Offset.x, Car3Offset.y, Car3Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow4o2, Car4Offset.x, Car4Offset.y, Car4Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow5o2, Car5Offset.x, Car5Offset.y, Car5Offset.z + 1)
+        SET_ENTITY_COORDS(Arrow6o2, Car6Offset.x, Car6Offset.y, Car6Offset.z + 1)
+
+        SET_ENTITY_ROTATION(Floor, 0, 0, 0 + heading)
+        SET_ENTITY_ROTATION(WallA, -90, 0, 0 + heading)
+        SET_ENTITY_ROTATION(WallB, 90, 0, 0 + heading)
+        SET_ENTITY_ROTATION(WallC, 90, 0, 90 + heading)
+        SET_ENTITY_ROTATION(WallD, -90, 0, 90 + heading)
+        
+        SET_ENTITY_ROTATION(Arrow1, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow2, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow3, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow4, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow5, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow6, 0, 180, 0 + heading)
+        
+        SET_ENTITY_ROTATION(Arrow1o1, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow2o1, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow3o1, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow4o1, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow5o1, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow6o1, 0, 180, 0 + heading)
+        
+        SET_ENTITY_ROTATION(Arrow1o2, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow2o2, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow3o2, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow4o2, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow5o2, 0, 180, 0 + heading)
+        SET_ENTITY_ROTATION(Arrow6o2, 0, 180, 0 + heading)
+
+        --FREEZE_ENTITY_POSITION(Car1, true)
+        --FREEZE_ENTITY_POSITION(Car2, true)
+        --FREEZE_ENTITY_POSITION(Car3, true)
+        --FREEZE_ENTITY_POSITION(Car4, true)
+        
+    FREEZE_ENTITY_POSITION(pedm, false)
+        
+        FREEZE_ENTITY_POSITION(Arrow1, true)
+        FREEZE_ENTITY_POSITION(Arrow2, true)
+        FREEZE_ENTITY_POSITION(Arrow3, true)
+        FREEZE_ENTITY_POSITION(Arrow4, true)
+        FREEZE_ENTITY_POSITION(Arrow5, true)
+        FREEZE_ENTITY_POSITION(Arrow6, true)
+        
+        FREEZE_ENTITY_POSITION(Arrow1o1, true)
+        FREEZE_ENTITY_POSITION(Arrow2o1, true)
+        FREEZE_ENTITY_POSITION(Arrow3o1, true)
+        FREEZE_ENTITY_POSITION(Arrow4o1, true)
+        FREEZE_ENTITY_POSITION(Arrow5o1, true)
+        FREEZE_ENTITY_POSITION(Arrow6o1, true)
+        
+        FREEZE_ENTITY_POSITION(Arrow1o2, true)
+        FREEZE_ENTITY_POSITION(Arrow2o2, true)
+        FREEZE_ENTITY_POSITION(Arrow3o2, true)
+        FREEZE_ENTITY_POSITION(Arrow4o2, true)
+        FREEZE_ENTITY_POSITION(Arrow5o2, true)
+        FREEZE_ENTITY_POSITION(Arrow6o2, true)
+        
+        FREEZE_ENTITY_POSITION(BadSong, true)
+        FREEZE_ENTITY_POSITION(GoodSong, true)
+        
+        SET_ENTITY_COLLISION(BadSong, false)
+        SET_ENTITY_COLLISION(GoodSong, false)
+
+        SET_ENTITY_VISIBLE(BadSong, false)
+        SET_ENTITY_VISIBLE(GoodSong, false)
+
+        --SET_ENTITY_COORDS_NO_OFFSET(pedm, WallAVictimOffset.x, WallAVictimOffset.y, WallAVictimOffset.z, true, false, false)
+
+        local ChooseYourFateCarTable = {}
+        
+        local function shuffleCars1()
+
+            util.yield(math.random(100, 500))
+            
+            table.insert(ChooseYourFateCarTable, 1, Car1)
+
+            util.toast("1")
+        
+        end
+        
+        local function shuffleCars2()
+        
+            util.yield(math.random(100, 500))
+            
+            table.insert(ChooseYourFateCarTable, 1, Car2)
+
+            util.toast("2")
+        
+        end
+        
+        local function shuffleCars3()
+        
+            util.yield(math.random(100, 500))
+            
+            table.insert(ChooseYourFateCarTable, 1, Car3)
+
+            util.toast("3")
+        
+        end
+        
+        local function shuffleCars4()
+        
+            util.yield(math.random(100, 500))
+            
+            table.insert(ChooseYourFateCarTable, 1, Car4)
+
+            util.toast("4")
+        
+        end
+
+        local function shuffleCars5()
+        
+            util.yield(math.random(100, 500))
+            
+            table.insert(ChooseYourFateCarTable, 1, Car5)
+
+            util.toast("5")
+        
+        end
+
+        local function shuffleCars6()
+        
+            util.yield(math.random(100, 500))
+            
+            table.insert(ChooseYourFateCarTable, 1, Car6)
+
+            util.toast("6")
+        
+        end
+        
+    util.create_tick_handler(function()
+        shuffleCars1()
+        return false
+    end)
+    util.create_tick_handler(function()
+        shuffleCars2()
+        return false
+    end)
+    util.create_tick_handler(function()
+        shuffleCars3()
+        return false
+    end)
+    util.create_tick_handler(function()
+        shuffleCars4()
+        return false
+    end)
+    util.create_tick_handler(function()
+        shuffleCars5()
+        return false
+    end)
+    util.create_tick_handler(function()
+        shuffleCars6()
+        return false
+    end)
+        --util.toast("went through")
+
+        util.yield(600)
+
+        --[[local function ShuffleInPlace(t)
+            for i = #t, 2, -1 do
+                local j = math.random(i)
+                t[i], t[j] = t[j], t[i]
+            end
+        end--]]
+
+        --ShuffleInPlace(ChooseYourFateCarTable)
+
+
+        --util.toast(ChooseYourFateCarTable[1])
+        --util.toast(ChooseYourFateCarTable[2])
+        --util.toast(ChooseYourFateCarTable[3])
+        --util.toast(ChooseYourFateCarTable[4])
+
+
+util.create_tick_handler(function()
+
+    --Correct Choice
+    if IS_PED_IN_ANY_VEHICLE(pedm, true) and IS_PED_IN_MODEL(pedm, CarHash) and IS_PED_IN_VEHICLE(pedm, ChooseYourFateCarTable[1], false) then
+
+        SET_VEHICLE_MOD(GoodSong, 14, 4, false)
+        --OVERRIDE_VEH_HORN(GoodSong, true, hornhash)
+        START_VEHICLE_HORN(GoodSong, 10000, 2207581387, false)
+        util.yield(2000)
+        
+        RaijuReward = entities.create_vehicle(RewardHash, RewardSpawnOffset, 180 + heading)
+        util.request_model(RewardHash)
+
+        --entities.delete(Floor)
+            entities.delete_by_handle(WallA)
+        util.yield(100)
+        entities.delete_by_handle(WallB)
+        util.yield(100)
+        entities.delete_by_handle(WallC)
+        util.yield(100)
+        entities.delete_by_handle(WallD)
+        util.yield(100)
+        
+        entities.delete_by_handle(Car1)
+        util.yield(100)
+        entities.delete_by_handle(Car2)
+        util.yield(100)
+        entities.delete_by_handle(Car3)
+        util.yield(100)
+        entities.delete_by_handle(Car4)
+        util.yield(100)
+        entities.delete_by_handle(Car5)
+        util.yield(100)
+        entities.delete_by_handle(Car6)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6o1)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6o2)
+        util.yield(100)
+        entities.delete_by_handle(GoodSong)
+        util.yield(100)
+        entities.delete_by_handle(BadSong)
+        util.yield(100)
+
+        spawnArena = 0
+       -- if VictimSpawnOffset:distance(pedm) > 100.0 then
+        util.yield(60000)    
+        entities.delete_by_handle(Floor)
+            return false
+       -- end
+    end
+
+--Wrong choice 1
+if IS_PED_IN_ANY_VEHICLE(pedm, true) and IS_PED_IN_MODEL(pedm, CarHash) and IS_PED_IN_VEHICLE(pedm, ChooseYourFateCarTable[2], false) then
+    SET_VEHICLE_MOD(BadSong, 14, 8, false)
+    --OVERRIDE_VEH_HORN(GoodSong, true, hornhash)
+    START_VEHICLE_HORN(BadSong, 10000, 2207581387, false)
+    util.yield(2000)
+    APPLY_DAMAGE_TO_PED(pedm, 100000, true, 0)
+    local getcurrentPosPlayer = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+    ADD_EXPLOSION(getcurrentPosPlayer.x, getcurrentPosPlayer.y, getcurrentPosPlayer.z, 59, 1, true, false, 1.0, false)
+
+        entities.delete(Floor)
+        util.yield(100)
+        entities.delete_by_handle(WallA)
+        util.yield(100)
+        entities.delete_by_handle(WallB)
+        util.yield(100)
+        entities.delete_by_handle(WallC)
+        util.yield(100)
+        entities.delete_by_handle(WallD)
+        util.yield(100)
+        
+        entities.delete_by_handle(Car1)
+        util.yield(100)
+        entities.delete_by_handle(Car2)
+        util.yield(100)
+        entities.delete_by_handle(Car3)
+        util.yield(100)
+        entities.delete_by_handle(Car4)
+        util.yield(100)
+        entities.delete_by_handle(Car5)
+        util.yield(100)
+        entities.delete_by_handle(Car6)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6o1)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6o2)
+        util.yield(100)
+        entities.delete_by_handle(GoodSong)
+        util.yield(100)
+        entities.delete_by_handle(BadSong)
+        util.yield(100)
+
+    spawnArena = 0
+    return false
+end
+
+--Wrong choice 3
+if IS_PED_IN_ANY_VEHICLE(pedm, true) and IS_PED_IN_MODEL(pedm, CarHash) and IS_PED_IN_VEHICLE(pedm, ChooseYourFateCarTable[3], false) then
+    SET_VEHICLE_MOD(BadSong, 14, 8, false)
+    --OVERRIDE_VEH_HORN(GoodSong, true, hornhash)
+    START_VEHICLE_HORN(BadSong, 10000, 2207581387, false)
+    util.yield(2000)
+    APPLY_DAMAGE_TO_PED(pedm, 100000, true, 0)
+    local getcurrentPosPlayer = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+    ADD_EXPLOSION(getcurrentPosPlayer.x, getcurrentPosPlayer.y, getcurrentPosPlayer.z, 59, 1, true, false, 1.0, false)
+
+    entities.delete(Floor)
+        util.yield(100)
+        entities.delete_by_handle(WallA)
+        util.yield(100)
+        entities.delete_by_handle(WallB)
+        util.yield(100)
+        entities.delete_by_handle(WallC)
+        util.yield(100)
+        entities.delete_by_handle(WallD)
+        util.yield(100)
+        
+        entities.delete_by_handle(Car1)
+        util.yield(100)
+        entities.delete_by_handle(Car2)
+        util.yield(100)
+        entities.delete_by_handle(Car3)
+        util.yield(100)
+        entities.delete_by_handle(Car4)
+        util.yield(100)
+        entities.delete_by_handle(Car5)
+        util.yield(100)
+        entities.delete_by_handle(Car6)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6o1)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6o2)
+        util.yield(100)
+        entities.delete_by_handle(GoodSong)
+        util.yield(100)
+        entities.delete_by_handle(BadSong)
+        util.yield(100)
+
+    spawnArena = 0
+    return false
+end
+
+--Wrong choice 4
+if IS_PED_IN_ANY_VEHICLE(pedm, true) and IS_PED_IN_MODEL(pedm, CarHash) and IS_PED_IN_VEHICLE(pedm, ChooseYourFateCarTable[4], false) then
+    SET_VEHICLE_MOD(BadSong, 14, 8, false)
+    --OVERRIDE_VEH_HORN(GoodSong, true, hornhash)
+    START_VEHICLE_HORN(BadSong, 10000, 2207581387, false)
+    util.yield(2000)
+    APPLY_DAMAGE_TO_PED(pedm, 100000, true, 0)
+    local getcurrentPosPlayer = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+    ADD_EXPLOSION(getcurrentPosPlayer.x, getcurrentPosPlayer.y, getcurrentPosPlayer.z, 59, 1, true, false, 1.0, false)
+
+    entities.delete(Floor)
+        util.yield(100)
+        entities.delete_by_handle(WallA)
+        util.yield(100)
+        entities.delete_by_handle(WallB)
+        util.yield(100)
+        entities.delete_by_handle(WallC)
+        util.yield(100)
+        entities.delete_by_handle(WallD)
+        util.yield(100)
+        
+        entities.delete_by_handle(Car1)
+        util.yield(100)
+        entities.delete_by_handle(Car2)
+        util.yield(100)
+        entities.delete_by_handle(Car3)
+        util.yield(100)
+        entities.delete_by_handle(Car4)
+        util.yield(100)
+        entities.delete_by_handle(Car5)
+        util.yield(100)
+        entities.delete_by_handle(Car6)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6o1)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6o2)
+        util.yield(100)
+        entities.delete_by_handle(GoodSong)
+        util.yield(100)
+        entities.delete_by_handle(BadSong)
+        util.yield(100)
+
+    spawnArena = 0
+    return false
+end
+--bad choice 4
+if IS_PED_IN_ANY_VEHICLE(pedm, true) and IS_PED_IN_MODEL(pedm, CarHash) and IS_PED_IN_VEHICLE(pedm, ChooseYourFateCarTable[5], false) then
+
+    SET_VEHICLE_MOD(BadSong, 14, 8, false)
+        --OVERRIDE_VEH_HORN(GoodSong, true, hornhash)
+        START_VEHICLE_HORN(BadSong, 10000, 2207581387, false)
+        util.yield(2000)
+    APPLY_DAMAGE_TO_PED(pedm, 100000, true, 0)
+    local getcurrentPosPlayer = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+    ADD_EXPLOSION(getcurrentPosPlayer.x, getcurrentPosPlayer.y, getcurrentPosPlayer.z, 59, 1, true, false, 1.0, false)
+
+    entities.delete(Floor)
+        util.yield(100)
+        entities.delete_by_handle(WallA)
+        util.yield(100)
+        entities.delete_by_handle(WallB)
+        util.yield(100)
+        entities.delete_by_handle(WallC)
+        util.yield(100)
+        entities.delete_by_handle(WallD)
+        util.yield(100)
+        
+        entities.delete_by_handle(Car1)
+        util.yield(100)
+        entities.delete_by_handle(Car2)
+        util.yield(100)
+        entities.delete_by_handle(Car3)
+        util.yield(100)
+        entities.delete_by_handle(Car4)
+        util.yield(100)
+        entities.delete_by_handle(Car5)
+        util.yield(100)
+        entities.delete_by_handle(Car6)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5o1)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6o1)
+        util.yield(100)
+        
+        entities.delete_by_handle(Arrow1o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow2o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow3o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow4o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow5o2)
+        util.yield(100)
+        entities.delete_by_handle(Arrow6o2)
+        util.yield(100)
+        entities.delete_by_handle(GoodSong)
+        util.yield(100)
+        entities.delete_by_handle(BadSong)
+        util.yield(100)
+
+    spawnArena = 0
+    return false
+end
+
+--correct choice 2
+if IS_PED_IN_ANY_VEHICLE(pedm, true) and IS_PED_IN_MODEL(pedm, CarHash) and IS_PED_IN_VEHICLE(pedm, ChooseYourFateCarTable[6], false) then
+
+    SET_VEHICLE_MOD(GoodSong, 14, 4, false)
+    --OVERRIDE_VEH_HORN(GoodSong, true, hornhash)
+    START_VEHICLE_HORN(GoodSong, 10000, 2207581387, false)
+    util.yoeld(2000)
+    RaijuReward = entities.create_vehicle(RewardHash, RewardSpawnOffset, 180 + heading)
+    util.request_model(RewardHash)
+
+    --entities.delete(Floor)
+        entities.delete_by_handle(WallA)
+    util.yield(100)
+    entities.delete_by_handle(WallB)
+    util.yield(100)
+    entities.delete_by_handle(WallC)
+    util.yield(100)
+    entities.delete_by_handle(WallD)
+    util.yield(100)
+    
+    entities.delete_by_handle(Car1)
+    util.yield(100)
+    entities.delete_by_handle(Car2)
+    util.yield(100)
+    entities.delete_by_handle(Car3)
+    util.yield(100)
+    entities.delete_by_handle(Car4)
+    util.yield(100)
+    entities.delete_by_handle(Car5)
+    util.yield(100)
+    entities.delete_by_handle(Car6)
+    util.yield(100)
+    
+    entities.delete_by_handle(Arrow1)
+    util.yield(100)
+    entities.delete_by_handle(Arrow2)
+    util.yield(100)
+    entities.delete_by_handle(Arrow3)
+    util.yield(100)
+    entities.delete_by_handle(Arrow4)
+    util.yield(100)
+    entities.delete_by_handle(Arrow5)
+    util.yield(100)
+    entities.delete_by_handle(Arrow6)
+    util.yield(100)
+    
+    entities.delete_by_handle(Arrow1o1)
+    util.yield(100)
+    entities.delete_by_handle(Arrow2o1)
+    util.yield(100)
+    entities.delete_by_handle(Arrow3o1)
+    util.yield(100)
+    entities.delete_by_handle(Arrow4o1)
+    util.yield(100)
+    entities.delete_by_handle(Arrow5o1)
+    util.yield(100)
+    entities.delete_by_handle(Arrow6o1)
+    util.yield(100)
+    
+    entities.delete_by_handle(Arrow1o2)
+    util.yield(100)
+    entities.delete_by_handle(Arrow2o2)
+    util.yield(100)
+    entities.delete_by_handle(Arrow3o2)
+    util.yield(100)
+    entities.delete_by_handle(Arrow4o2)
+    util.yield(100)
+    entities.delete_by_handle(Arrow5o2)
+    util.yield(100)
+    entities.delete_by_handle(Arrow6o2)
+    util.yield(100)
+    entities.delete_by_handle(GoodSong)
+    util.yield(100)
+    entities.delete_by_handle(BadSong)
+    util.yield(100)
+
+    spawnArena = 0
+   -- if VictimSpawnOffset:distance(pedm) > 100.0 then
+    util.yield(60000)    
+    entities.delete_by_handle(Floor)
+        return false
+   -- end
+end
+
+
+end)
+
+        
+
+
+    --util.yield(60000)
+
+        
+
+    end
+        
+    end)
+    
+
+
+
+menu.divider(PlayerTrollingVehicleList, "------")
+  
 
     local childlock
 
@@ -2901,7 +4129,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
 
 
-    --menu.divider(PlayerTrollingVehicleList, "------")
+    menu.divider(PlayerTrollingVehicleList, "------")
 
 
     menu.action(PlayerTrollingVehicleList, "Detach wheels !", {}, "Detaches the wheels from the player's vehicle", function()
@@ -2968,7 +4196,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
     end)
 
 
-    -- menu.divider(PlayerTrollingList, "------")
+     --menu.divider(PlayerTrollingList, "------")
 
     --local friend_menu =  root:list('Friendly', {}, 'Friendly options')
     -- local paint = {primary = 92, secondary = 145} --here we set a table for the paint primary and secondary
@@ -2995,7 +4223,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
     --     paint.secondary = s
     --end)
 
-    --menu.divider(PlayerFunnyList, "------")
+    menu.divider(PlayerFunnyList, "------")
 
     --Spawn Ramp
     menu.action(PlayerFunnyList, "Spawn ramp in front of player", {}, "Spawns a ramp in front of the player (Works best with small vehicles)", function()
@@ -3172,7 +4400,103 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
         entities.delete(OBJ17)
     end)
 
-    --menu.divider(PlayerFunnyList, "------")
+    menu.toggle_loop(PlayerFunnyList, "Giant Hamsterball", {}, "Spawns a Giant Hamsterball (Make sure only ONE Giant hamsterball is loaded in the world to avoid bugs)", function(on)
+        local hashLoop = 430430733 --2138347493 --util.joaat("Snowball") 1768956181 -1125864094- 234083239 430430733
+ 
+        local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+        local owner = players.user_ped()
+        local Offset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(owner, 0, 0, 37)
+        GHexist = 0
+ 
+        if not DOES_ENTITY_EXIST(gOBJ) and GHexist == 0 then
+            ---------------------------------------------------------------------------------------------
+            GHexist = 1
+            gOBJ = entities.create_object(hashLoop, Offset)
+            gOBJ1 = entities.create_object(hashLoop, Offset)
+            gOBJ2 = entities.create_object(hashLoop, Offset)
+            gOBJ3 = entities.create_object(hashLoop, Offset)
+            gOBJ4 = entities.create_object(hashLoop, Offset)
+            gOBJ5 = entities.create_object(hashLoop, Offset)
+            gOBJ6 = entities.create_object(hashLoop, Offset)
+            gOBJ7 = entities.create_object(hashLoop, Offset)
+            gOBJ8 = entities.create_object(hashLoop, Offset)
+            gOBJ9 = entities.create_object(hashLoop, Offset)
+            gOBJ10 = entities.create_object(hashLoop, Offset)
+            gOBJ11 = entities.create_object(hashLoop, Offset)
+            gOBJ12 = entities.create_object(hashLoop, Offset)
+            gOBJ13 = entities.create_object(hashLoop, Offset)
+            gOBJ14 = entities.create_object(hashLoop, Offset)
+            gOBJ15 = entities.create_object(hashLoop, Offset)
+            gOBJ16 = entities.create_object(hashLoop, Offset)
+            gOBJ17 = entities.create_object(hashLoop, Offset)
+            ---------------------------------------------------------------------------------------------
+            ---------------------------------------------------------------------------------------------
+            SET_ENTITY_ROTATION(gOBJ, 0, 90, 0)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ1, 0, 90, 20)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ2, 0, 90, 40)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ3, 0, 90, 60)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ4, 0, 90, 80)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ5, 0, 90, 100)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ6, 0, 90, 120)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ7, 0, 90, 140)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ8, 0, 90, 160)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ9, 0, 90, 180)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ10, 0, 90, 200)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ11, 0, 90, 220)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ12, 0, 90, 240)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ13, 0, 90, 260)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ14, 0, 90, 280)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ15, 0, 90, 300)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ16, 0, 90, 320)
+            util.yield(100)
+            SET_ENTITY_ROTATION(gOBJ17, 0, 90, 340)
+            util.yield(100)
+            ---------------------------------------------------------------------------------------------
+ 
+        end
+ 
+        --util.toast("loop")
+ 
+ 
+    end, function()
+        GHexist = 0
+        entities.delete(gOBJ)
+        entities.delete(gOBJ1)
+        entities.delete(gOBJ2)
+        entities.delete(gOBJ3)
+        entities.delete(gOBJ4)
+        entities.delete(gOBJ5)
+        entities.delete(gOBJ6)
+        entities.delete(gOBJ7)
+        entities.delete(gOBJ8)
+        entities.delete(gOBJ9)
+        entities.delete(gOBJ10)
+        entities.delete(gOBJ11)
+        entities.delete(gOBJ12)
+        entities.delete(gOBJ13)
+        entities.delete(gOBJ14)
+        entities.delete(gOBJ15)
+        entities.delete(gOBJ16)
+        entities.delete(gOBJ17)
+    end)
+
+    menu.divider(PlayerFunnyList, "------")
 
     --Spawn Loop
     --[[menu.action(PlayerFunnyVehicleList, "Spawn Loop in front of player", {}, "Spawns a Loop in front of the player (Works best with small vehicles)", function()
@@ -3253,7 +4577,58 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     --math.random(-radius, radius)
 
+    menu.action(PlayerFunnyList, "Giant Rabbit Riding", {}, "Spawns a pet Giant Rabbit near this player that will become it's pet, you will be riding the rabbit (must spectate or be near or it to work properly)", function ()
+        
+        SelectedPetAnimal = util.joaat("A_C_Rabbit_02")
+        local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+        local BikeHash = util.joaat("avarus")
+        local AnimalHash = SelectedPetAnimal
+        util.request_model(AnimalHash)
+        util.request_model(BikeHash)
+        --local pedm = Target
 
+        local radius = math.random(8, 22)
+        local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+
+
+        radius = math.random(8, 22)
+        SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+        local PetAnimal = entities.create_ped(28, AnimalHash, SpawnOffset, 0)
+        local Bike = entities.create_vehicle(BikeHash, SpawnOffset, 0)
+        ATTACH_ENTITY_TO_ENTITY(Bike, PetAnimal, 0, 0, 0.25, 0.25, 0, 0, 0, true, false, false, false, 0, true, 0)
+        SET_PED_INTO_VEHICLE(players.user_ped(), Bike, -1)
+        SET_ENTITY_VISIBLE(Bike, false)
+        NETWORK_REQUEST_CONTROL_OF_ENTITY(PetAnimal)
+
+
+
+        util.create_tick_handler(function()
+
+            local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+            SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PetAnimal, true)
+            TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, pos.x, pos.y, pos.z, 5.0, 0, false, 0, 0.0)
+            local KittyOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PetAnimal, 0, 0, 0)
+            util.yield(1500)
+
+            if IS_ENTITY_DEAD(PetAnimal) then
+                entities.delete(PetAnimal)
+                return false
+            end
+        end)
+
+        util.create_tick_handler(function()
+
+            if IS_ENTITY_DEAD(PetAnimal) then
+                entities.delete(PetAnimal)
+                entities.delete(Bike)
+                util.toast("RIP " .. PetNamesList[math.random(1, #PetNamesList)] .. " :'(")
+                return false
+            end
+        end)
+        util.yield(6000)
+        DETACH_ENTITY(players.user_ped(), true, true)
+
+    end)
 
     menu.toggle_loop(PlayerFunnyList, "Snow Rain", {}, "Rains Snowballs", function(on)
         local hashSnowball = 126349499 --2138347493 --util.joaat("Snowball")
@@ -3368,7 +4743,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
 
 
-    --menu.divider(PlayerTrollingVehicleList, "------")
+    menu.divider(PlayerTrollingVehicleList, "------")
 
     PlayerTrollingVehicleList:action('Kill Engine', {}, 'Kills the players current vehicle engine', function ()
         local  pname = GET_PLAYER_NAME(pid)
@@ -3398,7 +4773,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    --menu.divider(PlayerTrollingVehicleList, "------")
+    menu.divider(PlayerTrollingVehicleList, "------")
 
     --delete vehicle
 
@@ -3732,45 +5107,25 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
 
 
-    ---------------------------
-    --Friendly
-    ---------------------------
 
 
 
-    PlayerFriendlyVehicleList:textslider("Spawn Vehicle", {}, "Spawns the selected vehicle", SpawnableVehicles, function (index, name) -- changed these value names to be more sense
-        local hash = util.joaat(vehicles[index])
-        local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
-        util.request_model(hash) -- its better to call as less functions as possible because more performance
-        local offset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 3, 0) -- changed the name to be offset u can still pick pos but i like offset more because it tells u what it is
-        local heading = GET_ENTITY_HEADING(pedm) -- changed to heading same reason as above
-        local spawnedCar = entities.create_vehicle(hash, offset, heading) -- only put heading in here because you already got the heading of ur own ped and there is no need to get the heading of the heading you already got
-        SET_PED_INTO_VEHICLE(pedm, spawnedCar, -1)
-    end)
 
-
-
-    PlayerFriendlyVehicleList:action('Fix Vehicle', {}, 'Fixes the current vehicle', function ()
-        --to do it better it would be good to specatate them first as things tend to work better that way
-        --menu.trigger_commands('spectate'..pname)
-        --util.yield(1500) --yield for 1500 ms or 1.5 secs to give it time to spectate
-        -- get the players model
-
-        local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid) -- get the players model
-        if IS_PED_IN_ANY_VEHICLE(pedm, true) then --checking if they are in a vehicle
-            local vmod = GET_VEHICLE_PED_IS_IN(pedm, true) --get the vehicle they are in
-            Get_Entity(vmod) --get control
-            SET_VEHICLE_DEFORMATION_FIXED(vmod)
-            SET_VEHICLE_FIXED(vmod)
-        end
-
-    end)
 
 
 
 
 
 end)
+
+
+
+
+
+
+
+
+
 
 ---
 --- About LolaScript Menu
@@ -3790,3 +5145,4 @@ auto_update_config.clean_reinstall = true
 auto_updater.run_auto_update(auto_update_config)
 end)
 menu.hyperlink(script_meta_menu,"Github Source", "https://github.com/LolaThePretty/LolaScript","View source files on Github")
+menu.hyperlink(script_meta_menu,"Discord Server", "https://discord.gg/chAUB6r8EY","Join the community and submit your own ideas as future features !")
