@@ -1,7 +1,7 @@
 -- LolaScript
 -- by LolaTheSquishy
 
-local SCRIPT_VERSION = "1.0.7"
+local SCRIPT_VERSION = "1.0.8"
 
 -- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
 local status, auto_updater = pcall(require, "auto-updater")
@@ -262,6 +262,7 @@ end)
 
 
 local myListFunAnimalsSettings = menu.list(myListFunSettings, "Animals", {}, "Animals Options")
+menu.divider(myListFunSettings, "------")
 local myListFunAnimalsWildSettings = menu.list(myListFunAnimalsSettings, "Wild", {}, "Wild Animals Options")
 local myListFunAnimalsPetSettings = menu.list(myListFunAnimalsSettings, "Pet", {}, "Pet Animals Options")
 menu.action(myListFunAnimalsSettings, "Populate world !", {}, "Will spawn a lot of random animals here and there around the every player", function ()
@@ -316,7 +317,227 @@ end)
 
    end)--]]
 
+   local myListFunMinigamesSettings = menu.list(myListFunSettings, "Minigames", {}, "Play minigames !")
 
+   menu.action(myListFunMinigamesSettings, "Flappy flap", {}, "Totally not a rip off of flappy bird that allows you to play using your own car and to flap using the space key", function()
+       FlappyFlapminigamestarted = 0
+       if IS_CONTROL_PRESSED(0, 68) and FlappyFlapminigamestarted == 0 then
+           FlappyFlapminigamestarted= 1
+           util.yield(1000)
+       local time = 0
+       
+   
+       local pedm = players.user_ped()
+       local playerVehicle = GET_VEHICLE_PED_IS_IN(pedm)
+       local FlappyCam = CREATE_CAMERA(26379945, true)
+   
+       local FloorHash = util.joaat("stt_prop_stunt_landing_zone_01")
+       local RoofHash = util.joaat("stt_prop_stunt_landing_zone_01")
+       local Pillar = util.joaat("port_xr_cont_03")
+       util.request_model(FloorHash)
+       util.request_model(RoofHash)
+       util.request_model(Pillar)
+       
+       
+           local floorloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(floor, 0, -5, 0)
+           local roofloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(roof, 0, 5, 0)
+   
+   
+   
+       if IS_PED_IN_VEHICLE(pedm, playerVehicle, false) then
+           
+   
+           HARD_ATTACH_CAM_TO_ENTITY(FlappyCam, playerVehicle, 0, 0, 90, 12, 0, 0, true)
+                               --                          xrot,yrot,zrot,xloc,yloc,zloc
+           RENDER_SCRIPT_CAMS(true, true, 500, 1, 0, 0);
+   
+           local heading = 0 --GET_ENTITY_HEADING(playerVehicle)
+           SET_ENTITY_VELOCITY(playerVehicle, 0, 0, 0)
+           SET_ENTITY_ROTATION(playerVehicle, 0, 0, heading)
+           util.yield(10)
+           SET_ENTITY_VELOCITY(playerVehicle, 0, 0, 100)
+           util.yield(500)
+   
+           
+           local FloorOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, -10)
+           local RoofOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 10)
+   
+           floor = entities.create_object(FloorHash, FloorOffset, heading)
+           roof = entities.create_object(FloorHash, RoofOffset, heading)
+           local roofloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(roof, 0, 5, 0)
+           SET_ENTITY_COLLISION(floor, false, false)
+           SET_ENTITY_COLLISION(roof, false, false)
+   
+           util.create_tick_handler(function ()
+               util.toast("Hold Right Mouse Click few seconds to give up")
+   
+               SET_ENTITY_ROTATION(playerVehicle, 0, 0, heading)
+   
+               if IS_CONTROL_PRESSED(0, 179) then
+                   --util.toast("blep")
+                   SET_ENTITY_VELOCITY(playerVehicle, 0, 0, 12)
+               else
+                   SET_ENTITY_VELOCITY(playerVehicle, 0, 0, -7)
+               end
+   
+               if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) or FlappyFlapminigamestarted == 0 then
+                   --util.toast("boop")
+                   RENDER_SCRIPT_CAMS(false, true, 500, 1, 0, 0);
+                   DESTROY_CAM(FlappyCam, true)
+                   FlappyFlapminigamestarted = 0
+                   entities.delete(floor)
+                   entities.delete(roof)
+                   return false
+               end
+   
+   
+               if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
+                   RENDER_SCRIPT_CAMS(false, true, 500, 1, 0, 0);
+                   DESTROY_CAM(FlappyCam, true)
+   
+                   entities.delete(floor)
+                   entities.delete(roof)
+                   util.toast("Total score of this run : " .. time)
+                   FlappyFlapminigamestarted = 0
+                   return false
+               end
+   
+   
+               
+   
+           end)
+           util.yield(500)
+   util.create_tick_handler(function ()
+           
+       local floorloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(floor, 0, -5, 0)
+           local currLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerVehicle, 0, 0, 0)
+       if currLoc:distance(floorloc) > 19 then
+           RENDER_SCRIPT_CAMS(false, true, 500, 1, 0, 0);
+           DESTROY_CAM(FlappyCam, true)
+   
+           entities.delete(floor)
+           entities.delete(roof)
+           util.toast("Total score of this run : " .. time)
+           FlappyFlapminigamestarted = 0
+           return false
+       end
+       if currLoc:distance(roofloc) > 18 then
+           RENDER_SCRIPT_CAMS(false, true, 500, 1, 0, 0);
+           DESTROY_CAM(FlappyCam, true)
+   
+           entities.delete(floor)
+           entities.delete(roof)
+           util.toast("Total score of this run : " .. time)
+           FlappyFlapminigamestarted = 0
+           return false
+       end
+       
+   end)
+   
+   
+           util.create_tick_handler(function ()
+           
+               FlappyFlapPillar()
+               util.yield(500)
+   
+   
+               if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
+                   --util.toast("boop")
+   
+                   return false
+               end
+   
+           end)
+   
+   
+           util.create_tick_handler(function()
+           
+   
+               time = time + 1
+               util.yield(1000)
+       
+       
+               if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
+                   return false
+               end
+           end)
+           
+           util.create_tick_handler(function()
+               util.draw_debug_text("you survived : " .. time .. "  seconds")
+               SET_ENTITY_ROTATION(playerVehicle, 0, 0, heading)
+   
+               if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
+                   FlappyFlapminigamestarted = 0
+                   
+                   return false
+               end
+           end)
+   
+   
+   
+   
+   
+           
+       else
+           util.toast("Player is not in a vehicle !")
+       end
+   
+   
+   else
+       util.toast("Please hold right click for 5 seconds to prevent bugs. Then hold right click while you start the minigame and release, the game will start within a second :)")
+   end
+   end)
+   
+   function FlappyFlapPillar()
+   
+       local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+       local playerVehicle = GET_VEHICLE_PED_IS_IN(pedm)
+       local heading = 0 --GET_ENTITY_HEADING(playerVehicle)
+   
+       
+       local PillarHash = util.joaat("port_xr_cont_03")
+       util.request_model(PillarHash)
+   
+       local randomFlappyPillarHeight = math.random(2, 14)
+       PillarSpawnPoint = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(floor, 0, 20, 5 + randomFlappyPillarHeight) -- + 2
+       PillarSpawnPoint2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(floor, 0, 20, 5 + randomFlappyPillarHeight - 16.5) -- + 2 -- + 14
+   
+   
+       local Pillar = entities.create_object(PillarHash, PillarSpawnPoint, heading)
+       local Pillar2 = entities.create_object(PillarHash, PillarSpawnPoint2, heading)
+       
+   
+       util.create_tick_handler(function()
+   
+           if FlappyFlapminigamestarted == 1 then
+           SET_ENTITY_VELOCITY(Pillar, 0, -10, 0)
+           SET_ENTITY_ROTATION(Pillar, 90, 90, heading)
+           
+           SET_ENTITY_VELOCITY(Pillar2, 0, -10, 0)
+           SET_ENTITY_ROTATION(Pillar2, 90, 90, heading)
+   
+   
+           if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
+               --util.toast("boop")
+   
+               entities.delete(Pillar)
+               entities.delete(Pillar2)
+               FlappyFlapminigamestarted = 0
+               return false
+           end
+           
+       end
+       end)
+       
+       
+   
+       
+       util.yield(3500)
+   
+       entities.delete(Pillar)
+       entities.delete(Pillar2)
+   
+   end
 
   menu.divider(myListFunSettings, "------")
 
@@ -1286,6 +1507,7 @@ local SelectedPetAnimal
     --menu.divider(myListFunSettings, "------")
 
     local myListFunVehicleSettings = menu.list(myListFunSettings, "Vehicle", {}, "Fun Vehicle Options")
+    
 
     --local SimulatePlayerInputTimerMax = 600
     local SimulatePlayerInputTimer = 1000
@@ -3029,225 +3251,7 @@ menu.divider(PlayerFunnyList, "------")
 
 local myListFunMinigamesSettings = root.list(PlayerFunnyList, "Minigames", {}, "Play Minigames !")
 
-menu.action(myListFunMinigamesSettings, "Flappy flap", {}, "Totally not a rip off of flappy bird that allows you to play using your own car and to flap using the space key", function()
-    FlappyFlapminigamestarted = 0
-    if IS_CONTROL_PRESSED(0, 68) and FlappyFlapminigamestarted == 0 then
-        FlappyFlapminigamestarted= 1
-        util.yield(1000)
-    local time = 0
-    
 
-    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
-    local playerVehicle = GET_VEHICLE_PED_IS_IN(pedm)
-    local FlappyCam = CREATE_CAMERA(26379945, true)
-
-    local FloorHash = util.joaat("stt_prop_stunt_landing_zone_01")
-    local RoofHash = util.joaat("stt_prop_stunt_landing_zone_01")
-    local Pillar = util.joaat("port_xr_cont_03")
-    util.request_model(FloorHash)
-    util.request_model(RoofHash)
-    util.request_model(Pillar)
-    
-    
-        local floorloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(floor, 0, -5, 0)
-        local roofloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(roof, 0, 5, 0)
-
-
-
-    if IS_PED_IN_VEHICLE(pedm, playerVehicle, false) then
-        
-
-        HARD_ATTACH_CAM_TO_ENTITY(FlappyCam, playerVehicle, 0, 0, 90, 12, 0, 0, true)
-                            --                          xrot,yrot,zrot,xloc,yloc,zloc
-        RENDER_SCRIPT_CAMS(true, true, 500, 1, 0, 0);
-
-        local heading = 0 --GET_ENTITY_HEADING(playerVehicle)
-        SET_ENTITY_VELOCITY(playerVehicle, 0, 0, 0)
-        SET_ENTITY_ROTATION(playerVehicle, 0, 0, heading)
-        util.yield(10)
-        SET_ENTITY_VELOCITY(playerVehicle, 0, 0, 100)
-        util.yield(500)
-
-        
-        local FloorOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, -10)
-        local RoofOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 10)
-
-        floor = entities.create_object(FloorHash, FloorOffset, heading)
-        roof = entities.create_object(FloorHash, RoofOffset, heading)
-        local roofloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(roof, 0, 5, 0)
-        SET_ENTITY_COLLISION(floor, false, false)
-        SET_ENTITY_COLLISION(roof, false, false)
-
-        util.create_tick_handler(function ()
-            util.toast("Hold Right Mouse Click few seconds to give up")
-
-            SET_ENTITY_ROTATION(playerVehicle, 0, 0, heading)
-
-            if IS_CONTROL_PRESSED(0, 179) then
-                --util.toast("blep")
-                SET_ENTITY_VELOCITY(playerVehicle, 0, 0, 12)
-            else
-                SET_ENTITY_VELOCITY(playerVehicle, 0, 0, -7)
-            end
-
-            if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) or FlappyFlapminigamestarted == 0 then
-                --util.toast("boop")
-                RENDER_SCRIPT_CAMS(false, true, 500, 1, 0, 0);
-                DESTROY_CAM(FlappyCam, true)
-                FlappyFlapminigamestarted = 0
-                entities.delete(floor)
-                entities.delete(roof)
-                return false
-            end
-
-
-            if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
-                RENDER_SCRIPT_CAMS(false, true, 500, 1, 0, 0);
-                DESTROY_CAM(FlappyCam, true)
-
-                entities.delete(floor)
-                entities.delete(roof)
-                util.toast("Total score of this run : " .. time)
-                FlappyFlapminigamestarted = 0
-                return false
-            end
-
-
-            
-
-        end)
-        util.yield(500)
-util.create_tick_handler(function ()
-        
-    local floorloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(floor, 0, -5, 0)
-        local currLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerVehicle, 0, 0, 0)
-    if currLoc:distance(floorloc) > 19 then
-        RENDER_SCRIPT_CAMS(false, true, 500, 1, 0, 0);
-        DESTROY_CAM(FlappyCam, true)
-
-        entities.delete(floor)
-        entities.delete(roof)
-        util.toast("Total score of this run : " .. time)
-        FlappyFlapminigamestarted = 0
-        return false
-    end
-    if currLoc:distance(roofloc) > 18 then
-        RENDER_SCRIPT_CAMS(false, true, 500, 1, 0, 0);
-        DESTROY_CAM(FlappyCam, true)
-
-        entities.delete(floor)
-        entities.delete(roof)
-        util.toast("Total score of this run : " .. time)
-        FlappyFlapminigamestarted = 0
-        return false
-    end
-    
-end)
-
-
-        util.create_tick_handler(function ()
-        
-            FlappyFlapPillar()
-            util.yield(500)
-
-
-            if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
-                --util.toast("boop")
-
-                return false
-            end
-
-        end)
-
-
-        util.create_tick_handler(function()
-        
-
-            time = time + 1
-            util.yield(1000)
-    
-    
-            if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
-                return false
-            end
-        end)
-        
-        util.create_tick_handler(function()
-            util.draw_debug_text("you survived : " .. time .. "  seconds")
-            SET_ENTITY_ROTATION(playerVehicle, 0, 0, heading)
-
-            if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
-                FlappyFlapminigamestarted = 0
-                
-                return false
-            end
-        end)
-
-
-
-
-
-        
-    else
-        util.toast("Player is not in a vehicle !")
-    end
-
-
-else
-    util.toast("Please hold right click for 5 seconds to prevent bugs. Then hold right click while you start the minigame and release, the game will start within a second :)")
-end
-end)
-
-function FlappyFlapPillar()
-
-    local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
-    local playerVehicle = GET_VEHICLE_PED_IS_IN(pedm)
-    local heading = 0 --GET_ENTITY_HEADING(playerVehicle)
-
-    
-    local PillarHash = util.joaat("port_xr_cont_03")
-    util.request_model(PillarHash)
-
-    local randomFlappyPillarHeight = math.random(2, 14)
-    PillarSpawnPoint = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(floor, 0, 20, 5 + randomFlappyPillarHeight) -- + 2
-    PillarSpawnPoint2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(floor, 0, 20, 5 + randomFlappyPillarHeight - 16.5) -- + 2 -- + 14
-
-
-    local Pillar = entities.create_object(PillarHash, PillarSpawnPoint, heading)
-    local Pillar2 = entities.create_object(PillarHash, PillarSpawnPoint2, heading)
-    
-
-    util.create_tick_handler(function()
-
-        if FlappyFlapminigamestarted == 1 then
-        SET_ENTITY_VELOCITY(Pillar, 0, -10, 0)
-        SET_ENTITY_ROTATION(Pillar, 90, 90, heading)
-        
-        SET_ENTITY_VELOCITY(Pillar2, 0, -10, 0)
-        SET_ENTITY_ROTATION(Pillar2, 90, 90, heading)
-
-
-        if IS_CONTROL_PRESSED(0, 68) or HAS_ENTITY_COLLIDED_WITH_ANYTHING(playerVehicle) then
-            --util.toast("boop")
-
-            entities.delete(Pillar)
-            entities.delete(Pillar2)
-            FlappyFlapminigamestarted = 0
-            return false
-        end
-        
-    end
-    end)
-    
-    
-
-    
-    util.yield(3500)
-
-    entities.delete(Pillar)
-    entities.delete(Pillar2)
-
-end
 
 menu.action(myListFunMinigamesSettings, "Choose Your Fate", {}, "Let the player choose his fate by selecting one of 6 cars, 4 of them will kill them", function()
         
