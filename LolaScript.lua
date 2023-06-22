@@ -1,7 +1,7 @@
 -- LolaScript
 -- by LolaTheSquishy
 
-local SCRIPT_VERSION = "1.0.8"
+local SCRIPT_VERSION = "1.0.9"
 
 -- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
 local status, auto_updater = pcall(require, "auto-updater")
@@ -2499,6 +2499,36 @@ local SelectedPetAnimal
     end)
 
 
+    --credit to nowiry
+    local function raycast_gameplay_cam(flag, distance)
+        local ptr1, ptr2, ptr3, ptr4 = memory.alloc(), memory.alloc(), memory.alloc(), memory.alloc()
+        local cam_rot = GET_GAMEPLAY_CAM_ROT(0)
+        local cam_pos = GET_GAMEPLAY_CAM_COORD()
+        local direction = v3.toDir(cam_rot)
+        local destination = 
+        { 
+            x = cam_pos.x + direction.x * distance, 
+            y = cam_pos.y + direction.y * distance, 
+            z = cam_pos.z + direction.z * distance 
+        }
+        GET_SHAPE_TEST_RESULT(
+            START_EXPENSIVE_SYNCHRONOUS_SHAPE_TEST_LOS_PROBE(
+                cam_pos.x, 
+                cam_pos.y, 
+                cam_pos.z+10, 
+                destination.x, 
+                destination.y+30, 
+                destination.z, 
+                flag, 
+                --players.user_ped(), 
+                1
+            ), ptr1, ptr2, ptr3, ptr4)
+        local p1 = memory.read_int(ptr1)
+        local p2 = memory.read_vector3(ptr2)
+        local p3 = memory.read_vector3(ptr3)
+        local p4 = memory.read_int(ptr4)
+        return {p1, p2, p3, p4}
+    end
 
 
     --menu.toggle(myListMiscSettings, "add divider", {}, "Trap the player within its car", function(on_change)
@@ -2513,7 +2543,99 @@ local SelectedPetAnimal
   
 
 
+    menu.action(myListFunAnimalsSettings, "Giant Rabbit Riding", {}, "Spawns a pet Giant Rabbit near this player that will become it's pet, you will be riding the rabbit (must spectate or be near or it to work properly)", function ()
+        
+        SelectedPetAnimal = util.joaat("A_C_Rabbit_02")
+        local pedm = players.user_ped()
+        local BikeHash = util.joaat("avarus")
+        local AnimalHash = SelectedPetAnimal
+        util.request_model(AnimalHash)
+        util.request_model(BikeHash)
+        --local pedm = Target
 
+
+--i stole the raycast bit from Lance's script, dont credit me if you use it yourself
+
+        local radius = math.random(8, 22)
+        local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+
+        local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
+        radius = math.random(8, 22)
+        SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+        local PetAnimal = entities.create_ped(28, AnimalHash, SpawnOffset, heading)
+        SET_ENTITY_INVINCIBLE(PetAnimal, true)
+        local Bike = entities.create_vehicle(BikeHash, SpawnOffset, 0)
+        ATTACH_ENTITY_TO_ENTITY(Bike, PetAnimal, 0, 0, 0.25, 0.25, 0, 0, 0, true, false, false, false, 0, true, 0)
+        SET_PED_INTO_VEHICLE(players.user_ped(), Bike, -1)
+        SET_ENTITY_VISIBLE(Bike, false)
+
+        local hash = util.joaat("v_ind_cfwaste")
+        local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+        util.request_model(hash)
+       -- local OBJ = entities.create_object(hash, Player_Pos)
+
+
+        util.create_tick_handler(function()
+            SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PetAnimal, true)
+            local raycast_coord = raycast_gameplay_cam(-1, 10000.0)
+
+            if raycast_coord[1] == 1 then
+                local lastdist = nil
+            end
+            --util.toast(raycast_coord)
+            if raycast_coord[1] == 1 then
+               -- util.toast("boop")
+            end
+            if raycast_coord[4] ~= 0 and GET_ENTITY_TYPE(raycast_coord[4]) >= 1 and GET_ENTITY_TYPE(raycast_coord[4]) < 3 then
+                ggc1 = GET_ENTITY_COORDS(raycast_coord[4], true)
+            else
+                ggc1 = raycast_coord[2]
+            end
+            local c2 = players.get_position(players.user())
+            local dist = GET_DISTANCE_BETWEEN_COORDS(ggc1['x'], ggc1['y'], ggc1['z'], c2['x'], c2['y'], c2['z'], true)
+            -- safety
+            if not lastdist or dist < lastdist then 
+                lastdist = dist
+            else
+                
+            end
+
+            if IS_CONTROL_PRESSED(0, 145) then
+                return false
+            end
+        end)
+
+        util.create_tick_handler(function()
+        local cam_pos = GET_FINAL_RENDERED_CAM_COORD()
+
+        
+
+        local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+        local distance = 10
+
+        local Cam_v3 = v3.new(cam_pos.x, cam_pos.y, -cam_pos.z)
+        SET_ENTITY_COORDS_NO_OFFSET(OBJ, cam_pos.x, Player_Pos.y, cam_pos.z, false, false, false)
+            --SET_ENTITY_COORDS_NO_OFFSET(GiantRabbitGoal, Player_Pos.x+distance, Player_Pos.y, cam_pos.z, false, false, false)
+            local OBJcoords = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(OBJ, 0, 0, 0)
+            local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
+            local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+            
+            local TargetOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PetAnimal, 0, 5, 0)
+            TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, ggc1.x, ggc1.y, ggc1.z, 5.0, 0, false, 0, 0.0)
+            --SET_ENTITY_HEADING(PetAnimal, heading)
+          util.yield(500)
+
+          
+    
+            if IS_CONTROL_PRESSED(0, 145) then
+                return false
+            end
+        end)
+
+       
+
+
+    end)
 
 
 
