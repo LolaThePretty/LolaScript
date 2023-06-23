@@ -2634,7 +2634,8 @@ local SelectedPetAnimal
         util.request_model(AnimalHash)
         --util.request_model(BikeHash)
         --local pedm = Target
-
+        local target_ped = players.user_ped()
+        local Clone = CLONE_PED(target_ped, true, false, true)
 
 --i stole the raycast bit from Lance's script, and wiriscript
 
@@ -2652,6 +2653,7 @@ local SelectedPetAnimal
         local PetAnimal = entities.create_ped(28, AnimalHash, SpawnOffset, heading)
         SET_ENTITY_INVINCIBLE(PetAnimal, true)
         --local Bike = entities.create_vehicle(BikeHash, SpawnOffset, 0)
+        ATTACH_ENTITY_TO_ENTITY(Clone, PetAnimal, 5, -0.3, -0.25, 0, -180+80, 90+180, 180, true, false, false, true, 0, true, 0)
         ATTACH_ENTITY_TO_ENTITY(players.user_ped(), PetAnimal, 5, -0.3, -0.25, 0, -180+80, 90+180, 180, true, false, false, true, 0, true, 0)
         --SET_PED_INTO_VEHICLE(players.user_ped(), Bike, -1)
         --SET_ENTITY_VISIBLE(Bike, false)
@@ -2659,6 +2661,7 @@ local SelectedPetAnimal
 
 
         --From LanceScript
+        TASK_PLAY_ANIM(Clone, "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
         TASK_PLAY_ANIM(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
         ------------------
         local ArrowHash = 1267718013
@@ -2671,10 +2674,10 @@ local SelectedPetAnimal
         --util.request_model(hash)
        -- local OBJ = entities.create_object(hash, Player_Pos)
 
-SET_ENTITY_VISIBLE(players.user_ped(), false, false)
-util.yield(10)
+--SET_ENTITY_VISIBLE(players.user_ped(), false, false)
+--util.yield(10)
 
-SET_ENTITY_VISIBLE(players.user_ped(), true, false)
+--SET_ENTITY_VISIBLE(players.user_ped(), true, false)
         util.create_tick_handler(function()
             SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PetAnimal, true)
 util.toast("Hold and Release Space to set a destination point | Press down arrow to delete your mount")
@@ -2682,13 +2685,14 @@ util.toast("Hold and Release Space to set a destination point | Press down arrow
                 --entities.delete(Bike)
                 entities.delete(PetAnimal)
                 entities.delete(Arrow)
+                entities.delete(Clone)
                 STOP_ANIM_TASK(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0)
 
                 return false
             end
             heading = GET_ENTITY_HEADING(players.user_ped())
             SET_ENTITY_ROTATION(Arrow, 0, 180, heading)
-            SET_ENTITY_VISIBLE(players.user_ped(), true, false)
+            --SET_ENTITY_VISIBLE(players.user_ped(), true, false)
 
             
             
