@@ -1,7 +1,7 @@
 -- LolaScript
 -- by LolaTheSquishy
 
-local SCRIPT_VERSION = "1.0.9"
+local SCRIPT_VERSION = "1.1.0"
 
 -- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
 local status, auto_updater = pcall(require, "auto-updater")
@@ -72,20 +72,23 @@ auto_updater.run_auto_update(auto_update_config)
 
 
 
+--make a flappy bird feature with sideway cam
+--make a blender with windmills on the player
+--do a guess which car is the correct and if u wrong it spawn a kamikaze or a blender
+--unload cargoplane when far of it in epic plane jump
+--make squadron lfy ur own plane with random planes following
+--Jet Squadron
+--Bigger Hamsterball, Thunderball for rocket voltics
+--Spawn stunt bumpers under vehicles to slow them down without bonking
+--Spawn a Loop in front of the players
 --Spawns a Hamsterball for the player--
 ---------------
 -----IDEAS-----
 ---------------
---Spawn stunt bumpers under vehicles to slow them down without bonking
 --Make a deathrun parkour
---Spawn a Loop in front of the players
 
---Jet Squadron
---Bigger Hamsterball, Thunderball for rocket voltics
 --sharks spawed around a boat
 
---unload cargoplane when far of it in epic plane jump
---make squadron lfy ur own plane with random planes following
 
 --Translate script
 
@@ -93,8 +96,6 @@ auto_updater.run_auto_update(auto_update_config)
 
 
 
---make a blender with windmills on the player
---do a guess which car is the correct and if u wrong it spawn a kamikaze or a blender
 
 --spawn invisble dogs around someone to sound spam them
 
@@ -105,7 +106,6 @@ auto_updater.run_auto_update(auto_update_config)
 --giant baguette whatever this suggestion means Lol
 --adding player peds as pet
 
---make a flappy bird feature with sideway cam
 
 
 
@@ -149,6 +149,7 @@ end
 --  local myListSelf = menu.list(menu.my_root(), "Self", {}, "Self Options")
 
 local myListVehicle = menu.list(menu.my_root(), "Vehicle", {}, "Vehicle Options")
+local myListWeapon = menu.list(menu.my_root(), "Weapon", {}, "Weapon Options")
 
 
 
@@ -2520,7 +2521,7 @@ local SelectedPetAnimal
                 destination.y+30, 
                 destination.z, 
                 flag, 
-                --players.user_ped(), 
+                players.user_ped(), 
                 1
             ), ptr1, ptr2, ptr3, ptr4)
         local p1 = memory.read_int(ptr1)
@@ -2543,106 +2544,200 @@ local SelectedPetAnimal
   
 
 
+    
+
+       --this is taken from Wiriscript
+    TraceFlag =
+    {
+        everything = 4294967295,
+        none = 0,
+        world = 1,
+        vehicles = 2,
+        --pedsSimpleCollision = 4,
+        --peds = 8,
+        objects = 16,
+        water = 32,
+        foliage = 256,
+    }
+--same here
+    function get_offset_from_cam(dist)
+        local rot = GET_FINAL_RENDERED_CAM_ROT(2)
+        local pos = GET_FINAL_RENDERED_CAM_COORD()
+        local dir = rot:toDir()
+        dir:mul(dist)
+        local offset = v3.new(pos)
+        offset:add(dir)
+        return offset
+    end
+
+    --this too
+    function get_raycast_result(dist, flag)
+        local result = {}
+        flag = flag or TraceFlag.world
+        local didHit = memory.alloc(1)
+        local endCoords = v3.new()
+        local normal = v3.new()
+        local hitEntity = memory.alloc_int()
+        local camPos = GET_FINAL_RENDERED_CAM_COORD()
+        local offset = get_offset_from_cam(dist)
+    
+        local handle = START_EXPENSIVE_SYNCHRONOUS_SHAPE_TEST_LOS_PROBE(
+            camPos.x, camPos.y, camPos.z,
+            offset.x, offset.y, offset.z,
+            flag,
+            players.user_ped(), 7
+        )
+        GET_SHAPE_TEST_RESULT(handle, didHit, endCoords, normal, hitEntity)
+    
+        result.didHit = memory.read_byte(didHit) ~= 0
+        result.endCoords = endCoords
+        result.surfaceNormal = normal
+        result.hitEntity = memory.read_int(hitEntity)
+        return result
+    end
+
+    --same for that, i just modified a lil
+    menu.toggle_loop(myListWeapon, "Kamikaze Gun", {}, "", function()
+
+        local PHhash = util.joaat("v_ind_cfwaste")
+        util.request_model(PHhash)
+
+        local raycastResult = get_raycast_result(100000.0)
+        if raycastResult.didHit and IS_PED_SHOOTING(players.user_ped()) then
+            local pos = raycastResult.endCoords
+
+            --if not DOES_ENTITY_EXIST(PlaceHolderObject) then
+            
+                --PlaceHolderObject = entities.create_object(PHhash, pos, 0)
+            --end
+
+            --SET_ENTITY_COORDS_NO_OFFSET(PlaceHolderObject, pos.x, pos.y, pos.z, false, false, false)
+            --local KamikazeSpawn = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PlaceHolderObject, 0, 0, 0)
+            --util.draw_centred_text(pos.x)
+            --util.draw_centred_text(pos.y)
+            --util.draw_centred_text(pos.z)
+        end
+        
+
+    end, function()
+    
+    end)
+
+
+
     menu.action(myListFunAnimalsSettings, "Giant Rabbit Riding", {}, "Spawns a pet Giant Rabbit near this player that will become it's pet, you will be riding the rabbit (must spectate or be near or it to work properly)", function ()
         
         SelectedPetAnimal = util.joaat("A_C_Rabbit_02")
         local pedm = players.user_ped()
-        local BikeHash = util.joaat("avarus")
+        --local BikeHash = util.joaat("avarus")
         local AnimalHash = SelectedPetAnimal
         util.request_model(AnimalHash)
-        util.request_model(BikeHash)
+        --util.request_model(BikeHash)
         --local pedm = Target
 
 
---i stole the raycast bit from Lance's script, dont credit me if you use it yourself
+--i stole the raycast bit from Lance's script, and wiriscript
+
+--honestly, if you watch this and wanna do the same, the best thing is to ask me on discord, a lot of stuff there is useless and i'm too
+    --scared to remove it bc it took me ages to get this working
 
         local radius = math.random(8, 22)
         local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+        local ArrowSpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+
 
         local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
         radius = math.random(8, 22)
         SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
         local PetAnimal = entities.create_ped(28, AnimalHash, SpawnOffset, heading)
         SET_ENTITY_INVINCIBLE(PetAnimal, true)
-        local Bike = entities.create_vehicle(BikeHash, SpawnOffset, 0)
-        ATTACH_ENTITY_TO_ENTITY(Bike, PetAnimal, 0, 0, 0.25, 0.25, 0, 0, 0, true, false, false, false, 0, true, 0)
-        SET_PED_INTO_VEHICLE(players.user_ped(), Bike, -1)
-        SET_ENTITY_VISIBLE(Bike, false)
+        --local Bike = entities.create_vehicle(BikeHash, SpawnOffset, 0)
+        ATTACH_ENTITY_TO_ENTITY(players.user_ped(), PetAnimal, 5, -0.3, -0.25, 0, -180+80, 90+180, 180, true, false, false, true, 0, true, 0)
+        --SET_PED_INTO_VEHICLE(players.user_ped(), Bike, -1)
+        --SET_ENTITY_VISIBLE(Bike, false)
+        --IS_VEHICLE_VISIBLE(Bike)
 
-        local hash = util.joaat("v_ind_cfwaste")
-        local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
-        util.request_model(hash)
+
+        --From LanceScript
+        TASK_PLAY_ANIM(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        ------------------
+        local ArrowHash = 1267718013
+        util.request_model(ArrowHash)
+        local Arrow = entities.create_object(ArrowHash, ArrowSpawnOffset, heading)
+        SET_ENTITY_COLLISION(Arrow, false, false)
+
+        --local hash = util.joaat("v_ind_cfwaste")
+        --local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+        --util.request_model(hash)
        -- local OBJ = entities.create_object(hash, Player_Pos)
 
+SET_ENTITY_VISIBLE(players.user_ped(), false, false)
+util.yield(10)
 
+SET_ENTITY_VISIBLE(players.user_ped(), true, false)
         util.create_tick_handler(function()
             SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PetAnimal, true)
-            local raycast_coord = raycast_gameplay_cam(-1, 10000.0)
+util.toast("Hold and Release Space to set a destination point | Press down arrow to delete your mount")
+            if IS_CONTROL_PRESSED(0, 187) then
+                --entities.delete(Bike)
+                entities.delete(PetAnimal)
+                entities.delete(Arrow)
+                STOP_ANIM_TASK(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0)
 
-            if raycast_coord[1] == 1 then
-                local lastdist = nil
-            end
-            --util.toast(raycast_coord)
-            if raycast_coord[1] == 1 then
-               -- util.toast("boop")
-            end
-            if raycast_coord[4] ~= 0 and GET_ENTITY_TYPE(raycast_coord[4]) >= 1 and GET_ENTITY_TYPE(raycast_coord[4]) < 3 then
-                ggc1 = GET_ENTITY_COORDS(raycast_coord[4], true)
-            else
-                ggc1 = raycast_coord[2]
-            end
-            local c2 = players.get_position(players.user())
-            local dist = GET_DISTANCE_BETWEEN_COORDS(ggc1['x'], ggc1['y'], ggc1['z'], c2['x'], c2['y'], c2['z'], true)
-            -- safety
-            if not lastdist or dist < lastdist then 
-                lastdist = dist
-            else
-                
-            end
-
-            if IS_CONTROL_PRESSED(0, 145) then
                 return false
             end
+            heading = GET_ENTITY_HEADING(players.user_ped())
+            SET_ENTITY_ROTATION(Arrow, 0, 180, heading)
+            SET_ENTITY_VISIBLE(players.user_ped(), true, false)
+
+            
+            
         end)
 
         util.create_tick_handler(function()
         local cam_pos = GET_FINAL_RENDERED_CAM_COORD()
 
-        
+        if IS_CONTROL_PRESSED(0, 187) then
+            return false
+        end
 
         local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
         local distance = 10
 
         local Cam_v3 = v3.new(cam_pos.x, cam_pos.y, -cam_pos.z)
-        SET_ENTITY_COORDS_NO_OFFSET(OBJ, cam_pos.x, Player_Pos.y, cam_pos.z, false, false, false)
+        --SET_ENTITY_COORDS_NO_OFFSET(OBJ, cam_pos.x, Player_Pos.y, cam_pos.z, false, false, false)
             --SET_ENTITY_COORDS_NO_OFFSET(GiantRabbitGoal, Player_Pos.x+distance, Player_Pos.y, cam_pos.z, false, false, false)
-            local OBJcoords = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(OBJ, 0, 0, 0)
+            --local OBJcoords = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(OBJ, 0, 0, 0)
             local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
-            local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+            local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
             
             local TargetOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PetAnimal, 0, 5, 0)
-            TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, ggc1.x, ggc1.y, ggc1.z, 5.0, 0, false, 0, 0.0)
+            
+            local raycastResult = get_raycast_result(100000.0)
+            if raycastResult.didHit and (IS_PED_SHOOTING(players.user_ped()) or IS_CONTROL_PRESSED(0, 179)) then
+                GiantRabbitNextPos = raycastResult.endCoords
+                TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, GiantRabbitNextPos.x, GiantRabbitNextPos.y, GiantRabbitNextPos.z, 5.0, 0, false, 0, 0.0)
+            
+                    SET_ENTITY_COORDS_NO_OFFSET(Arrow, GiantRabbitNextPos.x, GiantRabbitNextPos.y, GiantRabbitNextPos.z+1, false, false, false)
+              
+       
+            end
             --SET_ENTITY_HEADING(PetAnimal, heading)
-          util.yield(500)
+          --util.yield(500)
 
           
     
-            if IS_CONTROL_PRESSED(0, 145) then
-                return false
-            end
+            --if IS_CONTROL_PRESSED(0, 145) then
+            --    return false
+            --end
         end)
 
-       
+
+
+
 
 
     end)
-
-
-
-
-
-
-
 
 
 
@@ -2726,6 +2821,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
         end
 
     end)
+
 
 
     local PlayerFriendlyPetList =  PlayerFriendlyList:list('Pet', {'Pet'}, 'Pet Options')
@@ -5164,6 +5260,7 @@ menu.divider(PlayerTrollingVehicleList, "------")
 
     end)
 
+    menu.divider(PlayerTrollingPedList, "------")
 
     menu.toggle_loop(PlayerTrollingPedList, "Infinite Ladder", {}, "Spawns a ladder on this player, legend says those who climb long enough will find Omelas", function(on)
 
@@ -5191,6 +5288,9 @@ menu.divider(PlayerTrollingVehicleList, "------")
         entities.delete(OBJ)
 
     end)
+
+
+    
 
     --menu.toggle_loop(PlayerTrollingPedList, "OldKitty Boom", {}, "", function(on)
 
@@ -5230,17 +5330,83 @@ menu.divider(PlayerTrollingVehicleList, "------")
     --GET_NEAREST_PLAYER_TO_ENTITY(entity)
     --HAS_ENTITY_BEEN_DAMAGED_BY_ANY_OBJECT(entity)
 
+    --[[function WoofSpammer (SelectedPetAnimal, Target)
+
+        local AnimalHash = SelectedPetAnimal
+        util.request_model(AnimalHash)
+        local pedm = Target
+
+        local radius = math.random(3, 5)
+        local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+
+
+        radius = math.random(3, 5)
+        SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+        local PetAnimal = entities.create_ped(28, AnimalHash, SpawnOffset, 0)
+        NETWORK_REQUEST_CONTROL_OF_ENTITY(PetAnimal)
 
 
 
+        util.create_tick_handler(function()
+
+            --SET_ENTITY_VISIBLE(PetAnimal, false, false)
+            --SET_ENTITY_COLLISION(PetAnimal, false)
+
+            local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+            SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PetAnimal, true)
+            TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, pos.x, pos.y, pos.z, 5.0, 0, false, 0, 0.0)
+            local KittyOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PetAnimal, 0, 0, 0)
+            util.yield(1500)
+
+            if IS_ENTITY_DEAD(PetAnimal) then
+                entities.delete(PetAnimal)
+                return false
+            end
+        end)
+
+        util.create_tick_handler(function()
+
+            if IS_ENTITY_DEAD(PetAnimal) then
+                entities.delete(PetAnimal)
+                --util.toast("RIP " .. PetNamesList[math.random(1, #PetNamesList)] .. " :'(")
+                return false
+            end
+        end)
+
+    end
 
 
 
+    menu.action(PlayerTrollingPedList, "Woof Spam", {}, "Spawns a ton of invisible doggies that will follow the player and bark at them to make them go crazy", function(on)
 
+        local Target = GET_PLAYER_PED_SCRIPT_INDEX(pid)
 
+        for i = 6, 0, -1 do
+        SelectedWildAnimal = util.joaat("A_C_Poodle")
+        WoofSpammer(SelectedWildAnimal, Target)
 
+        SelectedWildAnimal = util.joaat("A_C_Westy")
+        WoofSpammer(SelectedWildAnimal, Target)
 
+        SelectedWildAnimal = util.joaat("A_C_Pug")
+        WoofSpammer(SelectedWildAnimal, Target)
+    
+        SelectedWildAnimal = util.joaat("A_C_Rottweiler")
+        WoofSpammer(SelectedWildAnimal, Target)
 
+        SelectedWildAnimal = util.joaat("A_C_Rottweiler")
+        WoofSpammer(SelectedWildAnimal, Target)
+        
+        SelectedWildAnimal = util.joaat("A_C_shepherd")
+        WoofSpammer(SelectedWildAnimal, Target)
+
+        SelectedWildAnimal = util.joaat("A_C_Husky")
+        WoofSpammer(SelectedWildAnimal, Target)
+        end
+
+    end)--]]
+
+   
 
 end)
 
