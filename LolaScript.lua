@@ -1,7 +1,7 @@
 -- LolaScript
 -- by LolaTheSquishy
 
-local SCRIPT_VERSION = "1.1.0"
+local SCRIPT_VERSION = "1.1.1"
 
 -- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
 local status, auto_updater = pcall(require, "auto-updater")
@@ -89,13 +89,7 @@ auto_updater.run_auto_update(auto_update_config)
 
 --sharks spawed around a boat
 
-
 --Translate script
-
-
-
-
-
 
 --spawn invisble dogs around someone to sound spam them
 
@@ -104,9 +98,13 @@ auto_updater.run_auto_update(auto_update_config)
 --auto give guns and u select which ones are auto given with a toggle loop for each
 
 --giant baguette whatever this suggestion means Lol
+
+
+
+--Making mount for every big enough animal
 --adding player peds as pet
 
-
+--Police RP,missions to do, in solo minigame section
 
 
 
@@ -266,11 +264,11 @@ local myListFunAnimalsSettings = menu.list(myListFunSettings, "Animals", {}, "An
 menu.divider(myListFunSettings, "------")
 local myListFunAnimalsWildSettings = menu.list(myListFunAnimalsSettings, "Wild", {}, "Wild Animals Options")
 local myListFunAnimalsPetSettings = menu.list(myListFunAnimalsSettings, "Pet", {}, "Pet Animals Options")
-menu.action(myListFunAnimalsSettings, "Populate world !", {}, "Will spawn a lot of random animals here and there around the every player", function ()
+--[[menu.action(myListFunAnimalsSettings, "Populate world !", {}, "Will spawn a lot of random animals here and there around the every player", function ()
 
     spawn_animals_all(util.joaat(EveryAnimalHashList[math.random(1, #EveryAnimalHashList)]))
 
-end)
+end)--]]
 
     --[[local tigers = {}
 
@@ -539,6 +537,23 @@ end)
        entities.delete(Pillar2)
    
    end
+
+
+
+
+
+
+   --menu.toggle_loop(myListFunMinigamesSettings, "Flappy flap", {}, "Totally not a rip off of flappy bird that allows you to play using your own car and to flap using the space key", function()
+
+   --end, function()
+
+   --end)
+
+
+
+
+
+
 
   menu.divider(myListFunSettings, "------")
 
@@ -1374,7 +1389,7 @@ local SelectedPetAnimal
 
     end)
 
-    local PetNamesList = {"Ako", "Niko", "Izika", "Whiskers", "Nina", "Caramel", "Leonardo", "Jack", "Doodle", "Sonic", "Mario", "Sakuro", "Johnathan", "Therese", "Asuka", "Rei", "Hanna", "Dawn", "Sunshine", "Midnight", "Apauline", "Ernest", "Charles", "Sugar", "Squishy", "boo", "Peepo", "Raphael", "Sebastian", "Orlando", "Alyssa", "Yannis", "Joshua", "Peter", "Soup", "Dracula", "Alucard", "teemo", "yuki", "daboo", "pashoo", "squat", "Felix", "Lola", "Tigris", "Isoa", "Hannah", "Capucine", "Minette", "Tamagochi", "Pikachu", "Eevee", "Evely"}
+    local PetNamesList = {"Ako", "Niko", "Izika", "Whiskers", "Nina", "Caramel", "Leonardo", "Jack", "Doodle", "Sonic", "Mario", "Sakuro", "Johnathan", "Therese", "Asuka", "Rei", "Hanna", "Dawn", "Sunshine", "Midnight", "Apauline", "Ernest", "Charles", "Sugar", "Squishy", "boo", "Peepo", "Raphael", "Sebastian", "Orlando", "Alyssa", "Yannis", "Joshua", "Peter", "Soup", "Dracula", "Alucard", "teemo", "yuki", "daboo", "pashoo", "squat", "Felix", "Lola", "Tigris", "Isoa", "Hannah", "Capucine", "Minette", "Tamagochi", "Pikachu", "Eevee", "Evely", "Evelyn"}
 
     function SpawnWildAnimal (SelectedWildAnimal)
 
@@ -1953,7 +1968,50 @@ local SelectedPetAnimal
 
 
 
+    menu.action(myListFunAnimalsSettings, "Spawn a Pet Clone", {}, "Spawns a pet clone near this player (must spectate or be near of it to work properly)", function ()
 
+        
+        local pedm = players.user_ped()
+        
+        
+        
+        
+
+        local radius = math.random(8, 22)
+        local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+
+
+        radius = math.random(8, 22)
+        SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+        local PetAnimal = CLONE_PED(pedm, true, false, true)
+        NETWORK_REQUEST_CONTROL_OF_ENTITY(PetAnimal)
+
+
+
+        util.create_tick_handler(function()
+
+            local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+            SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PetAnimal, true)
+            TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, pos.x, pos.y, pos.z, 5.0, 0, false, 0, 0.0)
+            local KittyOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PetAnimal, 0, 0, 0)
+            util.yield(1500)
+
+            if IS_ENTITY_DEAD(PetAnimal) then
+                entities.delete(PetAnimal)
+                return false
+            end
+        end)
+
+        util.create_tick_handler(function()
+
+            if IS_ENTITY_DEAD(PetAnimal) then
+                entities.delete(PetAnimal)
+                util.toast("RIP " .. PetNamesList[math.random(1, #PetNamesList)] .. " :'(")
+                return false
+            end
+        end)
+
+    end)
    
 
 
@@ -2571,7 +2629,32 @@ local SelectedPetAnimal
     end
 
     --this too
-    function get_raycast_result(dist, flag)
+    function get_raycast_result_WO(dist, flag)
+        local result = {}
+        flag = flag or TraceFlag.world
+        local didHit = memory.alloc(1)
+        local endCoords = v3.new()
+        local normal = v3.new()
+        local hitEntity = memory.alloc_int()
+        local camPos = GET_FINAL_RENDERED_CAM_COORD()
+        local offset = get_offset_from_cam(dist)
+    
+        local handle = START_EXPENSIVE_SYNCHRONOUS_SHAPE_TEST_LOS_PROBE(
+            camPos.x, camPos.y, camPos.z,
+            offset.x, offset.y, offset.z,
+            flag,
+            players.user_ped(), 7
+        )
+        GET_SHAPE_TEST_RESULT(handle, didHit, endCoords, normal, hitEntity)
+    
+        result.didHit = memory.read_byte(didHit) ~= 0
+        result.endCoords = endCoords
+        result.surfaceNormal = normal
+        result.hitEntity = memory.read_int(hitEntity)
+        return result
+    end
+
+    function get_raycast_result_EV(dist, flag)
         local result = {}
         flag = flag or TraceFlag.world
         local didHit = memory.alloc(1)
@@ -2597,35 +2680,155 @@ local SelectedPetAnimal
     end
 
     --same for that, i just modified a lil
-    menu.toggle_loop(myListWeapon, "Kamikaze Gun", {}, "", function()
+    
+    local KamGunemergencyEscape = 0
+    local KamikazeGunPlanesTable = {}
 
-        local PHhash = util.joaat("v_ind_cfwaste")
-        util.request_model(PHhash)
+    menu.toggle_loop(myListWeapon, "Kamikaze Gun", {}, "Kamikaze Gun can be buggy under certain circumstances such as alt+tabing out of gta while a plane exist. If you end up with a plane flying forever simply disable and re able this feature", function()
 
-        local raycastResult = get_raycast_result(100000.0)
-        if raycastResult.didHit and IS_PED_SHOOTING(players.user_ped()) then
-            local pos = raycastResult.endCoords
-
-            --if not DOES_ENTITY_EXIST(PlaceHolderObject) then
-            
-                --PlaceHolderObject = entities.create_object(PHhash, pos, 0)
-            --end
-
-            --SET_ENTITY_COORDS_NO_OFFSET(PlaceHolderObject, pos.x, pos.y, pos.z, false, false, false)
-            --local KamikazeSpawn = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PlaceHolderObject, 0, 0, 0)
-            --util.draw_centred_text(pos.x)
-            --util.draw_centred_text(pos.y)
-            --util.draw_centred_text(pos.z)
+        local raycastResult = get_raycast_result_EV(1000.0)
+        if IS_CONTROL_PRESSED(0, 187) then
+            KamGunemergencyEscape = 1
+           -- util.toast("Blep")
         end
+        if raycastResult.didHit then
+
+            --util.toast("Bean")
+        if (IS_PED_SHOOTING(players.user_ped())) then
+            local ImpactPos = raycastResult.endCoords
+            --util.toast("bloop")
+
+             local PH = entities.create_object(1267718013, ImpactPos, 0)
+             SET_ENTITY_VISIBLE(PH, false, false)
+             SET_ENTITY_COLLISION(PH, false)
+             SET_ENTITY_COORDS(PH, ImpactPos.x, ImpactPos.y, ImpactPos.z, false, false, false, false)
+           
         
 
-    end, function()
+            KamGunemergencyEscape = 0
+            local  Ppedm = GET_PLAYER_PED_SCRIPT_INDEX(players.user_ped())
+            local randomPlane = util.joaat(JetSquadronRealNames[math.random(1, #JetSquadronRealNames)])
+            util.request_model(randomPlane)
     
+            util.toast("LEEROY JENKINS !")
+    
+            local radius = 200
+            local VictimRadius = 50
+            local ExplosionRadius = 5
+            --local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+    
+            table.insert(KamikazeGunPlanesTable, 1, 1)
+            local KnowVictimOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PH, math.random(-VictimRadius, VictimRadius), math.random(-VictimRadius, VictimRadius), 10)
+            local Offset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PH, math.random(-radius, radius), math.random(-radius, radius), math.random(100, 500))
+            local Kamikaze = entities.create_vehicle(randomPlane, Offset, math.random(-180, 180))
+    
+    
+            local KamikazeCam = CREATE_CAMERA(26379945, true)
+    
+    
+            util.create_tick_handler(function()
+                set_entity_face_entity(Kamikaze, PH, true)
+                APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(Kamikaze, 1, 0, 1.5, 0.0, true, true, true, true)
+    
+                --SET_ENTITY_VELOCITY(Kamikaze, 0, 0, -3000)
+                RENDER_SCRIPT_CAMS(true, false, 3000, 1, 0, 0)
+                SHAKE_CAM(KamikazeCam, "DRUNK_SHAKE", 1)
+                ANIMPOSTFX_PLAY("MP_corona_switch_supermod", 0, true)
+                ANIMPOSTFX_PLAY("MP_OrbitalCannon", 0, true)
+    
+                if HAS_ENTITY_COLLIDED_WITH_ANYTHING(Kamikaze) or KamGunemergencyEscape == 1 then
+    
+                    local KamikazeOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(Kamikaze,  math.random(-ExplosionRadius, ExplosionRadius),  math.random(-ExplosionRadius, ExplosionRadius),  math.random(-ExplosionRadius, ExplosionRadius))
+    
+                    -- func.use_fx_asset("scr_xm_orbital")
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 59, 1, true, false, 1.0, false)
+                    PLAY_SOUND_FROM_ENTITY(-1, "DLC_XM_Explosions_Orbital_Cannon", Kamikaze, 0, true, false)
+    
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+                    ADD_EXPLOSION(KamikazeOffset.x, KamikazeOffset.y, KamikazeOffset.z, 1, 1, true, false, 1.0, false)
+                    util.yield(50)
+    
+                    util.yield(1500)
+                    RENDER_SCRIPT_CAMS(false, false, 3000, 1, 0, 0);
+                    DESTROY_CAM(KamikazeCam, true)
+                    ANIMPOSTFX_STOP("MP_OrbitalCannon", 0, true)
+                    ANIMPOSTFX_STOP("MP_OrbitalCannon", 0, true)
+                    ANIMPOSTFX_STOP("MP_corona_switch_supermod", 0, true)
+                    ANIMPOSTFX_STOP("MP_corona_switch_supermod", 0, true)
+                    entities.delete(Kamikaze)
+                    entities.delete(PH)
+                    KamGunemergencyEscape = 1
+                    util.yield(200)
+                    table.remove(KamikazeGunPlanesTable, 1)
+                    --menu.trigger_commands('spectate'.. pname)
+            --util.yield(20000)
+                    return false
+                else
+                    SET_ENTITY_COORDS(PH, ImpactPos.x, ImpactPos.y, ImpactPos.z, false, false, false, false)
+                end
+    
+    
+            end)
+    
+            --SET_ENTITY_COORDS(players.user_ped(), Offset.x, Offset.y, Offset.z, false, false, false, false)
+            HARD_ATTACH_CAM_TO_ENTITY(KamikazeCam, Kamikaze, -10, 0, 0, 0, -10, 6, true)
+    
+            --util.toast(KamikazeCam)
+            local cause = GET_VEHICLE_CAUSE_OF_DESTRUCTION(Kamikaze)
+            SET_ALLOW_VEHICLE_EXPLODES_ON_CONTACT(Kamikaze, true)
+    
+            SET_VEHICLE_ENGINE_ON(Kamikaze, true, true, 0)
+            KamikazePilot = CREATE_RANDOM_PED_AS_DRIVER(Kamikaze, 1)
+            CONTROL_LANDING_GEAR(Kamikaze, 3)
+    
+        
+            --util.yield(20000)
+            --KamGunemergencyEscape = 1
+    
+        end
+
+    end
+
+        
+
+
+
+
+    end, function()
+        KamGunemergencyEscape = 1
     end)
+    
 
 
 
-    menu.action(myListFunAnimalsSettings, "Giant Rabbit Riding", {}, "Spawns a pet Giant Rabbit near this player that will become it's pet, you will be riding the rabbit (must spectate or be near or it to work properly)", function ()
+    menu.action(myListFunAnimalsSettings, "Giant Rabbit Riding", {}, "Spawns a pet Giant Rabbit near this player that will become it's pet, you will be riding the rabbit (must spectate or be near of it to work properly)", function ()
         
         SelectedPetAnimal = util.joaat("A_C_Rabbit_02")
         local pedm = players.user_ped()
@@ -2660,9 +2863,12 @@ local SelectedPetAnimal
         --IS_VEHICLE_VISIBLE(Bike)
 
 
+        REQUEST_ANIM_DICT("rcmjosh2")
         --From LanceScript
         TASK_PLAY_ANIM(Clone, "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
         TASK_PLAY_ANIM(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        --SET_PED_ALLOW_MINOR_REACTIONS_AS_MISSION_PED(Clone, false)
+        --SET_PED_CAN_TORSO_REACT_IK(Clone, false)
         ------------------
         local ArrowHash = 1267718013
         util.request_model(ArrowHash)
@@ -2717,7 +2923,7 @@ util.toast("Hold and Release Space to set a destination point | Press down arrow
             
             local TargetOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PetAnimal, 0, 5, 0)
             
-            local raycastResult = get_raycast_result(100000.0)
+            local raycastResult = get_raycast_result_WO(100000.0)
             if raycastResult.didHit and (IS_PED_SHOOTING(players.user_ped()) or IS_CONTROL_PRESSED(0, 179)) then
                 GiantRabbitNextPos = raycastResult.endCoords
                 TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, GiantRabbitNextPos.x, GiantRabbitNextPos.y, GiantRabbitNextPos.z, 5.0, 0, false, 0, 0.0)
@@ -2839,9 +3045,52 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
     -----------------------------------------------------------------------------------
     -----------------------------------------------------------------------------------
 
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Clone", {}, "Spawns a pet clone near this player (must spectate or be near of it to work properly)", function ()
+
+        
+        local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+        
+        
+        
+        
+
+        local radius = math.random(8, 22)
+        local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
 
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Rat", {}, "Spawns a pet rat near this player (must spectate or be near or it to work properly)", function ()
+        radius = math.random(8, 22)
+        SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+        local PetAnimal = CLONE_PED(pedm, true, false, true)
+        NETWORK_REQUEST_CONTROL_OF_ENTITY(PetAnimal)
+
+
+
+        util.create_tick_handler(function()
+
+            local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+            SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PetAnimal, true)
+            TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, pos.x, pos.y, pos.z, 5.0, 0, false, 0, 0.0)
+            local KittyOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PetAnimal, 0, 0, 0)
+            util.yield(1500)
+
+            if IS_ENTITY_DEAD(PetAnimal) then
+                entities.delete(PetAnimal)
+                return false
+            end
+        end)
+
+        util.create_tick_handler(function()
+
+            if IS_ENTITY_DEAD(PetAnimal) then
+                entities.delete(PetAnimal)
+                util.toast("RIP " .. PetNamesList[math.random(1, #PetNamesList)] .. " :'(")
+                return false
+            end
+        end)
+
+    end)
+
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Rat", {}, "Spawns a pet rat near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Rat")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2849,7 +3098,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Rabbit", {}, "Spawns a pet rabbit near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Rabbit", {}, "Spawns a pet rabbit near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Rabbit_01")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2857,7 +3106,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Giant Rabbit", {}, "Spawns a pet giant rabbit near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Giant Rabbit", {}, "Spawns a pet giant rabbit near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Rabbit_02")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2865,14 +3114,14 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Kitty", {}, "Spawns a pet kitty near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Kitty", {}, "Spawns a pet kitty near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Cat_01")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
         SpawnPetAnimal(SelectedPetAnimal, pedm)
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Poodle", {}, "Spawns a pet poodle near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Poodle", {}, "Spawns a pet poodle near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Poodle")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2880,7 +3129,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Westy", {}, "Spawns a pet westy near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Westy", {}, "Spawns a pet westy near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Westy")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2888,7 +3137,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Pug", {}, "Spawns a pet pug near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Pug", {}, "Spawns a pet pug near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Pug")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2896,7 +3145,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Zombie Pug", {}, "Spawns a pet zombie pug near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Zombie Pug", {}, "Spawns a pet zombie pug near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Pug_02")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2904,7 +3153,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Rottweiler", {}, "Spawns a pet rottweiler near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Rottweiler", {}, "Spawns a pet rottweiler near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Rottweiler")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2912,7 +3161,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Retriever", {}, "Spawns a pet retriever near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Retriever", {}, "Spawns a pet retriever near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Retriever")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2920,7 +3169,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Shepherd", {}, "Spawns a pet shepherd near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Shepherd", {}, "Spawns a pet shepherd near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_shepherd")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2928,7 +3177,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Husky", {}, "Spawns a pet husky near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Husky", {}, "Spawns a pet husky near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Husky")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2936,7 +3185,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Coyote", {}, "Spawns a pet coyote near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Coyote", {}, "Spawns a pet coyote near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Coyote")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2944,7 +3193,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Zombie Coyote", {}, "Spawns a pet zombie coyote near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Zombie Coyote", {}, "Spawns a pet zombie coyote near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Coyote_02")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2952,7 +3201,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Mountain Lion", {}, "Spawns a pet mountain lion near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Mountain Lion", {}, "Spawns a pet mountain lion near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_MtLion")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2960,7 +3209,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Zombie Mountain Lion", {}, "Spawns a pet zombie mountain lion near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Zombie Mountain Lion", {}, "Spawns a pet zombie mountain lion near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_MtLion_02")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2968,7 +3217,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Panther", {}, "Spawns a pet panther near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Panther", {}, "Spawns a pet panther near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Panther")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2976,7 +3225,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Rhesus", {}, "Spawns a pet rhesus near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Rhesus", {}, "Spawns a pet rhesus near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Rhesus")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2984,7 +3233,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Chimp", {}, "Spawns a pet chimp near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Chimp", {}, "Spawns a pet chimp near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Chimp_02")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -2992,7 +3241,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Pig", {}, "Spawns a pet pig near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Pig", {}, "Spawns a pet pig near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Pig")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3000,7 +3249,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Boar", {}, "Spawns a pet boar near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Boar", {}, "Spawns a pet boar near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Boar")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3008,7 +3257,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet zombie boar", {}, "Spawns a pet zombie boar near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet zombie boar", {}, "Spawns a pet zombie boar near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Boar_02")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3016,7 +3265,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Cow", {}, "Spawns a pet cow near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Cow", {}, "Spawns a pet cow near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Cow")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3024,7 +3273,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Deer", {}, "Spawns a pet deer near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Deer", {}, "Spawns a pet deer near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Deer")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3032,7 +3281,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Zombie Deer", {}, "Spawns a pet zombie deer near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Zombie Deer", {}, "Spawns a pet zombie deer near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Deer_02")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3040,7 +3289,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Fishy", {}, "Spawns a pet fishy near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Fishy", {}, "Spawns a pet fishy near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Fish")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3048,7 +3297,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Stingray", {}, "Spawns a pet stingray near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Stingray", {}, "Spawns a pet stingray near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Stingray")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3056,7 +3305,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Dolphin", {}, "Spawns a pet dolphin near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Dolphin", {}, "Spawns a pet dolphin near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Dolphin")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3064,7 +3313,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Hammerhead Shark", {}, "Spawns a pet hammerhead shark near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Hammerhead Shark", {}, "Spawns a pet hammerhead shark near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_SharkHammer")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3072,7 +3321,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Tiger Shark", {}, "Spawns a pet tiger shark near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Tiger Shark", {}, "Spawns a pet tiger shark near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_SharkTiger")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3080,7 +3329,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Killer Whale", {}, "Spawns a pet killer whale near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Killer Whale", {}, "Spawns a pet killer whale near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_KillerWhale")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3088,7 +3337,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Hump Back Whale", {}, "Spawns a pet hump back whale near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Hump Back Whale", {}, "Spawns a pet hump back whale near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_HumpBack")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3096,7 +3345,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Pigeon", {}, "Spawns a pet pigeon near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Pigeon", {}, "Spawns a pet pigeon near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Pigeon")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3104,7 +3353,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Crow", {}, "Spawns a pet Crow near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Crow", {}, "Spawns a pet Crow near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Crow")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3112,7 +3361,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Hen", {}, "Spawns a pet hen near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Hen", {}, "Spawns a pet hen near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Hen")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3120,7 +3369,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Seagull", {}, "Spawns a pet seagull near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Seagull", {}, "Spawns a pet seagull near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Seagull")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3128,7 +3377,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Chickehawk", {}, "Spawns a pet chickenhawk near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Chickehawk", {}, "Spawns a pet chickenhawk near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Chickenhawk")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -3136,7 +3385,7 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
 
     end)
 
-    menu.action(PlayerFriendlyPetList, "Spawn a Pet Cormorant", {}, "Spawns a pet cormorant near this player (must spectate or be near or it to work properly)", function ()
+    menu.action(PlayerFriendlyPetList, "Spawn a Pet Cormorant", {}, "Spawns a pet cormorant near this player (must spectate or be near of it to work properly)", function ()
 
         SelectedPetAnimal = util.joaat("A_C_Cormorant")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -4198,7 +4447,7 @@ if IS_PED_IN_ANY_VEHICLE(pedm, true) and IS_PED_IN_MODEL(pedm, CarHash) and IS_P
     SET_VEHICLE_MOD(GoodSong, 14, 4, false)
     --OVERRIDE_VEH_HORN(GoodSong, true, hornhash)
     START_VEHICLE_HORN(GoodSong, 10000, 2207581387, false)
-    util.yoeld(2000)
+    util.yield(2000)
     RaijuReward = entities.create_vehicle(RewardHash, RewardSpawnOffset, 180 + heading)
     util.request_model(RewardHash)
 
@@ -4803,7 +5052,7 @@ menu.divider(PlayerTrollingVehicleList, "------")
 
     --math.random(-radius, radius)
 
-    menu.action(PlayerFunnyList, "Giant Rabbit Riding", {}, "Spawns a pet Giant Rabbit near this player that will become it's pet, you will be riding the rabbit (must spectate or be near or it to work properly)", function ()
+    --[[menu.action(PlayerFunnyList, "Giant Rabbit Riding", {}, "Spawns a pet Giant Rabbit near this player that will become it's pet, you will be riding the rabbit (must spectate or be near of it to work properly)", function ()
         
         SelectedPetAnimal = util.joaat("A_C_Rabbit_02")
         local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
@@ -4854,7 +5103,7 @@ menu.divider(PlayerTrollingVehicleList, "------")
         util.yield(6000)
         DETACH_ENTITY(players.user_ped(), true, true)
 
-    end)
+    end)--]]
 
     menu.toggle_loop(PlayerFunnyList, "Snow Rain", {}, "Rains Snowballs", function(on)
         local hashSnowball = 126349499 --2138347493 --util.joaat("Snowball")
