@@ -1,7 +1,7 @@
 -- LolaScript
 -- by LolaTheSquishy
 
-local SCRIPT_VERSION = "1.1.1"
+local SCRIPT_VERSION = "1.1.2"
 
 -- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
 local status, auto_updater = pcall(require, "auto-updater")
@@ -99,12 +99,15 @@ auto_updater.run_auto_update(auto_update_config)
 
 --giant baguette whatever this suggestion means Lol
 
+--A better version of stand’s feature “Rewind”, pestered Sainan when they were around to implement this but it doesn’t sync well for other players, basically rewinds your position up to five seconds (looks smooth locally but laggy for other players)
 
 
 --Making mount for every big enough animal
 --adding player peds as pet
 
 --Police RP,missions to do, in solo minigame section
+
+--Spy RP, infiltrating a subarine after stealing a submarine/sub car
 
 
 
@@ -223,13 +226,13 @@ local myListFunSettings = menu.list(menu.my_root(), "Fun", {}, "Fun Options")
 local myListMiscSettings = menu.list(menu.my_root(), "Misc", {}, "Miscellaneous Options")
 
 
-menu.toggle_loop(myListMiscSettings, "Diplay Location", {}, "Diplays Global Location", function(on)
+menu.toggle_loop(myListMiscSettings, "Display Location", {}, "Displays Global Location", function(on)
 
     local RealOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
 
-    util.draw_debug_text("pos x :" .. RealOffset.x)
-    util.draw_debug_text("pos y :" .. RealOffset.y)
-    util.draw_debug_text("pos z :" .. RealOffset.z)
+    util.draw_debug_text("pos x : " .. RealOffset.x)
+    util.draw_debug_text("pos y : " .. RealOffset.y)
+    util.draw_debug_text("pos z : " .. RealOffset.z)
 
 end, function()
 
@@ -317,6 +320,7 @@ end)--]]
    end)--]]
 
    local myListFunMinigamesSettings = menu.list(myListFunSettings, "Minigames", {}, "Play minigames !")
+   local myListFunMissionsSettings = menu.list(myListFunMinigamesSettings, "Missions", {}, "Play missions ! IMPORTANT : It is very advised to stop and start the script each time you want to redo a mission !! Also do not play it a very populated lobby or some missions entities will dissapear due to most likely entity cap, thus softlocking the mission. Best is to play it in solo mode")
 
    menu.action(myListFunMinigamesSettings, "Flappy flap", {}, "Totally not a rip off of flappy bird that allows you to play using your own car and to flap using the space key", function()
        FlappyFlapminigamestarted = 0
@@ -539,15 +543,806 @@ end)--]]
    end
 
 
+    local selectedRP = 1
+
+    local RPstarted = 0
+    local RPended = 0
+    local showscore = 0
+
+    local RPdialogue = 0
+
+    local RPphase = 0 --default=0
+   
+    local RP1blips = {}
+    local RP1peds = {}
+    local RP1vehicles = {}
+    local RP1objects = {}
+
+    local RP1Waypoint = 0
+
+    local RP1CutsceneCam1 = CREATE_CAMERA(26379945, true)
+
+    local RP1CutsceneCam1Loc = v3.new(-546.4, -8.1, 45.5)
+    local RP1CutsceneCam1Rot = v3.new(-10, 0, -136)
+    local RP1CutsceneCam1FOV = (70)
+
+    
+    local RP1ChaseWaypoint1 = v3.new(-2937.7, 2105, 41)
+
+
+    local PoliceRoleplayScenarios = { "Street Race gone wrong" }
+    menu.textslider(myListFunMissionsSettings, "Select Mission", {}, "Selects a mission to play !", PoliceRoleplayScenarios, function (index, name)
+   
+
+        
+
+        if name == "Street Race gone wrong" then
+            selectedRP = 1
+            util.toast("Scenario Selected ! You can enable the Toggle Loop below to start !")
+        end
+
+    end)
+    local Missiontime = 0
+   menu.toggle_loop(myListFunMissionsSettings, "Start Mission !", {}, "Plays the currently selected mission !", function(index, name)
+
+    local PlayerName = players.get_name(players.user())
+
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+
+    --if IS_CONTROL_PRESSED(0, 187) and RPphase < 8 then--remove
+    --    util.yield(300)--remove
+    --    RPphase = RPphase + 1--remove
+    --end--remove
+
+    util.create_tick_handler(function()
+           
+   if RPended == 0 then
+    Missiontime = Missiontime + 1
+        util.yield(1000)
+   end
+        
+
+    end)
+
+    local SpikesHash = util.joaat("prop_rub_wreckage_7")
+    util.request_model(SpikesHash)
+
+    if IS_CONTROL_PRESSED(0, 341) and IS_PED_IN_VEHICLE(players.user_ped(), RP1vehicles[1]) then--remove
+        local SpikesSpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], -5, -5, -2.4)
+        local heading = GET_ENTITY_HEADING(RP1vehicles[1])
+        util.request_model(SpikesHash)
+        local Spikes = entities.create_object(SpikesHash, SpikesSpawnOffset, 0)
+        SET_ENTITY_ROTATION(Spikes, 45, 90, heading, 2, true)
+        table.insert(RP1objects, #RP1objects, Spikes)
+        FREEZE_ENTITY_POSITION(Spikes, true)
+        --util.yield(500)
+        util.create_tick_handler(function()
+            SET_ENTITY_AS_MISSION_ENTITY(Spikes, true, true)
+        end)
+        util.yield(2000)
+    end--remove
+    
+
+
+    if selectedRP == 0 then
+        util.toast("Please select a scenario to start !")
+    end
+
+    if selectedRP == 1 then
+        if RPphase == 0 then
+            RPphase = 1
+
+            RP1CutsceneCam1Loc = v3.new(-546.4, -8.1, 45.5)
+            RP1CutsceneCam1Rot = v3.new(-10, 0, -136)
+            RP1CutsceneCam1FOV = (70)
+        end
+
+
+        
+
+        local PlayerCopCarHash = util.joaat("police")
+        util.request_model(PlayerCopCarHash)
+        local PlayerCopCarLocation = v3.new(408, -984.5, 30)
+        local TeamMateCopCarLocation = v3.new(408, -989, 30)
+
+        local CopPedHash = util.joaat("S_M_Y_Cop_01")
+        util.request_model(CopPedHash)
+        local CopTeamMatePedSpawnLocation = v3.new(433, -981, 31)
+
+        local InvisPillarHash = util.joaat("prop_ld_dstpillar_01")
+        util.request_model(InvisPillarHash)
+        local InvisPillarLoc = v3.new(418.3, -985.2, 30)
+
+        local Patrol1BlipLocation = v3.new(-626, -183, 50)
+        local Patrol1BlipRadius = 400
+        
+        local StreetRacerCar_1_Hash = util.joaat("krieger")
+        util.request_model(StreetRacerCar_1_Hash)
+        local StreetRacerCar_2_Hash = util.joaat("entityxf")
+        util.request_model(StreetRacerCar_2_Hash)
+        local StreetRacerCar_3_Hash = util.joaat("ignus")
+        util.request_model(StreetRacerCar_3_Hash)
+
+        local StreetRacerCar_1_SpawnLoc = v3.new(-531.4, -33.9, 44)
+        local StreetRacerCar_2_SpawnLoc = v3.new(-528.16, -35.1, 44)
+        local StreetRacerCar_3_SpawnLoc = v3.new(-535, -32.75, 44)
+
+        local StreetRacerDriver_1_Hash = util.joaat("U_M_M_Aldinapoli")
+        util.request_model(StreetRacerDriver_1_Hash)
+
+        local StreetRacerDriver_2_Hash = util.joaat("U_M_M_BikeHire_01")
+        util.request_model(StreetRacerDriver_2_Hash)
+
+        local StreetRacerDriver_3_Hash = util.joaat("U_F_Y_Mistress")
+        util.request_model(StreetRacerDriver_3_Hash)
+        
+        local Patrol2BlipLocation = v3.new(-340, -21, 50)
+        local Patrol2BlipRadius = 300
+
+        
+        local ChaseInterceptPointLoc = v3.new(-3029, 1890.75, 29)
+        local ChaseInterceptPointRadius = 500
+
+
+        
+
+
+if RPphase == 1 then
+    util.toast("Reach your car")--Tip
+        if RPstarted == 0 then
+
+            RPstarted = 1
+            util.request_model(PlayerCopCarHash)
+            local PlayerCopCar = entities.create_vehicle(PlayerCopCarHash, PlayerCopCarLocation, -128)
+            table.insert(RP1vehicles, 1, PlayerCopCar)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(PlayerCopCar, true, true)
+            end)
+            SET_VEHICLE_RADIO_ENABLED(PlayerCopCar, false)
+            
+            local TeamMateCopCar = entities.create_vehicle(PlayerCopCarHash, TeamMateCopCarLocation, -128)
+            table.insert(RP1vehicles, 2, TeamMateCopCar)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(TeamMateCopCar, true, true)
+            end)
+            SET_VEHICLE_RADIO_ENABLED(TeamMateCopCar, false)
+
+            util.request_model(InvisPillarHash)
+            local InvisPillar = entities.create_object(InvisPillarHash, InvisPillarLoc, 0)
+            table.insert(RP1objects, 1, InvisPillar)
+            FREEZE_ENTITY_POSITION(InvisPillar, true)
+            SET_ENTITY_VISIBLE(InvisPillar, false, false)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(InvisPillar, true, true)
+            end)
+            
+
+            local blipPlayerCopCar = ADD_BLIP_FOR_ENTITY(PlayerCopCar)
+            table.insert(RP1blips, 1, blipPlayerCopCar)
+
+            SET_BLIP_SPRITE(blipPlayerCopCar, 672)
+            SET_BLIP_DISPLAY(blipPlayerCopCar, 2)
+
+
+                util.create_tick_handler(function()
+                    SET_BLIP_COLOUR(blipPlayerCopCar, 59)
+                    util.yield(500)
+                    SET_BLIP_COLOUR(blipPlayerCopCar, 38)
+                    util.yield(500)
+                end)
+
+                util.create_tick_handler(function()
+                    local PlayerLocation = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                    if RP1Waypoint == 0 then
+                        if PlayerLocation:distance(PlayerCopCarLocation) > 5  then
+                            SET_NEW_WAYPOINT(PlayerCopCarLocation.x, PlayerCopCarLocation.y)
+                        end
+
+                        if IS_PED_IN_VEHICLE(players.user_ped(), PlayerCopCar, false) then 
+                            RP1Waypoint = 1
+                            RPphase = 2
+                            return false
+                        end
+                    end    
+                end)
+                
+        end
+end--phase1
+
+if RPphase == 2 then
+    util.toast("Wait for Danny to get in")--Tip
+        if RPstarted == 1 then
+            RPstarted = 2
+
+            util.request_model(CopPedHash)
+            local CopTeamMate = entities.create_ped(0, CopPedHash, CopTeamMatePedSpawnLocation, 0)
+            table.insert(RP1peds, 1, CopTeamMate)
+            --util.yield(1000)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(CopTeamMate, true, true)
+            end)
+                --SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(CopTeamMate, true)
+            
+            util.create_tick_handler(function()
+                local currentpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(CopTeamMate, 0, 0, 0)
+                local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, 0, 0)
+                if currentpos:distance(pos) < 3 then
+                    TASK_ENTER_VEHICLE(CopTeamMate, RP1vehicles[1], -1, 0, 1.0, 3, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(CopTeamMate, true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+                    FREEZE_ENTITY_POSITION(RP1peds[1], true)
+                    
+                    RPphase = 3
+                    if IS_PED_IN_VEHICLE(CopTeamMate, RP1vehicles[1], false) then
+                        RPphase = 3
+                        
+                    end
+                    return false
+                else
+                    TASK_GO_TO_ENTITY(CopTeamMate, RP1vehicles[1], -1, 1.0, 100, 1073741824, 0)
+                    util.yield(500)
+                end
+            end)
+
+            local blipCopTeamMate = ADD_BLIP_FOR_ENTITY(CopTeamMate)
+            table.insert(RP1blips, 2, blipCopTeamMate)
+
+            SET_BLIP_SPRITE(blipCopTeamMate, 280)
+            SET_BLIP_DISPLAY(blipCopTeamMate, 2)
+            SET_BLIP_COLOUR(blipCopTeamMate, 18)
+            
+    --util.toast("boop")--remove
+    --SET_PED_VEHICLE_FORCED_SEAT_USAGE--remove
+    --IS_PED_SITTING_IN_VEHICLE
+
+        end
+
+end--phase2
+
+
+if RPphase == 3 then
+
+    util.toast("Patrol the area you've been assigned to")--Tip
+
+        if RPstarted == 2 then
+            RPstarted = 3
+
+            local PatrolArea1 = ADD_BLIP_FOR_RADIUS(Patrol1BlipLocation.x, Patrol1BlipLocation.y, Patrol1BlipLocation.z, Patrol1BlipRadius)
+            table.insert(RP1blips, 3, PatrolArea1)
+            SET_BLIP_ALPHA(PatrolArea1, 90)
+            SET_BLIP_DISPLAY(PatrolArea1, 2)
+            SET_BLIP_COLOUR(PatrolArea1, 73)
+            
+            SET_NEW_WAYPOINT(Patrol1BlipLocation.x, Patrol1BlipLocation.y)
+
+            --[[util.create_tick_handler(function()
+                
+                local currentPlayerpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, -5, 0)
+                TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[1], RP1vehicles[2], currentPlayerpos.x, currentPlayerpos.y, currentPlayerpos.z, 150.0, 1074528292, 0.0)
+               SET_PED_KEEP_TASK(RP1peds[1], true)
+                    util.yield(2500)
+            end) --]]
+
+            util.create_tick_handler(function()
+                local currentPlayerpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, 0, 0)
+                --local currentTeamMatepos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[2], 0, 0, 0)
+                --if currentTeamMatepos:distance(currentPlayerpos) > 600 and RPphase == 3 then
+                --    util.toast("Wait for Danny")
+                --end
+                    TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+                if currentPlayerpos:distance(Patrol1BlipLocation) < Patrol1BlipRadius-50 --[[and currentPlayerpos:distance(currentTeamMatepos) < 50 --]]then
+                    util.yield(5000)
+                    RPphase = 4
+                    return false
+                end
+            end)     
+
+        end
+end--phase3
+
+if RPphase == 4 then
+
+    TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+
+    if RPdialogue == 0 then
+        util.toast("Wait for instructions")--Tip
+    elseif RPdialogue == 1 then
+        util.toast("Radio : We need units near Hawick Avenue, a witness reported a number of high-end cars setting up an illegal street race")--Dialogue
+    elseif RPdialogue == 2 then
+        util.toast(PlayerName .. " : Unit 05, agent " .. PlayerName .. " here, agent Danny and I are on it")
+    end
+
+
+        if RPstarted == 3 then
+            RPstarted = 4
+
+            --spawn race cars
+            util.request_model(StreetRacerCar_1_Hash)
+            local StreetRacerCar_1 = entities.create_vehicle(StreetRacerCar_1_Hash, StreetRacerCar_1_SpawnLoc, 10)
+            table.insert(RP1vehicles, 3, StreetRacerCar_1)
+            SET_VEHICLE_MOD_COLOR_1(StreetRacerCar_1, 1, math.random(100, 160), math.random(100, 160))
+            SET_VEHICLE_TYRES_CAN_BURST(StreetRacerCar_1, true)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerCar_1, true, true)
+                
+                TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+            end)
+
+            util.request_model(StreetRacerCar_2_Hash)
+            local StreetRacerCar_2 = entities.create_vehicle(StreetRacerCar_2_Hash, StreetRacerCar_2_SpawnLoc, 10)
+            table.insert(RP1vehicles, 4, StreetRacerCar_2)
+            SET_VEHICLE_MOD_COLOR_1(StreetRacerCar_2, 1, math.random(100, 160), math.random(100, 160))
+            SET_VEHICLE_TYRES_CAN_BURST(StreetRacerCar_2, true)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerCar_2, true, true)
+            end)
+
+            util.request_model(StreetRacerCar_3_Hash)
+            local StreetRacerCar_3 = entities.create_vehicle(StreetRacerCar_3_Hash, StreetRacerCar_3_SpawnLoc, 10)
+            table.insert(RP1vehicles, 5, StreetRacerCar_3)
+            SET_VEHICLE_MOD_COLOR_1(StreetRacerCar_3, 1, math.random(100, 160), math.random(100, 160))
+            SET_VEHICLE_TYRES_CAN_BURST(StreetRacerCar_3, true)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerCar_3, true, true)
+            end)
+
+            --spawn drivers
+            util.request_model(StreetRacerDriver_1_Hash)
+            util.request_model(StreetRacerDriver_2_Hash)
+            util.request_model(StreetRacerDriver_3_Hash)
+
+            local StreetRacerDriver_1 = entities.create_ped(0, StreetRacerDriver_1_Hash, StreetRacerCar_1_SpawnLoc, 0)
+            SET_PED_COMBAT_ATTRIBUTES(StreetRacerDriver_1, 13, true)--aggressive
+            local currentposDriver1 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(StreetRacerDriver_1, 0, 0, 0)
+            local StreetRacerCar1Loc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[3], 0, 0, 0)
+            table.insert(RP1peds, 2, StreetRacerDriver_1)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerCar_1, true, true)
+            end)
+
+            if currentposDriver1:distance(StreetRacerCar1Loc) < 3 then
+                TASK_ENTER_VEHICLE(StreetRacerDriver_1, RP1vehicles[3], -1, -1, 1.0, 16, 0)
+            end
+
+            local StreetRacerDriver_2 = entities.create_ped(0, StreetRacerDriver_2_Hash, StreetRacerCar_2_SpawnLoc, 0)
+            SET_PED_COMBAT_ATTRIBUTES(StreetRacerDriver_2, 13, true)--aggressive
+            local currentposDriver2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(StreetRacerDriver_2, 0, 0, 0)
+            local StreetRacerCar2Loc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[4], 0, 0, 0)
+            table.insert(RP1peds, 3, StreetRacerDriver_2)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerDriver_2, true, true)
+            end)
+
+            if currentposDriver2:distance(StreetRacerCar2Loc) < 3 then
+                TASK_ENTER_VEHICLE(StreetRacerDriver_2, RP1vehicles[4], -1, -1, 1.0, 16, 0)
+            end
+
+            local StreetRacerDriver_3 = entities.create_ped(0, StreetRacerDriver_3_Hash, StreetRacerCar_3_SpawnLoc, 0)
+            SET_PED_COMBAT_ATTRIBUTES(StreetRacerDriver_3, 13, true)--aggressive
+            local currentposDriver3 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(StreetRacerDriver_3, 0, 0, 0)
+            local StreetRacerCar3Loc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[5], 0, 0, 0)
+            table.insert(RP1peds, 4, StreetRacerDriver_3)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerDriver_3, true, true)
+            end)
+
+            if currentposDriver3:distance(StreetRacerCar3Loc) < 3 then
+                TASK_ENTER_VEHICLE(StreetRacerDriver_3, RP1vehicles[5], -1, -1, 1.0, 16, 0)
+            end
 
 
 
 
-   --menu.toggle_loop(myListFunMinigamesSettings, "Flappy flap", {}, "Totally not a rip off of flappy bird that allows you to play using your own car and to flap using the space key", function()
+            util.create_tick_handler(function()
+            
+                local currentPlayerpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, 0, 0)
+                --TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[1], RP1vehicles[2], currentPlayerpos.x, currentPlayerpos.y, currentPlayerpos.z, 150.0, 1074528292, 0.0)
+            
+            end)
 
-   --end, function()
+            util.create_tick_handler(function()
+                util.yield(8000)
+                RPdialogue = 1
+                util.yield(10000)
+                RPdialogue = 2
+                util.yield(10000)
+                RPdialogue = -1
+                RPphase = 5
+                return false
+            end)
+        end
 
-   --end)
+end--phase4
+
+
+
+if RPphase == 5 then
+
+        --Tip
+
+        if RPstarted == 4 then
+            RPstarted = 5
+            util.toast("Look for the street racers")
+
+            util.remove_blip(RP1blips[3])
+
+            local PatrolArea2 = ADD_BLIP_FOR_RADIUS(Patrol2BlipLocation.x, Patrol2BlipLocation.y, Patrol2BlipLocation.z, Patrol2BlipRadius)
+            table.insert(RP1blips, 4, PatrolArea2)
+            SET_BLIP_ALPHA(PatrolArea2, 90)
+            SET_BLIP_DISPLAY(PatrolArea2, 2)
+            SET_BLIP_COLOUR(PatrolArea2, 73)
+            
+            SET_NEW_WAYPOINT(Patrol2BlipLocation.x, Patrol2BlipLocation.y)
+
+        util.create_tick_handler(function()
+            local currentPlayerpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, 0, 0)
+
+            TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+
+
+            if currentPlayerpos:distance(StreetRacerCar_2_SpawnLoc) < 60 then
+                RPphase = 6
+                return false
+            end
+        end)
+
+
+
+        end
+
+end--phase5
+
+if RPphase == 6 then
+
+    --util.toast("")--Tip
+util.create_tick_handler(function()
+    if RPdialogue == 0 then
+        util.toast("Radio : These three matches the descriptions of 'il gatino', the terrorist group responsible for the fall of the US Montana. Shoot them down at all cost")--Tip
+    elseif RPdialogue == 1 then
+        util.toast(PlayerName .. " : Roger that")
+    elseif RPdialogue == 2 and RPended == 1 then
+        util.toast("Mission Complete ! " .. PlayerName .. " please tell me what are you thoughts about this short mission, if a lot of people likes the concept, i have a whole lot of ideas for new short and long missions ! How to tell me your thoughts ? Simply join my discord server ! I have a feedback channel there. You will find a link in the 'About Lolascript' section of the script ! To close this message please restart the script")
+        
+    end
+    
+    if RPended == 1 and showscore == 0 then
+
+            util.create_tick_handler(function()
+                util.toast("The lower the score, the faster you were to complete the mission. " .. PlayerName .. "'s' score : " .. Missiontime)
+                if showscore == 1 then
+                    return false
+                end
+            end)
+        end
+end)
+    util.create_tick_handler(function()
+        
+        util.yield(8000)
+        RPdialogue = 0
+        util.yield(8000)
+        RPdialogue = 1
+        util.yield(8000)
+        RPdialogue = 2
+        RPphase = 5
+        return false
+    end)
+
+    if RPstarted == 5 then
+        RPstarted = 6
+            
+        local StreetCarsLocationsBlipRadius = 50
+        
+        local StreetCarsLocationsBlip = ADD_BLIP_FOR_RADIUS(StreetRacerCar_2_SpawnLoc.x, StreetRacerCar_2_SpawnLoc.y, StreetRacerCar_2_SpawnLoc.z, StreetCarsLocationsBlipRadius)
+        table.insert(RP1blips, 5, StreetCarsLocationsBlip)
+        SET_BLIP_ALPHA(StreetCarsLocationsBlip, 90)
+        SET_BLIP_DISPLAY(StreetCarsLocationsBlip, 2)
+        SET_BLIP_COLOUR(StreetCarsLocationsBlip, 63)
+
+
+        TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+        util.yield(2000)
+        RPphase = 7
+
+        
+    end
+
+    
+end--phase6
+
+
+if RPphase == 7 then
+
+    --util.toast("Look for the street racers")--Tip
+
+    if RPstarted == 6 then
+        RPstarted = 7
+
+        local next = 0
+
+        SET_CAM_COORD(RP1CutsceneCam1, RP1CutsceneCam1Loc.x, RP1CutsceneCam1Loc.y, RP1CutsceneCam1Loc.z)
+        SET_CAM_ROT(RP1CutsceneCam1, RP1CutsceneCam1Rot.x, RP1CutsceneCam1Rot.y, RP1CutsceneCam1Rot.z, 2)
+        SET_CAM_FOV(RP1CutsceneCam1, RP1CutsceneCam1FOV)
+
+        RENDER_SCRIPT_CAMS(true, true, 1, 1, 0, 0)
+
+        FREEZE_ENTITY_POSITION(RP1vehicles[1], true)
+        DISABLE_ALL_CONTROL_ACTIONS(0)
+        util.yield(10)
+        FREEZE_ENTITY_POSITION(RP1vehicles[1], false)
+
+        SET_ENTITY_COORDS_NO_OFFSET(RP1vehicles[1], -507.2, -2.2, 45, false, false, false)
+        SET_ENTITY_HEADING(RP1vehicles[1], 125.8)
+        SET_VEHICLE_FORWARD_SPEED_XY(RP1vehicles[1], 12)
+
+        local d1oonce = 0
+            local d2oonce = 0
+            local d3oonce = 0
+            local d4oonce = 0
+            local d5oonce = 0
+            local d6oonce = 0
+
+            local TerroDeath1 = 0
+            local TerroDeath2 = 0
+            local TerroDeath3 = 0
+
+        --util.yield(3000)
+        util.create_tick_handler(function()
+            SET_CAM_ROT(RP1CutsceneCam1, RP1CutsceneCam1Rot.x, RP1CutsceneCam1Rot.y, RP1CutsceneCam1Rot.z, 2)
+            SET_CAM_FOV(RP1CutsceneCam1, RP1CutsceneCam1FOV)
+
+            TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+
+
+            if RP1CutsceneCam1Rot.z > -140 then
+                RP1CutsceneCam1Rot.z = RP1CutsceneCam1Rot.z - 0.05
+            end
+            if RP1CutsceneCam1Rot.x < -5 then
+                RP1CutsceneCam1Rot.x = RP1CutsceneCam1Rot.x + 0.05
+            end
+
+            if RP1CutsceneCam1FOV > 30 then
+                RP1CutsceneCam1FOV = RP1CutsceneCam1FOV - 0.25
+            end
+            
+            if RP1CutsceneCam1FOV <= 30 and next == 0 then
+                
+                util.yield(1500)
+                next = 1
+                SET_VEHICLE_SIREN(RP1vehicles[1], true)
+                util.yield(500)
+                RENDER_SCRIPT_CAMS(false, true, 1, 1, 0, 0);
+                DESTROY_CAM(RP1CutsceneCam1, true)
+                ENABLE_ALL_CONTROL_ACTIONS(0)
+
+                local blipStreetRacer1 = ADD_BLIP_FOR_ENTITY(RP1vehicles[3])
+                table.insert(RP1blips, 6, blipStreetRacer1)
+
+                SET_BLIP_SPRITE(blipStreetRacer1, 669)
+                SET_BLIP_DISPLAY(blipStreetRacer1, 2)
+                SET_BLIP_COLOUR(blipStreetRacer1, 6)
+
+
+                local blipStreetRacer2 = ADD_BLIP_FOR_ENTITY(RP1vehicles[4])
+                table.insert(RP1blips, 7, blipStreetRacer2)
+
+                SET_BLIP_SPRITE(blipStreetRacer2, 663)
+                SET_BLIP_DISPLAY(blipStreetRacer2, 2)
+                SET_BLIP_COLOUR(blipStreetRacer2, 6)
+
+
+                local blipStreetRacer3 = ADD_BLIP_FOR_ENTITY(RP1vehicles[5])
+                table.insert(RP1blips, 8, blipStreetRacer3)
+
+                SET_BLIP_SPRITE(blipStreetRacer3, 523)
+                SET_BLIP_DISPLAY(blipStreetRacer3, 2)
+                SET_BLIP_COLOUR(blipStreetRacer3, 6)
+
+                util.remove_blip(RP1blips[4])
+                util.remove_blip(RP1blips[5])
+
+                local InterceptPointBlip = ADD_BLIP_FOR_RADIUS(ChaseInterceptPointLoc.x, ChaseInterceptPointLoc.y, ChaseInterceptPointLoc.z, ChaseInterceptPointRadius)
+                table.insert(RP1blips, 9, InterceptPointBlip)
+                SET_BLIP_ALPHA(InterceptPointBlip, 0)
+                SET_BLIP_DISPLAY(InterceptPointBlip, 2)
+                SET_BLIP_COLOUR(InterceptPointBlip, 12)
+                
+            end
+
+            if next == 1 then
+                
+                    
+                    TASK_VEHICLE_DRIVE_WANDER(RP1peds[3], RP1vehicles[4], 400.0, 1074528292)
+                    --TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[3], RP1vehicles[4], RP1ChaseWaypoint1.x, RP1ChaseWaypoint1.y, RP1ChaseWaypoint1.z, 400.0, 1074528292, 0.0)
+                    util.yield(750)
+                    TASK_VEHICLE_DRIVE_WANDER(RP1peds[2], RP1vehicles[3], 400.0, 1074528292)
+                    --TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[2], RP1vehicles[3], RP1ChaseWaypoint1.x, RP1ChaseWaypoint1.y, RP1ChaseWaypoint1.z, 400.0, 1074528292, 0.0)
+                    util.yield(750)
+                    TASK_VEHICLE_DRIVE_WANDER(RP1peds[4], RP1vehicles[5], 400.0, 1074528292)
+                    --TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[4], RP1vehicles[5], RP1ChaseWaypoint1.x, RP1ChaseWaypoint1.y, RP1ChaseWaypoint1.z, 400.0, 1074528292, 0.0)
+
+            
+            end
+
+            
+            util.create_tick_handler(function()
+            
+                if IS_VEHICLE_TYRE_BURST(RP1vehicles[3], 0, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[3], 1, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[3], 4, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[3], 5, false) then
+                    
+                    if d1oonce == 0 then
+                    SET_VEHICLE_ENGINE_HEALTH(RP1vehicles[3], -1)
+                    util.remove_blip(RP1blips[6])
+
+                    local blipTerrorist1 = ADD_BLIP_FOR_ENTITY(RP1peds[2])
+                    table.insert(RP1blips, 6, blipTerrorist1)
+
+                    SET_BLIP_SPRITE(blipTerrorist1, 429)
+                    SET_BLIP_DISPLAY(blipTerrorist1, 2)
+                    SET_BLIP_COLOUR(blipTerrorist1, 6)
+                    d1oonce = 1
+                    end
+                end
+
+                if IS_VEHICLE_TYRE_BURST(RP1vehicles[4], 0, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[4], 1, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[4], 4, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[4], 5, false) then
+                    
+                    if d2oonce == 0 then
+                    SET_VEHICLE_ENGINE_HEALTH(RP1vehicles[4], -1)
+                    util.remove_blip(RP1blips[7])
+
+                    local blipTerrorist2 = ADD_BLIP_FOR_ENTITY(RP1peds[3])
+                    table.insert(RP1blips, 7, blipTerrorist2)
+
+                    SET_BLIP_SPRITE(blipTerrorist2, 429)
+                    SET_BLIP_DISPLAY(blipTerrorist2, 2)
+                    SET_BLIP_COLOUR(blipTerrorist2, 6)
+                    d2oonce = 1
+                    end
+                end
+
+                if IS_VEHICLE_TYRE_BURST(RP1vehicles[5], 0, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[5], 1, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[5], 4, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[5], 5, false) then
+                    
+                    if d3oonce == 0 then
+                    SET_VEHICLE_ENGINE_HEALTH(RP1vehicles[5], -1)
+                    util.remove_blip(RP1blips[8])
+
+                    local blipTerrorist3 = ADD_BLIP_FOR_ENTITY(RP1peds[4])
+                    table.insert(RP1blips, 8, blipTerrorist3)
+
+                    SET_BLIP_SPRITE(blipTerrorist3, 429)
+                    SET_BLIP_DISPLAY(blipTerrorist3, 2)
+                    SET_BLIP_COLOUR(blipTerrorist3, 6)
+                    d3oonce = 1
+                    end
+                end
+
+                if IS_PED_DEAD_OR_DYING(RP1peds[2], 1) then
+                    if d4oonce == 0 then
+                    util.remove_blip(RP1blips[6])
+                    TerroDeath1 = 1
+                    d4oonce = 1
+                    end
+                end
+
+                if IS_PED_DEAD_OR_DYING(RP1peds[3], 1) then
+                    if d5oonce == 0 then
+                    util.remove_blip(RP1blips[7])
+                    TerroDeath2 = 1
+                    d5oonce = 1
+                    end
+                end
+
+                if IS_PED_DEAD_OR_DYING(RP1peds[4], 1) then
+                    if d6oonce == 0 then
+                    util.remove_blip(RP1blips[8])
+                    TerroDeath3 = 1
+                    d6oonce = 1
+                    end
+                end--
+                
+
+                if TerroDeath1 == 1 and TerroDeath2 == 1 and TerroDeath3 == 1 then
+                    RPended = 1
+                    RPdialogue = 2
+                    PLAY_MISSION_COMPLETE_AUDIO("FRANKLIN_BIG_01");
+                    ANIMPOSTFX_PLAY("HeistCelebPass", 0, true)
+                    util.yield(5000)
+                    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+                    TerroDeath3 = 2
+                    showscore = 1
+                    return false
+                end
+
+            end)
+
+        end)
+
+
+
+    end
+end--phase7
+
+
+
+end
+
+
+
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+
+
+
+
+   end, function()
+
+    RPstarted = 0
+    RPended = 0
+    showscore = 0
+
+    RPdialogue = 0
+
+    RPphase = 0
+
+    RP1Waypoint = 0
+    Missiontime = 0
+
+    for i, blip in RP1blips do
+        util.remove_blip(blip)
+    end
+    RP1blips = {}
+
+    for i, ped in RP1peds do
+        entities.delete(ped)
+    end
+    RP1peds = {}
+
+    for i, vehicle in RP1vehicles do
+        entities.delete(vehicle)
+    end
+    RP1vehicles = {}
+
+    for i, object in RP1objects do
+        entities.delete(object)
+    end
+    RP1objects = {}
+
+    if DOES_CAM_EXIST(RP1CutsceneCam1) then
+        RENDER_SCRIPT_CAMS(false, true, 1, 1, 0, 0);
+        DESTROY_CAM(RP1CutsceneCam1, true)
+    end
+
+    RP1CutsceneCam1Loc = v3.new(-546.4, -8.1, 45.5)
+    RP1CutsceneCam1Rot = v3.new(-10, 0, -136)
+    RP1CutsceneCam1FOV = (70)
+
+end)
 
 
 
@@ -2867,6 +3662,7 @@ local SelectedPetAnimal
         --From LanceScript
         TASK_PLAY_ANIM(Clone, "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
         TASK_PLAY_ANIM(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        FREEZE_ENTITY_POSITION(Clone, true)
         --SET_PED_ALLOW_MINOR_REACTIONS_AS_MISSION_PED(Clone, false)
         --SET_PED_CAN_TORSO_REACT_IK(Clone, false)
         ------------------
