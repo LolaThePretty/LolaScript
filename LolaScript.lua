@@ -1,7 +1,7 @@
 -- LolaScript
 -- by LolaTheSquishy
 
-local SCRIPT_VERSION = "1.1.2"
+local SCRIPT_VERSION = "1.1.3"
 
 -- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
 local status, auto_updater = pcall(require, "auto-updater")
@@ -68,10 +68,31 @@ auto_updater.run_auto_update(auto_update_config)
 
 
 
+------------------------------------------------------------------------------------------------
 
+--[[ Next mission : The big dive
+-Spy mission
+-steal a toreador from a flatbed truck
+-Intercept a Cargoplane taking off and get inside
+-kill enemies within the hold and burn the cargo that was supposed to be dropped in the sea
+-hijack the plane to get kosatka location
+-jump from the cargo hold with the toreador and land in the sea
+-drive to a kosatka 
+-Cayo Perico for sea Approach
+-US luxington for sky Approach --]] 
 
+--ADD WAYS TO FAIL THE MISSION
+--POPULATE THE LUXINGTON'S CABIN WITH SOLDIERS
+--FASTEN UP PROPS SPAWNS
+--KILL CHOPPERS ENGINE SO U CANT APPROACH THE USS LUXINGTON FROM THE SKY
+--RE PLACE THE TIPS FOR PHASE 3
+--PREVENT SUB AND BOATS TO SHOOT YOU IF YOU ARE ABOVE WATER AKA ON THE LUXINGTON
 
+------------------------------------------------------------------------------------------------
 
+--Making mount for every big enough animal
+--adding player peds as pet
+--Police RP,missions to do, in solo minigame section
 --make a flappy bird feature with sideway cam
 --make a blender with windmills on the player
 --do a guess which car is the correct and if u wrong it spawn a kamikaze or a blender
@@ -102,13 +123,13 @@ auto_updater.run_auto_update(auto_update_config)
 --A better version of stand’s feature “Rewind”, pestered Sainan when they were around to implement this but it doesn’t sync well for other players, basically rewinds your position up to five seconds (looks smooth locally but laggy for other players)
 
 
---Making mount for every big enough animal
---adding player peds as pet
-
---Police RP,missions to do, in solo minigame section
-
 --Spy RP, infiltrating a subarine after stealing a submarine/sub car
 
+--horn boost
+
+--spawns a lot of cars with different horn that follow players location above their head to spam honk them
+
+--Bullet Storm see DM with Devil
 
 
 
@@ -267,6 +288,7 @@ local myListFunAnimalsSettings = menu.list(myListFunSettings, "Animals", {}, "An
 menu.divider(myListFunSettings, "------")
 local myListFunAnimalsWildSettings = menu.list(myListFunAnimalsSettings, "Wild", {}, "Wild Animals Options")
 local myListFunAnimalsPetSettings = menu.list(myListFunAnimalsSettings, "Pet", {}, "Pet Animals Options")
+local myListFunAnimalsMountsSettings = menu.list(myListFunAnimalsSettings, "Mounts", {}, "Animals Mounts Options")
 --[[menu.action(myListFunAnimalsSettings, "Populate world !", {}, "Will spawn a lot of random animals here and there around the every player", function ()
 
     spawn_animals_all(util.joaat(EveryAnimalHashList[math.random(1, #EveryAnimalHashList)]))
@@ -542,809 +564,21 @@ end)--]]
    
    end
 
+   enablemissions = menu.action(myListFunMissionsSettings, "Generate Missions", {}, "Generates the missions. This is not done automatically due to it taking time/causing lag.", function()
+ 
+    menu.delete(enablemissions)
+    --missionTest()
+    --[[REQUEST_IPL("xm_siloentranceclosed_x17");
+    SET_ENTITY_COORDS_NO_OFFSET(GET_VEHICLE_PED_IS_IN(players.user_ped()), 1561.562, 410.45, -48.0)
+    util.yield(2000)
+    util.toast(IS_IPL_ACTIVE("xm_siloentranceclosed_x17"))
+    util.yield(20000)
+    REMOVE_IPL("xm_siloentranceclosed_x17")--]]
+
+    TheBigDiveMission()
 
-    local selectedRP = 1
-
-    local RPstarted = 0
-    local RPended = 0
-    local showscore = 0
-
-    local RPdialogue = 0
-
-    local RPphase = 0 --default=0
-   
-    local RP1blips = {}
-    local RP1peds = {}
-    local RP1vehicles = {}
-    local RP1objects = {}
-
-    local RP1Waypoint = 0
-
-    local RP1CutsceneCam1 = CREATE_CAMERA(26379945, true)
-
-    local RP1CutsceneCam1Loc = v3.new(-546.4, -8.1, 45.5)
-    local RP1CutsceneCam1Rot = v3.new(-10, 0, -136)
-    local RP1CutsceneCam1FOV = (70)
-
-    
-    local RP1ChaseWaypoint1 = v3.new(-2937.7, 2105, 41)
-
-
-    local PoliceRoleplayScenarios = { "Street Race gone wrong" }
-    menu.textslider(myListFunMissionsSettings, "Select Mission", {}, "Selects a mission to play !", PoliceRoleplayScenarios, function (index, name)
-   
-
-        
-
-        if name == "Street Race gone wrong" then
-            selectedRP = 1
-            util.toast("Scenario Selected ! You can enable the Toggle Loop below to start !")
-        end
-
-    end)
-    local Missiontime = 0
-   menu.toggle_loop(myListFunMissionsSettings, "Start Mission !", {}, "Plays the currently selected mission !", function(index, name)
-
-    local PlayerName = players.get_name(players.user())
-
----------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------
-
-    --if IS_CONTROL_PRESSED(0, 187) and RPphase < 8 then--remove
-    --    util.yield(300)--remove
-    --    RPphase = RPphase + 1--remove
-    --end--remove
-
-    util.create_tick_handler(function()
-           
-   if RPended == 0 then
-    Missiontime = Missiontime + 1
-        util.yield(1000)
-   end
-        
-
-    end)
-
-    local SpikesHash = util.joaat("prop_rub_wreckage_7")
-    util.request_model(SpikesHash)
-
-    if IS_CONTROL_PRESSED(0, 341) and IS_PED_IN_VEHICLE(players.user_ped(), RP1vehicles[1]) then--remove
-        local SpikesSpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], -5, -5, -2.4)
-        local heading = GET_ENTITY_HEADING(RP1vehicles[1])
-        util.request_model(SpikesHash)
-        local Spikes = entities.create_object(SpikesHash, SpikesSpawnOffset, 0)
-        SET_ENTITY_ROTATION(Spikes, 45, 90, heading, 2, true)
-        table.insert(RP1objects, #RP1objects, Spikes)
-        FREEZE_ENTITY_POSITION(Spikes, true)
-        --util.yield(500)
-        util.create_tick_handler(function()
-            SET_ENTITY_AS_MISSION_ENTITY(Spikes, true, true)
-        end)
-        util.yield(2000)
-    end--remove
-    
-
-
-    if selectedRP == 0 then
-        util.toast("Please select a scenario to start !")
-    end
-
-    if selectedRP == 1 then
-        if RPphase == 0 then
-            RPphase = 1
-
-            RP1CutsceneCam1Loc = v3.new(-546.4, -8.1, 45.5)
-            RP1CutsceneCam1Rot = v3.new(-10, 0, -136)
-            RP1CutsceneCam1FOV = (70)
-        end
-
-
-        
-
-        local PlayerCopCarHash = util.joaat("police")
-        util.request_model(PlayerCopCarHash)
-        local PlayerCopCarLocation = v3.new(408, -984.5, 30)
-        local TeamMateCopCarLocation = v3.new(408, -989, 30)
-
-        local CopPedHash = util.joaat("S_M_Y_Cop_01")
-        util.request_model(CopPedHash)
-        local CopTeamMatePedSpawnLocation = v3.new(433, -981, 31)
-
-        local InvisPillarHash = util.joaat("prop_ld_dstpillar_01")
-        util.request_model(InvisPillarHash)
-        local InvisPillarLoc = v3.new(418.3, -985.2, 30)
-
-        local Patrol1BlipLocation = v3.new(-626, -183, 50)
-        local Patrol1BlipRadius = 400
-        
-        local StreetRacerCar_1_Hash = util.joaat("krieger")
-        util.request_model(StreetRacerCar_1_Hash)
-        local StreetRacerCar_2_Hash = util.joaat("entityxf")
-        util.request_model(StreetRacerCar_2_Hash)
-        local StreetRacerCar_3_Hash = util.joaat("ignus")
-        util.request_model(StreetRacerCar_3_Hash)
-
-        local StreetRacerCar_1_SpawnLoc = v3.new(-531.4, -33.9, 44)
-        local StreetRacerCar_2_SpawnLoc = v3.new(-528.16, -35.1, 44)
-        local StreetRacerCar_3_SpawnLoc = v3.new(-535, -32.75, 44)
-
-        local StreetRacerDriver_1_Hash = util.joaat("U_M_M_Aldinapoli")
-        util.request_model(StreetRacerDriver_1_Hash)
-
-        local StreetRacerDriver_2_Hash = util.joaat("U_M_M_BikeHire_01")
-        util.request_model(StreetRacerDriver_2_Hash)
-
-        local StreetRacerDriver_3_Hash = util.joaat("U_F_Y_Mistress")
-        util.request_model(StreetRacerDriver_3_Hash)
-        
-        local Patrol2BlipLocation = v3.new(-340, -21, 50)
-        local Patrol2BlipRadius = 300
-
-        
-        local ChaseInterceptPointLoc = v3.new(-3029, 1890.75, 29)
-        local ChaseInterceptPointRadius = 500
-
-
-        
-
-
-if RPphase == 1 then
-    util.toast("Reach your car")--Tip
-        if RPstarted == 0 then
-
-            RPstarted = 1
-            util.request_model(PlayerCopCarHash)
-            local PlayerCopCar = entities.create_vehicle(PlayerCopCarHash, PlayerCopCarLocation, -128)
-            table.insert(RP1vehicles, 1, PlayerCopCar)
-            --util.yield(500)
-            util.create_tick_handler(function()
-                SET_ENTITY_AS_MISSION_ENTITY(PlayerCopCar, true, true)
-            end)
-            SET_VEHICLE_RADIO_ENABLED(PlayerCopCar, false)
-            
-            local TeamMateCopCar = entities.create_vehicle(PlayerCopCarHash, TeamMateCopCarLocation, -128)
-            table.insert(RP1vehicles, 2, TeamMateCopCar)
-            --util.yield(500)
-            util.create_tick_handler(function()
-                SET_ENTITY_AS_MISSION_ENTITY(TeamMateCopCar, true, true)
-            end)
-            SET_VEHICLE_RADIO_ENABLED(TeamMateCopCar, false)
-
-            util.request_model(InvisPillarHash)
-            local InvisPillar = entities.create_object(InvisPillarHash, InvisPillarLoc, 0)
-            table.insert(RP1objects, 1, InvisPillar)
-            FREEZE_ENTITY_POSITION(InvisPillar, true)
-            SET_ENTITY_VISIBLE(InvisPillar, false, false)
-            --util.yield(500)
-            util.create_tick_handler(function()
-                SET_ENTITY_AS_MISSION_ENTITY(InvisPillar, true, true)
-            end)
-            
-
-            local blipPlayerCopCar = ADD_BLIP_FOR_ENTITY(PlayerCopCar)
-            table.insert(RP1blips, 1, blipPlayerCopCar)
-
-            SET_BLIP_SPRITE(blipPlayerCopCar, 672)
-            SET_BLIP_DISPLAY(blipPlayerCopCar, 2)
-
-
-                util.create_tick_handler(function()
-                    SET_BLIP_COLOUR(blipPlayerCopCar, 59)
-                    util.yield(500)
-                    SET_BLIP_COLOUR(blipPlayerCopCar, 38)
-                    util.yield(500)
-                end)
-
-                util.create_tick_handler(function()
-                    local PlayerLocation = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
-                    if RP1Waypoint == 0 then
-                        if PlayerLocation:distance(PlayerCopCarLocation) > 5  then
-                            SET_NEW_WAYPOINT(PlayerCopCarLocation.x, PlayerCopCarLocation.y)
-                        end
-
-                        if IS_PED_IN_VEHICLE(players.user_ped(), PlayerCopCar, false) then 
-                            RP1Waypoint = 1
-                            RPphase = 2
-                            return false
-                        end
-                    end    
-                end)
-                
-        end
-end--phase1
-
-if RPphase == 2 then
-    util.toast("Wait for Danny to get in")--Tip
-        if RPstarted == 1 then
-            RPstarted = 2
-
-            util.request_model(CopPedHash)
-            local CopTeamMate = entities.create_ped(0, CopPedHash, CopTeamMatePedSpawnLocation, 0)
-            table.insert(RP1peds, 1, CopTeamMate)
-            --util.yield(1000)
-            util.create_tick_handler(function()
-                SET_ENTITY_AS_MISSION_ENTITY(CopTeamMate, true, true)
-            end)
-                --SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(CopTeamMate, true)
-            
-            util.create_tick_handler(function()
-                local currentpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(CopTeamMate, 0, 0, 0)
-                local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, 0, 0)
-                if currentpos:distance(pos) < 3 then
-                    TASK_ENTER_VEHICLE(CopTeamMate, RP1vehicles[1], -1, 0, 1.0, 3, 0)
-                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(CopTeamMate, true)
-                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
-                    FREEZE_ENTITY_POSITION(RP1peds[1], true)
-                    
-                    RPphase = 3
-                    if IS_PED_IN_VEHICLE(CopTeamMate, RP1vehicles[1], false) then
-                        RPphase = 3
-                        
-                    end
-                    return false
-                else
-                    TASK_GO_TO_ENTITY(CopTeamMate, RP1vehicles[1], -1, 1.0, 100, 1073741824, 0)
-                    util.yield(500)
-                end
-            end)
-
-            local blipCopTeamMate = ADD_BLIP_FOR_ENTITY(CopTeamMate)
-            table.insert(RP1blips, 2, blipCopTeamMate)
-
-            SET_BLIP_SPRITE(blipCopTeamMate, 280)
-            SET_BLIP_DISPLAY(blipCopTeamMate, 2)
-            SET_BLIP_COLOUR(blipCopTeamMate, 18)
-            
-    --util.toast("boop")--remove
-    --SET_PED_VEHICLE_FORCED_SEAT_USAGE--remove
-    --IS_PED_SITTING_IN_VEHICLE
-
-        end
-
-end--phase2
-
-
-if RPphase == 3 then
-
-    util.toast("Patrol the area you've been assigned to")--Tip
-
-        if RPstarted == 2 then
-            RPstarted = 3
-
-            local PatrolArea1 = ADD_BLIP_FOR_RADIUS(Patrol1BlipLocation.x, Patrol1BlipLocation.y, Patrol1BlipLocation.z, Patrol1BlipRadius)
-            table.insert(RP1blips, 3, PatrolArea1)
-            SET_BLIP_ALPHA(PatrolArea1, 90)
-            SET_BLIP_DISPLAY(PatrolArea1, 2)
-            SET_BLIP_COLOUR(PatrolArea1, 73)
-            
-            SET_NEW_WAYPOINT(Patrol1BlipLocation.x, Patrol1BlipLocation.y)
-
-            --[[util.create_tick_handler(function()
-                
-                local currentPlayerpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, -5, 0)
-                TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[1], RP1vehicles[2], currentPlayerpos.x, currentPlayerpos.y, currentPlayerpos.z, 150.0, 1074528292, 0.0)
-               SET_PED_KEEP_TASK(RP1peds[1], true)
-                    util.yield(2500)
-            end) --]]
-
-            util.create_tick_handler(function()
-                local currentPlayerpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, 0, 0)
-                --local currentTeamMatepos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[2], 0, 0, 0)
-                --if currentTeamMatepos:distance(currentPlayerpos) > 600 and RPphase == 3 then
-                --    util.toast("Wait for Danny")
-                --end
-                    TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
-                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
-                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
-                if currentPlayerpos:distance(Patrol1BlipLocation) < Patrol1BlipRadius-50 --[[and currentPlayerpos:distance(currentTeamMatepos) < 50 --]]then
-                    util.yield(5000)
-                    RPphase = 4
-                    return false
-                end
-            end)     
-
-        end
-end--phase3
-
-if RPphase == 4 then
-
-    TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
-                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
-                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
-
-    if RPdialogue == 0 then
-        util.toast("Wait for instructions")--Tip
-    elseif RPdialogue == 1 then
-        util.toast("Radio : We need units near Hawick Avenue, a witness reported a number of high-end cars setting up an illegal street race")--Dialogue
-    elseif RPdialogue == 2 then
-        util.toast(PlayerName .. " : Unit 05, agent " .. PlayerName .. " here, agent Danny and I are on it")
-    end
-
-
-        if RPstarted == 3 then
-            RPstarted = 4
-
-            --spawn race cars
-            util.request_model(StreetRacerCar_1_Hash)
-            local StreetRacerCar_1 = entities.create_vehicle(StreetRacerCar_1_Hash, StreetRacerCar_1_SpawnLoc, 10)
-            table.insert(RP1vehicles, 3, StreetRacerCar_1)
-            SET_VEHICLE_MOD_COLOR_1(StreetRacerCar_1, 1, math.random(100, 160), math.random(100, 160))
-            SET_VEHICLE_TYRES_CAN_BURST(StreetRacerCar_1, true)
-            --util.yield(500)
-            util.create_tick_handler(function()
-                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerCar_1, true, true)
-                
-                TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
-                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
-                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
-            end)
-
-            util.request_model(StreetRacerCar_2_Hash)
-            local StreetRacerCar_2 = entities.create_vehicle(StreetRacerCar_2_Hash, StreetRacerCar_2_SpawnLoc, 10)
-            table.insert(RP1vehicles, 4, StreetRacerCar_2)
-            SET_VEHICLE_MOD_COLOR_1(StreetRacerCar_2, 1, math.random(100, 160), math.random(100, 160))
-            SET_VEHICLE_TYRES_CAN_BURST(StreetRacerCar_2, true)
-            --util.yield(500)
-            util.create_tick_handler(function()
-                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerCar_2, true, true)
-            end)
-
-            util.request_model(StreetRacerCar_3_Hash)
-            local StreetRacerCar_3 = entities.create_vehicle(StreetRacerCar_3_Hash, StreetRacerCar_3_SpawnLoc, 10)
-            table.insert(RP1vehicles, 5, StreetRacerCar_3)
-            SET_VEHICLE_MOD_COLOR_1(StreetRacerCar_3, 1, math.random(100, 160), math.random(100, 160))
-            SET_VEHICLE_TYRES_CAN_BURST(StreetRacerCar_3, true)
-            --util.yield(500)
-            util.create_tick_handler(function()
-                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerCar_3, true, true)
-            end)
-
-            --spawn drivers
-            util.request_model(StreetRacerDriver_1_Hash)
-            util.request_model(StreetRacerDriver_2_Hash)
-            util.request_model(StreetRacerDriver_3_Hash)
-
-            local StreetRacerDriver_1 = entities.create_ped(0, StreetRacerDriver_1_Hash, StreetRacerCar_1_SpawnLoc, 0)
-            SET_PED_COMBAT_ATTRIBUTES(StreetRacerDriver_1, 13, true)--aggressive
-            local currentposDriver1 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(StreetRacerDriver_1, 0, 0, 0)
-            local StreetRacerCar1Loc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[3], 0, 0, 0)
-            table.insert(RP1peds, 2, StreetRacerDriver_1)
-            --util.yield(500)
-            util.create_tick_handler(function()
-                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerCar_1, true, true)
-            end)
-
-            if currentposDriver1:distance(StreetRacerCar1Loc) < 3 then
-                TASK_ENTER_VEHICLE(StreetRacerDriver_1, RP1vehicles[3], -1, -1, 1.0, 16, 0)
-            end
-
-            local StreetRacerDriver_2 = entities.create_ped(0, StreetRacerDriver_2_Hash, StreetRacerCar_2_SpawnLoc, 0)
-            SET_PED_COMBAT_ATTRIBUTES(StreetRacerDriver_2, 13, true)--aggressive
-            local currentposDriver2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(StreetRacerDriver_2, 0, 0, 0)
-            local StreetRacerCar2Loc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[4], 0, 0, 0)
-            table.insert(RP1peds, 3, StreetRacerDriver_2)
-            --util.yield(500)
-            util.create_tick_handler(function()
-                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerDriver_2, true, true)
-            end)
-
-            if currentposDriver2:distance(StreetRacerCar2Loc) < 3 then
-                TASK_ENTER_VEHICLE(StreetRacerDriver_2, RP1vehicles[4], -1, -1, 1.0, 16, 0)
-            end
-
-            local StreetRacerDriver_3 = entities.create_ped(0, StreetRacerDriver_3_Hash, StreetRacerCar_3_SpawnLoc, 0)
-            SET_PED_COMBAT_ATTRIBUTES(StreetRacerDriver_3, 13, true)--aggressive
-            local currentposDriver3 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(StreetRacerDriver_3, 0, 0, 0)
-            local StreetRacerCar3Loc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[5], 0, 0, 0)
-            table.insert(RP1peds, 4, StreetRacerDriver_3)
-            --util.yield(500)
-            util.create_tick_handler(function()
-                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerDriver_3, true, true)
-            end)
-
-            if currentposDriver3:distance(StreetRacerCar3Loc) < 3 then
-                TASK_ENTER_VEHICLE(StreetRacerDriver_3, RP1vehicles[5], -1, -1, 1.0, 16, 0)
-            end
-
-
-
-
-            util.create_tick_handler(function()
-            
-                local currentPlayerpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, 0, 0)
-                --TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[1], RP1vehicles[2], currentPlayerpos.x, currentPlayerpos.y, currentPlayerpos.z, 150.0, 1074528292, 0.0)
-            
-            end)
-
-            util.create_tick_handler(function()
-                util.yield(8000)
-                RPdialogue = 1
-                util.yield(10000)
-                RPdialogue = 2
-                util.yield(10000)
-                RPdialogue = -1
-                RPphase = 5
-                return false
-            end)
-        end
-
-end--phase4
-
-
-
-if RPphase == 5 then
-
-        --Tip
-
-        if RPstarted == 4 then
-            RPstarted = 5
-            util.toast("Look for the street racers")
-
-            util.remove_blip(RP1blips[3])
-
-            local PatrolArea2 = ADD_BLIP_FOR_RADIUS(Patrol2BlipLocation.x, Patrol2BlipLocation.y, Patrol2BlipLocation.z, Patrol2BlipRadius)
-            table.insert(RP1blips, 4, PatrolArea2)
-            SET_BLIP_ALPHA(PatrolArea2, 90)
-            SET_BLIP_DISPLAY(PatrolArea2, 2)
-            SET_BLIP_COLOUR(PatrolArea2, 73)
-            
-            SET_NEW_WAYPOINT(Patrol2BlipLocation.x, Patrol2BlipLocation.y)
-
-        util.create_tick_handler(function()
-            local currentPlayerpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, 0, 0)
-
-            TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
-                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
-                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
-
-
-            if currentPlayerpos:distance(StreetRacerCar_2_SpawnLoc) < 60 then
-                RPphase = 6
-                return false
-            end
-        end)
-
-
-
-        end
-
-end--phase5
-
-if RPphase == 6 then
-
-    --util.toast("")--Tip
-util.create_tick_handler(function()
-    if RPdialogue == 0 then
-        util.toast("Radio : These three matches the descriptions of 'il gatino', the terrorist group responsible for the fall of the US Montana. Shoot them down at all cost")--Tip
-    elseif RPdialogue == 1 then
-        util.toast(PlayerName .. " : Roger that")
-    elseif RPdialogue == 2 and RPended == 1 then
-        util.toast("Mission Complete ! " .. PlayerName .. " please tell me what are you thoughts about this short mission, if a lot of people likes the concept, i have a whole lot of ideas for new short and long missions ! How to tell me your thoughts ? Simply join my discord server ! I have a feedback channel there. You will find a link in the 'About Lolascript' section of the script ! To close this message please restart the script")
-        
-    end
-    
-    if RPended == 1 and showscore == 0 then
-
-            util.create_tick_handler(function()
-                util.toast("The lower the score, the faster you were to complete the mission. " .. PlayerName .. "'s' score : " .. Missiontime)
-                if showscore == 1 then
-                    return false
-                end
-            end)
-        end
-end)
-    util.create_tick_handler(function()
-        
-        util.yield(8000)
-        RPdialogue = 0
-        util.yield(8000)
-        RPdialogue = 1
-        util.yield(8000)
-        RPdialogue = 2
-        RPphase = 5
-        return false
-    end)
-
-    if RPstarted == 5 then
-        RPstarted = 6
-            
-        local StreetCarsLocationsBlipRadius = 50
-        
-        local StreetCarsLocationsBlip = ADD_BLIP_FOR_RADIUS(StreetRacerCar_2_SpawnLoc.x, StreetRacerCar_2_SpawnLoc.y, StreetRacerCar_2_SpawnLoc.z, StreetCarsLocationsBlipRadius)
-        table.insert(RP1blips, 5, StreetCarsLocationsBlip)
-        SET_BLIP_ALPHA(StreetCarsLocationsBlip, 90)
-        SET_BLIP_DISPLAY(StreetCarsLocationsBlip, 2)
-        SET_BLIP_COLOUR(StreetCarsLocationsBlip, 63)
-
-
-        TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
-                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
-                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
-        util.yield(2000)
-        RPphase = 7
-
-        
-    end
-
-    
-end--phase6
-
-
-if RPphase == 7 then
-
-    --util.toast("Look for the street racers")--Tip
-
-    if RPstarted == 6 then
-        RPstarted = 7
-
-        local next = 0
-
-        SET_CAM_COORD(RP1CutsceneCam1, RP1CutsceneCam1Loc.x, RP1CutsceneCam1Loc.y, RP1CutsceneCam1Loc.z)
-        SET_CAM_ROT(RP1CutsceneCam1, RP1CutsceneCam1Rot.x, RP1CutsceneCam1Rot.y, RP1CutsceneCam1Rot.z, 2)
-        SET_CAM_FOV(RP1CutsceneCam1, RP1CutsceneCam1FOV)
-
-        RENDER_SCRIPT_CAMS(true, true, 1, 1, 0, 0)
-
-        FREEZE_ENTITY_POSITION(RP1vehicles[1], true)
-        DISABLE_ALL_CONTROL_ACTIONS(0)
-        util.yield(10)
-        FREEZE_ENTITY_POSITION(RP1vehicles[1], false)
-
-        SET_ENTITY_COORDS_NO_OFFSET(RP1vehicles[1], -507.2, -2.2, 45, false, false, false)
-        SET_ENTITY_HEADING(RP1vehicles[1], 125.8)
-        SET_VEHICLE_FORWARD_SPEED_XY(RP1vehicles[1], 12)
-
-        local d1oonce = 0
-            local d2oonce = 0
-            local d3oonce = 0
-            local d4oonce = 0
-            local d5oonce = 0
-            local d6oonce = 0
-
-            local TerroDeath1 = 0
-            local TerroDeath2 = 0
-            local TerroDeath3 = 0
-
-        --util.yield(3000)
-        util.create_tick_handler(function()
-            SET_CAM_ROT(RP1CutsceneCam1, RP1CutsceneCam1Rot.x, RP1CutsceneCam1Rot.y, RP1CutsceneCam1Rot.z, 2)
-            SET_CAM_FOV(RP1CutsceneCam1, RP1CutsceneCam1FOV)
-
-            TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
-                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
-                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
-
-
-            if RP1CutsceneCam1Rot.z > -140 then
-                RP1CutsceneCam1Rot.z = RP1CutsceneCam1Rot.z - 0.05
-            end
-            if RP1CutsceneCam1Rot.x < -5 then
-                RP1CutsceneCam1Rot.x = RP1CutsceneCam1Rot.x + 0.05
-            end
-
-            if RP1CutsceneCam1FOV > 30 then
-                RP1CutsceneCam1FOV = RP1CutsceneCam1FOV - 0.25
-            end
-            
-            if RP1CutsceneCam1FOV <= 30 and next == 0 then
-                
-                util.yield(1500)
-                next = 1
-                SET_VEHICLE_SIREN(RP1vehicles[1], true)
-                util.yield(500)
-                RENDER_SCRIPT_CAMS(false, true, 1, 1, 0, 0);
-                DESTROY_CAM(RP1CutsceneCam1, true)
-                ENABLE_ALL_CONTROL_ACTIONS(0)
-
-                local blipStreetRacer1 = ADD_BLIP_FOR_ENTITY(RP1vehicles[3])
-                table.insert(RP1blips, 6, blipStreetRacer1)
-
-                SET_BLIP_SPRITE(blipStreetRacer1, 669)
-                SET_BLIP_DISPLAY(blipStreetRacer1, 2)
-                SET_BLIP_COLOUR(blipStreetRacer1, 6)
-
-
-                local blipStreetRacer2 = ADD_BLIP_FOR_ENTITY(RP1vehicles[4])
-                table.insert(RP1blips, 7, blipStreetRacer2)
-
-                SET_BLIP_SPRITE(blipStreetRacer2, 663)
-                SET_BLIP_DISPLAY(blipStreetRacer2, 2)
-                SET_BLIP_COLOUR(blipStreetRacer2, 6)
-
-
-                local blipStreetRacer3 = ADD_BLIP_FOR_ENTITY(RP1vehicles[5])
-                table.insert(RP1blips, 8, blipStreetRacer3)
-
-                SET_BLIP_SPRITE(blipStreetRacer3, 523)
-                SET_BLIP_DISPLAY(blipStreetRacer3, 2)
-                SET_BLIP_COLOUR(blipStreetRacer3, 6)
-
-                util.remove_blip(RP1blips[4])
-                util.remove_blip(RP1blips[5])
-
-                local InterceptPointBlip = ADD_BLIP_FOR_RADIUS(ChaseInterceptPointLoc.x, ChaseInterceptPointLoc.y, ChaseInterceptPointLoc.z, ChaseInterceptPointRadius)
-                table.insert(RP1blips, 9, InterceptPointBlip)
-                SET_BLIP_ALPHA(InterceptPointBlip, 0)
-                SET_BLIP_DISPLAY(InterceptPointBlip, 2)
-                SET_BLIP_COLOUR(InterceptPointBlip, 12)
-                
-            end
-
-            if next == 1 then
-                
-                    
-                    TASK_VEHICLE_DRIVE_WANDER(RP1peds[3], RP1vehicles[4], 400.0, 1074528292)
-                    --TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[3], RP1vehicles[4], RP1ChaseWaypoint1.x, RP1ChaseWaypoint1.y, RP1ChaseWaypoint1.z, 400.0, 1074528292, 0.0)
-                    util.yield(750)
-                    TASK_VEHICLE_DRIVE_WANDER(RP1peds[2], RP1vehicles[3], 400.0, 1074528292)
-                    --TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[2], RP1vehicles[3], RP1ChaseWaypoint1.x, RP1ChaseWaypoint1.y, RP1ChaseWaypoint1.z, 400.0, 1074528292, 0.0)
-                    util.yield(750)
-                    TASK_VEHICLE_DRIVE_WANDER(RP1peds[4], RP1vehicles[5], 400.0, 1074528292)
-                    --TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[4], RP1vehicles[5], RP1ChaseWaypoint1.x, RP1ChaseWaypoint1.y, RP1ChaseWaypoint1.z, 400.0, 1074528292, 0.0)
-
-            
-            end
-
-            
-            util.create_tick_handler(function()
-            
-                if IS_VEHICLE_TYRE_BURST(RP1vehicles[3], 0, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[3], 1, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[3], 4, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[3], 5, false) then
-                    
-                    if d1oonce == 0 then
-                    SET_VEHICLE_ENGINE_HEALTH(RP1vehicles[3], -1)
-                    util.remove_blip(RP1blips[6])
-
-                    local blipTerrorist1 = ADD_BLIP_FOR_ENTITY(RP1peds[2])
-                    table.insert(RP1blips, 6, blipTerrorist1)
-
-                    SET_BLIP_SPRITE(blipTerrorist1, 429)
-                    SET_BLIP_DISPLAY(blipTerrorist1, 2)
-                    SET_BLIP_COLOUR(blipTerrorist1, 6)
-                    d1oonce = 1
-                    end
-                end
-
-                if IS_VEHICLE_TYRE_BURST(RP1vehicles[4], 0, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[4], 1, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[4], 4, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[4], 5, false) then
-                    
-                    if d2oonce == 0 then
-                    SET_VEHICLE_ENGINE_HEALTH(RP1vehicles[4], -1)
-                    util.remove_blip(RP1blips[7])
-
-                    local blipTerrorist2 = ADD_BLIP_FOR_ENTITY(RP1peds[3])
-                    table.insert(RP1blips, 7, blipTerrorist2)
-
-                    SET_BLIP_SPRITE(blipTerrorist2, 429)
-                    SET_BLIP_DISPLAY(blipTerrorist2, 2)
-                    SET_BLIP_COLOUR(blipTerrorist2, 6)
-                    d2oonce = 1
-                    end
-                end
-
-                if IS_VEHICLE_TYRE_BURST(RP1vehicles[5], 0, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[5], 1, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[5], 4, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[5], 5, false) then
-                    
-                    if d3oonce == 0 then
-                    SET_VEHICLE_ENGINE_HEALTH(RP1vehicles[5], -1)
-                    util.remove_blip(RP1blips[8])
-
-                    local blipTerrorist3 = ADD_BLIP_FOR_ENTITY(RP1peds[4])
-                    table.insert(RP1blips, 8, blipTerrorist3)
-
-                    SET_BLIP_SPRITE(blipTerrorist3, 429)
-                    SET_BLIP_DISPLAY(blipTerrorist3, 2)
-                    SET_BLIP_COLOUR(blipTerrorist3, 6)
-                    d3oonce = 1
-                    end
-                end
-
-                if IS_PED_DEAD_OR_DYING(RP1peds[2], 1) then
-                    if d4oonce == 0 then
-                    util.remove_blip(RP1blips[6])
-                    TerroDeath1 = 1
-                    d4oonce = 1
-                    end
-                end
-
-                if IS_PED_DEAD_OR_DYING(RP1peds[3], 1) then
-                    if d5oonce == 0 then
-                    util.remove_blip(RP1blips[7])
-                    TerroDeath2 = 1
-                    d5oonce = 1
-                    end
-                end
-
-                if IS_PED_DEAD_OR_DYING(RP1peds[4], 1) then
-                    if d6oonce == 0 then
-                    util.remove_blip(RP1blips[8])
-                    TerroDeath3 = 1
-                    d6oonce = 1
-                    end
-                end--
-                
-
-                if TerroDeath1 == 1 and TerroDeath2 == 1 and TerroDeath3 == 1 then
-                    RPended = 1
-                    RPdialogue = 2
-                    PLAY_MISSION_COMPLETE_AUDIO("FRANKLIN_BIG_01");
-                    ANIMPOSTFX_PLAY("HeistCelebPass", 0, true)
-                    util.yield(5000)
-                    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
-                    TerroDeath3 = 2
-                    showscore = 1
-                    return false
-                end
-
-            end)
-
-        end)
-
-
-
-    end
-end--phase7
-
-
-
-end
-
-
-
----------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------
----------------------------------------------------------------------------------------------------------------------
-
-
-
-
-   end, function()
-
-    RPstarted = 0
-    RPended = 0
-    showscore = 0
-
-    RPdialogue = 0
-
-    RPphase = 0
-
-    RP1Waypoint = 0
-    Missiontime = 0
-
-    for i, blip in RP1blips do
-        util.remove_blip(blip)
-    end
-    RP1blips = {}
-
-    for i, ped in RP1peds do
-        entities.delete(ped)
-    end
-    RP1peds = {}
-
-    for i, vehicle in RP1vehicles do
-        entities.delete(vehicle)
-    end
-    RP1vehicles = {}
-
-    for i, object in RP1objects do
-        entities.delete(object)
-    end
-    RP1objects = {}
-
-    if DOES_CAM_EXIST(RP1CutsceneCam1) then
-        RENDER_SCRIPT_CAMS(false, true, 1, 1, 0, 0);
-        DESTROY_CAM(RP1CutsceneCam1, true)
-    end
-
-    RP1CutsceneCam1Loc = v3.new(-546.4, -8.1, 45.5)
-    RP1CutsceneCam1Rot = v3.new(-10, 0, -136)
-    RP1CutsceneCam1FOV = (70)
 
 end)
-
-
 
 
 
@@ -2763,7 +1997,7 @@ local SelectedPetAnimal
 
 
 
-    menu.action(myListFunAnimalsSettings, "Spawn a Pet Clone", {}, "Spawns a pet clone near this player (must spectate or be near of it to work properly)", function ()
+    menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Clone", {}, "Spawns a pet clone near this player (must spectate or be near of it to work properly)", function ()
 
         
         local pedm = players.user_ped()
@@ -3621,9 +2855,9 @@ local SelectedPetAnimal
     end)
     
 
+    
 
-
-    menu.action(myListFunAnimalsSettings, "Giant Rabbit Riding", {}, "Spawns a pet Giant Rabbit near this player that will become it's pet, you will be riding the rabbit (must spectate or be near of it to work properly)", function ()
+    menu.action(myListFunAnimalsMountsSettings, "Giant Rabbit Riding", {}, "Spawns a giant rabbit for you to ride", function ()
         
         SelectedPetAnimal = util.joaat("A_C_Rabbit_02")
         local pedm = players.user_ped()
@@ -3661,7 +2895,136 @@ local SelectedPetAnimal
         REQUEST_ANIM_DICT("rcmjosh2")
         --From LanceScript
         TASK_PLAY_ANIM(Clone, "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        util.yield(100)
         TASK_PLAY_ANIM(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        util.yield(100)
+        FREEZE_ENTITY_POSITION(Clone, true)
+        --SET_PED_ALLOW_MINOR_REACTIONS_AS_MISSION_PED(Clone, false)
+        --SET_PED_CAN_TORSO_REACT_IK(Clone, false)
+        ------------------
+        local ArrowHash = 1267718013
+        util.request_model(ArrowHash)
+        local Arrow = entities.create_object(ArrowHash, ArrowSpawnOffset, heading)
+        SET_ENTITY_COLLISION(Arrow, false, false)
+
+        --local hash = util.joaat("v_ind_cfwaste")
+        --local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+        --util.request_model(hash)
+       -- local OBJ = entities.create_object(hash, Player_Pos)
+
+--SET_ENTITY_VISIBLE(players.user_ped(), false, false)
+--util.yield(10)
+
+--SET_ENTITY_VISIBLE(players.user_ped(), true, false)
+        util.create_tick_handler(function()
+            SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PetAnimal, true)
+util.toast("Hold and Release Space to set a destination point | Press down arrow to delete your mount")
+            if IS_CONTROL_PRESSED(0, 187) then
+                --entities.delete(Bike)
+                entities.delete(PetAnimal)
+                entities.delete(Arrow)
+                entities.delete(Clone)
+                STOP_ANIM_TASK(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0)
+
+                return false
+            end
+            heading = GET_ENTITY_HEADING(players.user_ped())
+            SET_ENTITY_ROTATION(Arrow, 0, 180, heading)
+            --SET_ENTITY_VISIBLE(players.user_ped(), true, false)
+
+            
+            
+        end)
+
+        util.create_tick_handler(function()
+        local cam_pos = GET_FINAL_RENDERED_CAM_COORD()
+
+        if IS_CONTROL_PRESSED(0, 187) then
+            return false
+        end
+
+        local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+        local distance = 10
+
+        local Cam_v3 = v3.new(cam_pos.x, cam_pos.y, -cam_pos.z)
+        --SET_ENTITY_COORDS_NO_OFFSET(OBJ, cam_pos.x, Player_Pos.y, cam_pos.z, false, false, false)
+            --SET_ENTITY_COORDS_NO_OFFSET(GiantRabbitGoal, Player_Pos.x+distance, Player_Pos.y, cam_pos.z, false, false, false)
+            --local OBJcoords = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(OBJ, 0, 0, 0)
+            local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
+            local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+            
+            local TargetOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PetAnimal, 0, 5, 0)
+            
+            local raycastResult = get_raycast_result_WO(100000.0)
+            if raycastResult.didHit and (IS_PED_SHOOTING(players.user_ped()) or IS_CONTROL_PRESSED(0, 179)) then
+                GiantRabbitNextPos = raycastResult.endCoords
+                TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, GiantRabbitNextPos.x, GiantRabbitNextPos.y, GiantRabbitNextPos.z, 5.0, 0, false, 0, 0.0)
+            
+                    SET_ENTITY_COORDS_NO_OFFSET(Arrow, GiantRabbitNextPos.x, GiantRabbitNextPos.y, GiantRabbitNextPos.z+1, false, false, false)
+              
+       
+            end
+            --SET_ENTITY_HEADING(PetAnimal, heading)
+          --util.yield(500)
+
+          
+    
+            --if IS_CONTROL_PRESSED(0, 145) then
+            --    return false
+            --end
+        end)
+
+
+
+
+
+
+    end)
+
+    menu.action(myListFunAnimalsMountsSettings, "Boar Riding", {}, "Spawns a boar for you to ride", function ()
+        
+        SelectedPetAnimal = util.joaat("A_C_Boar")
+        local pedm = players.user_ped()
+        --local BikeHash = util.joaat("avarus")
+        local AnimalHash = SelectedPetAnimal
+        util.request_model(AnimalHash)
+        --util.request_model(BikeHash)
+        --local pedm = Target
+        local target_ped = players.user_ped()
+        local Clone = CLONE_PED(target_ped, true, false, true)
+
+--i stole the raycast bit from Lance's script, and wiriscript
+
+--honestly, if you watch this and wanna do the same, the best thing is to ask me on discord, a lot of stuff there is useless and i'm too
+    --scared to remove it bc it took me ages to get this working
+
+        local radius = math.random(8, 22)
+        local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+        local ArrowSpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+
+
+        local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
+        radius = math.random(8, 22)
+        SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+        local PetAnimal = entities.create_ped(28, AnimalHash, SpawnOffset, heading)
+        SET_ENTITY_INVINCIBLE(PetAnimal, true)
+        local attachLoc = v3.new(0, 0, 0.3)
+        local attachRot = v3.new(0, 0, 90)
+        local attachBone = 2
+        --local Bike = entities.create_vehicle(BikeHash, SpawnOffset, 0)
+        ATTACH_ENTITY_TO_ENTITY(Clone, PetAnimal, attachBone, attachLoc.x, attachLoc.y, attachLoc.z, attachRot.x, attachRot.y, attachRot.z, true, false, false, true, 0, true, 0)
+        ATTACH_ENTITY_TO_ENTITY(players.user_ped(), PetAnimal, attachBone, attachLoc.x, attachLoc.y, attachLoc.z, attachRot.x, attachRot.y, attachRot.z, true, false, false, true, 0, true, 0)
+        --SET_PED_INTO_VEHICLE(players.user_ped(), Bike, -1)
+        --SET_ENTITY_VISIBLE(Bike, false)
+        --IS_VEHICLE_VISIBLE(Bike)
+
+
+        REQUEST_ANIM_DICT("rcmjosh2")
+        --From LanceScript
+        TASK_PLAY_ANIM(Clone, "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        util.yield(100)
+        TASK_PLAY_ANIM(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        util.yield(100)
         FREEZE_ENTITY_POSITION(Clone, true)
         --SET_PED_ALLOW_MINOR_REACTIONS_AS_MISSION_PED(Clone, false)
         --SET_PED_CAN_TORSO_REACT_IK(Clone, false)
@@ -3746,6 +3109,6314 @@ util.toast("Hold and Release Space to set a destination point | Press down arrow
     end)
 
 
+    menu.action(myListFunAnimalsMountsSettings, "Zombie Boar Riding", {}, "Spawns a zombie boar for you to ride", function ()
+        
+        SelectedPetAnimal = util.joaat("A_C_Boar_02")
+        local pedm = players.user_ped()
+        --local BikeHash = util.joaat("avarus")
+        local AnimalHash = SelectedPetAnimal
+        util.request_model(AnimalHash)
+        --util.request_model(BikeHash)
+        --local pedm = Target
+        local target_ped = players.user_ped()
+        local Clone = CLONE_PED(target_ped, true, false, true)
+
+--i stole the raycast bit from Lance's script, and wiriscript
+
+--honestly, if you watch this and wanna do the same, the best thing is to ask me on discord, a lot of stuff there is useless and i'm too
+    --scared to remove it bc it took me ages to get this working
+
+        local radius = math.random(8, 22)
+        local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+        local ArrowSpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+
+
+        local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
+        radius = math.random(8, 22)
+        SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+        local PetAnimal = entities.create_ped(28, AnimalHash, SpawnOffset, heading)
+        SET_ENTITY_INVINCIBLE(PetAnimal, true)
+        local attachLoc = v3.new(0, 0, 0.3)
+        local attachRot = v3.new(0, 0, 90)
+        local attachBone = 2
+        --local Bike = entities.create_vehicle(BikeHash, SpawnOffset, 0)
+        ATTACH_ENTITY_TO_ENTITY(Clone, PetAnimal, attachBone, attachLoc.x, attachLoc.y, attachLoc.z, attachRot.x, attachRot.y, attachRot.z, true, false, false, true, 0, true, 0)
+        ATTACH_ENTITY_TO_ENTITY(players.user_ped(), PetAnimal, attachBone, attachLoc.x, attachLoc.y, attachLoc.z, attachRot.x, attachRot.y, attachRot.z, true, false, false, true, 0, true, 0)
+        --SET_PED_INTO_VEHICLE(players.user_ped(), Bike, -1)
+        --SET_ENTITY_VISIBLE(Bike, false)
+        --IS_VEHICLE_VISIBLE(Bike)
+
+
+        REQUEST_ANIM_DICT("rcmjosh2")
+        --From LanceScript
+        TASK_PLAY_ANIM(Clone, "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        util.yield(100)
+        TASK_PLAY_ANIM(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        util.yield(100)
+        FREEZE_ENTITY_POSITION(Clone, true)
+        --SET_PED_ALLOW_MINOR_REACTIONS_AS_MISSION_PED(Clone, false)
+        --SET_PED_CAN_TORSO_REACT_IK(Clone, false)
+        ------------------
+        local ArrowHash = 1267718013
+        util.request_model(ArrowHash)
+        local Arrow = entities.create_object(ArrowHash, ArrowSpawnOffset, heading)
+        SET_ENTITY_COLLISION(Arrow, false, false)
+
+        --local hash = util.joaat("v_ind_cfwaste")
+        --local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+        --util.request_model(hash)
+       -- local OBJ = entities.create_object(hash, Player_Pos)
+
+--SET_ENTITY_VISIBLE(players.user_ped(), false, false)
+--util.yield(10)
+
+--SET_ENTITY_VISIBLE(players.user_ped(), true, false)
+        util.create_tick_handler(function()
+            SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PetAnimal, true)
+util.toast("Hold and Release Space to set a destination point | Press down arrow to delete your mount")
+            if IS_CONTROL_PRESSED(0, 187) then
+                --entities.delete(Bike)
+                entities.delete(PetAnimal)
+                entities.delete(Arrow)
+                entities.delete(Clone)
+                STOP_ANIM_TASK(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0)
+
+                return false
+            end
+            heading = GET_ENTITY_HEADING(players.user_ped())
+            SET_ENTITY_ROTATION(Arrow, 0, 180, heading)
+            --SET_ENTITY_VISIBLE(players.user_ped(), true, false)
+
+            
+            
+        end)
+
+        util.create_tick_handler(function()
+        local cam_pos = GET_FINAL_RENDERED_CAM_COORD()
+
+        if IS_CONTROL_PRESSED(0, 187) then
+            return false
+        end
+
+        local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+        local distance = 10
+
+        local Cam_v3 = v3.new(cam_pos.x, cam_pos.y, -cam_pos.z)
+        --SET_ENTITY_COORDS_NO_OFFSET(OBJ, cam_pos.x, Player_Pos.y, cam_pos.z, false, false, false)
+            --SET_ENTITY_COORDS_NO_OFFSET(GiantRabbitGoal, Player_Pos.x+distance, Player_Pos.y, cam_pos.z, false, false, false)
+            --local OBJcoords = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(OBJ, 0, 0, 0)
+            local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
+            local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+            
+            local TargetOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PetAnimal, 0, 5, 0)
+            
+            local raycastResult = get_raycast_result_WO(100000.0)
+            if raycastResult.didHit and (IS_PED_SHOOTING(players.user_ped()) or IS_CONTROL_PRESSED(0, 179)) then
+                GiantRabbitNextPos = raycastResult.endCoords
+                TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, GiantRabbitNextPos.x, GiantRabbitNextPos.y, GiantRabbitNextPos.z, 5.0, 0, false, 0, 0.0)
+            
+                    SET_ENTITY_COORDS_NO_OFFSET(Arrow, GiantRabbitNextPos.x, GiantRabbitNextPos.y, GiantRabbitNextPos.z+1, false, false, false)
+              
+       
+            end
+            --SET_ENTITY_HEADING(PetAnimal, heading)
+          --util.yield(500)
+
+          
+    
+            --if IS_CONTROL_PRESSED(0, 145) then
+            --    return false
+            --end
+        end)
+
+
+
+
+
+
+    end)
+
+
+    menu.action(myListFunAnimalsMountsSettings, "Cow Riding", {}, "Spawns a cow for you to ride", function ()
+        
+        SelectedPetAnimal = util.joaat("A_C_Cow")
+        local pedm = players.user_ped()
+        --local BikeHash = util.joaat("avarus")
+        local AnimalHash = SelectedPetAnimal
+        util.request_model(AnimalHash)
+        --util.request_model(BikeHash)
+        --local pedm = Target
+        local target_ped = players.user_ped()
+        local Clone = CLONE_PED(target_ped, true, false, true)
+
+--i stole the raycast bit from Lance's script, and wiriscript
+
+--honestly, if you watch this and wanna do the same, the best thing is to ask me on discord, a lot of stuff there is useless and i'm too
+    --scared to remove it bc it took me ages to get this working
+
+        local radius = math.random(8, 22)
+        local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+        local ArrowSpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+
+
+        local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
+        radius = math.random(8, 22)
+        SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+        local PetAnimal = entities.create_ped(28, AnimalHash, SpawnOffset, heading)
+        SET_ENTITY_INVINCIBLE(PetAnimal, true)
+        local attachLoc = v3.new(0, 0, 0.2)
+        local attachRot = v3.new(0, 0, 90)
+        local attachBone = 2
+        --local Bike = entities.create_vehicle(BikeHash, SpawnOffset, 0)
+        ATTACH_ENTITY_TO_ENTITY(Clone, PetAnimal, attachBone, attachLoc.x, attachLoc.y, attachLoc.z, attachRot.x, attachRot.y, attachRot.z, true, false, false, true, 0, true, 0)
+        ATTACH_ENTITY_TO_ENTITY(players.user_ped(), PetAnimal, attachBone, attachLoc.x, attachLoc.y, attachLoc.z, attachRot.x, attachRot.y, attachRot.z, true, false, false, true, 0, true, 0)
+        --SET_PED_INTO_VEHICLE(players.user_ped(), Bike, -1)
+        --SET_ENTITY_VISIBLE(Bike, false)
+        --IS_VEHICLE_VISIBLE(Bike)
+
+
+        REQUEST_ANIM_DICT("rcmjosh2")
+        --From LanceScript
+        TASK_PLAY_ANIM(Clone, "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        util.yield(100)
+        TASK_PLAY_ANIM(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        util.yield(100)
+        FREEZE_ENTITY_POSITION(Clone, true)
+        --SET_PED_ALLOW_MINOR_REACTIONS_AS_MISSION_PED(Clone, false)
+        --SET_PED_CAN_TORSO_REACT_IK(Clone, false)
+        ------------------
+        local ArrowHash = 1267718013
+        util.request_model(ArrowHash)
+        local Arrow = entities.create_object(ArrowHash, ArrowSpawnOffset, heading)
+        SET_ENTITY_COLLISION(Arrow, false, false)
+
+        --local hash = util.joaat("v_ind_cfwaste")
+        --local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+        --util.request_model(hash)
+       -- local OBJ = entities.create_object(hash, Player_Pos)
+
+--SET_ENTITY_VISIBLE(players.user_ped(), false, false)
+--util.yield(10)
+
+--SET_ENTITY_VISIBLE(players.user_ped(), true, false)
+        util.create_tick_handler(function()
+            SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PetAnimal, true)
+util.toast("Hold and Release Space to set a destination point | Press down arrow to delete your mount")
+            if IS_CONTROL_PRESSED(0, 187) then
+                --entities.delete(Bike)
+                entities.delete(PetAnimal)
+                entities.delete(Arrow)
+                entities.delete(Clone)
+                STOP_ANIM_TASK(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0)
+
+                return false
+            end
+            heading = GET_ENTITY_HEADING(players.user_ped())
+            SET_ENTITY_ROTATION(Arrow, 0, 180, heading)
+            --SET_ENTITY_VISIBLE(players.user_ped(), true, false)
+
+            
+            
+        end)
+
+        util.create_tick_handler(function()
+        local cam_pos = GET_FINAL_RENDERED_CAM_COORD()
+
+        if IS_CONTROL_PRESSED(0, 187) then
+            return false
+        end
+
+        local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+        local distance = 10
+
+        local Cam_v3 = v3.new(cam_pos.x, cam_pos.y, -cam_pos.z)
+        --SET_ENTITY_COORDS_NO_OFFSET(OBJ, cam_pos.x, Player_Pos.y, cam_pos.z, false, false, false)
+            --SET_ENTITY_COORDS_NO_OFFSET(GiantRabbitGoal, Player_Pos.x+distance, Player_Pos.y, cam_pos.z, false, false, false)
+            --local OBJcoords = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(OBJ, 0, 0, 0)
+            local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
+            local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+            
+            local TargetOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PetAnimal, 0, 5, 0)
+            
+            local raycastResult = get_raycast_result_WO(100000.0)
+            if raycastResult.didHit and (IS_PED_SHOOTING(players.user_ped()) or IS_CONTROL_PRESSED(0, 179)) then
+                GiantRabbitNextPos = raycastResult.endCoords
+                TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, GiantRabbitNextPos.x, GiantRabbitNextPos.y, GiantRabbitNextPos.z, 5.0, 0, false, 0, 0.0)
+            
+                    SET_ENTITY_COORDS_NO_OFFSET(Arrow, GiantRabbitNextPos.x, GiantRabbitNextPos.y, GiantRabbitNextPos.z+1, false, false, false)
+              
+       
+            end
+            --SET_ENTITY_HEADING(PetAnimal, heading)
+          --util.yield(500)
+
+          
+    
+            --if IS_CONTROL_PRESSED(0, 145) then
+            --    return false
+            --end
+        end)
+
+
+
+
+
+
+    end)
+
+    menu.action(myListFunAnimalsMountsSettings, "Deer Riding", {}, "Spawns a deer for you to ride", function ()
+        
+        SelectedPetAnimal = util.joaat("A_C_Deer")
+        local pedm = players.user_ped()
+        --local BikeHash = util.joaat("avarus")
+        local AnimalHash = SelectedPetAnimal
+        util.request_model(AnimalHash)
+        --util.request_model(BikeHash)
+        --local pedm = Target
+        local target_ped = players.user_ped()
+        local Clone = CLONE_PED(target_ped, true, false, true)
+
+--i stole the raycast bit from Lance's script, and wiriscript
+
+--honestly, if you watch this and wanna do the same, the best thing is to ask me on discord, a lot of stuff there is useless and i'm too
+    --scared to remove it bc it took me ages to get this working
+
+        local radius = math.random(8, 22)
+        local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+        local ArrowSpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+
+
+        local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
+        radius = math.random(8, 22)
+        SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+        local PetAnimal = entities.create_ped(28, AnimalHash, SpawnOffset, heading)
+        SET_ENTITY_INVINCIBLE(PetAnimal, true)
+        local attachLoc = v3.new(0, 0, 0.35)
+        local attachRot = v3.new(-345, 0, 90)
+        local attachBone = 2
+        --local Bike = entities.create_vehicle(BikeHash, SpawnOffset, 0)
+        ATTACH_ENTITY_TO_ENTITY(Clone, PetAnimal, attachBone, attachLoc.x, attachLoc.y, attachLoc.z, attachRot.x, attachRot.y, attachRot.z, true, false, false, true, 0, true, 0)
+        ATTACH_ENTITY_TO_ENTITY(players.user_ped(), PetAnimal, attachBone, attachLoc.x, attachLoc.y, attachLoc.z, attachRot.x, attachRot.y, attachRot.z, true, false, false, true, 0, true, 0)
+        --SET_PED_INTO_VEHICLE(players.user_ped(), Bike, -1)
+        --SET_ENTITY_VISIBLE(Bike, false)
+        --IS_VEHICLE_VISIBLE(Bike)
+
+
+        REQUEST_ANIM_DICT("rcmjosh2")
+        --From LanceScript
+        TASK_PLAY_ANIM(Clone, "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        util.yield(100)
+        TASK_PLAY_ANIM(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        util.yield(100)
+        FREEZE_ENTITY_POSITION(Clone, true)
+        --SET_PED_ALLOW_MINOR_REACTIONS_AS_MISSION_PED(Clone, false)
+        --SET_PED_CAN_TORSO_REACT_IK(Clone, false)
+        ------------------
+        local ArrowHash = 1267718013
+        util.request_model(ArrowHash)
+        local Arrow = entities.create_object(ArrowHash, ArrowSpawnOffset, heading)
+        SET_ENTITY_COLLISION(Arrow, false, false)
+
+        --local hash = util.joaat("v_ind_cfwaste")
+        --local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+        --util.request_model(hash)
+       -- local OBJ = entities.create_object(hash, Player_Pos)
+
+--SET_ENTITY_VISIBLE(players.user_ped(), false, false)
+--util.yield(10)
+
+--SET_ENTITY_VISIBLE(players.user_ped(), true, false)
+        util.create_tick_handler(function()
+            SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PetAnimal, true)
+util.toast("Hold and Release Space to set a destination point | Press down arrow to delete your mount")
+            if IS_CONTROL_PRESSED(0, 187) then
+                --entities.delete(Bike)
+                entities.delete(PetAnimal)
+                entities.delete(Arrow)
+                entities.delete(Clone)
+                STOP_ANIM_TASK(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0)
+
+                return false
+            end
+            heading = GET_ENTITY_HEADING(players.user_ped())
+            SET_ENTITY_ROTATION(Arrow, 0, 180, heading)
+            --SET_ENTITY_VISIBLE(players.user_ped(), true, false)
+
+            
+            
+        end)
+
+        util.create_tick_handler(function()
+        local cam_pos = GET_FINAL_RENDERED_CAM_COORD()
+
+        if IS_CONTROL_PRESSED(0, 187) then
+            return false
+        end
+
+        local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+        local distance = 10
+
+        local Cam_v3 = v3.new(cam_pos.x, cam_pos.y, -cam_pos.z)
+        --SET_ENTITY_COORDS_NO_OFFSET(OBJ, cam_pos.x, Player_Pos.y, cam_pos.z, false, false, false)
+            --SET_ENTITY_COORDS_NO_OFFSET(GiantRabbitGoal, Player_Pos.x+distance, Player_Pos.y, cam_pos.z, false, false, false)
+            --local OBJcoords = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(OBJ, 0, 0, 0)
+            local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
+            local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+            
+            local TargetOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PetAnimal, 0, 5, 0)
+            
+            local raycastResult = get_raycast_result_WO(100000.0)
+            if raycastResult.didHit and (IS_PED_SHOOTING(players.user_ped()) or IS_CONTROL_PRESSED(0, 179)) then
+                GiantRabbitNextPos = raycastResult.endCoords
+                TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, GiantRabbitNextPos.x, GiantRabbitNextPos.y, GiantRabbitNextPos.z, 5.0, 0, false, 0, 0.0)
+            
+                    SET_ENTITY_COORDS_NO_OFFSET(Arrow, GiantRabbitNextPos.x, GiantRabbitNextPos.y, GiantRabbitNextPos.z+1, false, false, false)
+              
+       
+            end
+            --SET_ENTITY_HEADING(PetAnimal, heading)
+          --util.yield(500)
+
+          
+    
+            --if IS_CONTROL_PRESSED(0, 145) then
+            --    return false
+            --end
+        end)
+
+
+
+
+
+
+    end)
+
+    menu.action(myListFunAnimalsMountsSettings, "Zombie Deer Riding", {}, "Spawns a zombie deer for you to ride", function ()
+        
+        SelectedPetAnimal = util.joaat("A_C_Deer_02")
+        local pedm = players.user_ped()
+        --local BikeHash = util.joaat("avarus")
+        local AnimalHash = SelectedPetAnimal
+        util.request_model(AnimalHash)
+        --util.request_model(BikeHash)
+        --local pedm = Target
+        local target_ped = players.user_ped()
+        local Clone = CLONE_PED(target_ped, true, false, true)
+
+--i stole the raycast bit from Lance's script, and wiriscript
+
+--honestly, if you watch this and wanna do the same, the best thing is to ask me on discord, a lot of stuff there is useless and i'm too
+    --scared to remove it bc it took me ages to get this working
+
+        local radius = math.random(8, 22)
+        local SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, math.random(-radius, radius), math.random(-radius, radius), 0)
+        local ArrowSpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+
+
+        local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
+        radius = math.random(8, 22)
+        SpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pedm, 0, 0, 0)
+        local PetAnimal = entities.create_ped(28, AnimalHash, SpawnOffset, heading)
+        SET_ENTITY_INVINCIBLE(PetAnimal, true)
+        local attachLoc = v3.new(0, 0, 0.35)
+        local attachRot = v3.new(-345, 0, 90)
+        local attachBone = 2
+        --local Bike = entities.create_vehicle(BikeHash, SpawnOffset, 0)
+        ATTACH_ENTITY_TO_ENTITY(Clone, PetAnimal, attachBone, attachLoc.x, attachLoc.y, attachLoc.z, attachRot.x, attachRot.y, attachRot.z, true, false, false, true, 0, true, 0)
+        ATTACH_ENTITY_TO_ENTITY(players.user_ped(), PetAnimal, attachBone, attachLoc.x, attachLoc.y, attachLoc.z, attachRot.x, attachRot.y, attachRot.z, true, false, false, true, 0, true, 0)
+        --SET_PED_INTO_VEHICLE(players.user_ped(), Bike, -1)
+        --SET_ENTITY_VISIBLE(Bike, false)
+        --IS_VEHICLE_VISIBLE(Bike)
+
+
+        REQUEST_ANIM_DICT("rcmjosh2")
+        --From LanceScript
+        TASK_PLAY_ANIM(Clone, "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        util.yield(100)
+        TASK_PLAY_ANIM(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0, 1, -1, 2, 1.0, false, false, false)
+        util.yield(100)
+        FREEZE_ENTITY_POSITION(Clone, true)
+        --SET_PED_ALLOW_MINOR_REACTIONS_AS_MISSION_PED(Clone, false)
+        --SET_PED_CAN_TORSO_REACT_IK(Clone, false)
+        ------------------
+        local ArrowHash = 1267718013
+        util.request_model(ArrowHash)
+        local Arrow = entities.create_object(ArrowHash, ArrowSpawnOffset, heading)
+        SET_ENTITY_COLLISION(Arrow, false, false)
+
+        --local hash = util.joaat("v_ind_cfwaste")
+        --local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+        --util.request_model(hash)
+       -- local OBJ = entities.create_object(hash, Player_Pos)
+
+--SET_ENTITY_VISIBLE(players.user_ped(), false, false)
+--util.yield(10)
+
+--SET_ENTITY_VISIBLE(players.user_ped(), true, false)
+        util.create_tick_handler(function()
+            SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PetAnimal, true)
+util.toast("Hold and Release Space to set a destination point | Press down arrow to delete your mount")
+            if IS_CONTROL_PRESSED(0, 187) then
+                --entities.delete(Bike)
+                entities.delete(PetAnimal)
+                entities.delete(Arrow)
+                entities.delete(Clone)
+                STOP_ANIM_TASK(players.user_ped(), "rcmjosh2", "josh_sitting_loop", 8.0)
+
+                return false
+            end
+            heading = GET_ENTITY_HEADING(players.user_ped())
+            SET_ENTITY_ROTATION(Arrow, 0, 180, heading)
+            --SET_ENTITY_VISIBLE(players.user_ped(), true, false)
+
+            
+            
+        end)
+
+        util.create_tick_handler(function()
+        local cam_pos = GET_FINAL_RENDERED_CAM_COORD()
+
+        if IS_CONTROL_PRESSED(0, 187) then
+            return false
+        end
+
+        local Player_Pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+        local distance = 10
+
+        local Cam_v3 = v3.new(cam_pos.x, cam_pos.y, -cam_pos.z)
+        --SET_ENTITY_COORDS_NO_OFFSET(OBJ, cam_pos.x, Player_Pos.y, cam_pos.z, false, false, false)
+            --SET_ENTITY_COORDS_NO_OFFSET(GiantRabbitGoal, Player_Pos.x+distance, Player_Pos.y, cam_pos.z, false, false, false)
+            --local OBJcoords = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(OBJ, 0, 0, 0)
+            local heading = GET_ENTITY_HEADING(players.get_cam_rot(players.user()))
+            local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+            
+            local TargetOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PetAnimal, 0, 5, 0)
+            
+            local raycastResult = get_raycast_result_WO(100000.0)
+            if raycastResult.didHit and (IS_PED_SHOOTING(players.user_ped()) or IS_CONTROL_PRESSED(0, 179)) then
+                GiantRabbitNextPos = raycastResult.endCoords
+                TASK_GO_TO_COORD_ANY_MEANS(PetAnimal, GiantRabbitNextPos.x, GiantRabbitNextPos.y, GiantRabbitNextPos.z, 5.0, 0, false, 0, 0.0)
+            
+                    SET_ENTITY_COORDS_NO_OFFSET(Arrow, GiantRabbitNextPos.x, GiantRabbitNextPos.y, GiantRabbitNextPos.z+1, false, false, false)
+              
+       
+            end
+            --SET_ENTITY_HEADING(PetAnimal, heading)
+          --util.yield(500)
+
+          
+    
+            --if IS_CONTROL_PRESSED(0, 145) then
+            --    return false
+            --end
+        end)
+
+
+
+
+
+
+    end)
+
+    local TBDphase = 1 --change phase for testing
+
+    local TBDblips = {}
+    local TBDblipsOther = {}
+
+    local TBDpeds = {}
+    local TBDpedsOther = {}
+
+    local TBDvehicles = {}
+
+    local TBDobjects = {}
+    local TBDobjectsOther = {}
+    local TBDobjectsPipes = {}
+    
+    local TBDipls = {}
+
+    local isTBDrunning = 0
+    
+    local TBDfailMesageShown = 0
+
+    local TBDtick1CalledonceEver = 0
+    local TBDtick2CalledonceEver = 0
+    local TBDtick3CalledonceEver = 0
+    local TBDtick4CalledonceEver = 0
+    local TBDtick5CalledonceEver = 0
+    local TBDtick6CalledonceEver = 0
+    local TBDtick7CalledonceEver = 0
+    local TBDtick8CalledonceEver = 0
+    local TBDtick9CalledonceEver = 0
+    local TBDtick10CalledonceEver = 0
+    local TBDtick11CalledonceEver = 0
+    local TBDtick12CalledonceEver = 0
+    local TBDtick13CalledonceEver = 0
+    local TBDtick14CalledonceEver = 0
+    local TBDtick15CalledonceEver = 0
+    local TBDtick16CalledonceEver = 0
+    local TBDtick17CalledonceEver = 0
+    local TBDtick18CalledonceEver = 0
+    local TBDtick19CalledonceEver = 0
+    local TBDtick20CalledonceEver = 0
+    local TBDtick21CalledonceEver = 0
+    local TBDtick22CalledonceEver = 0
+    local TBDtick23CalledonceEver = 0
+    local TBDtick24CalledonceEver = 0
+    local TBDtick25CalledonceEver = 0
+    local TBDtick26CalledonceEver = 0
+    local TBDtick27CalledonceEver = 0
+    local TBDtick28CalledonceEver = 0
+    local TBDtick29CalledonceEver = 0
+    local TBDtick30CalledonceEver = 0
+    local TBDtick31CalledonceEver = 0
+    local TBDtick32CalledonceEver = 0
+    local TBDtick33CalledonceEver = 0
+    local TBDtick34CalledonceEver = 0
+    local TBDtick35CalledonceEver = 0
+    local TBDtick36CalledonceEver = 0
+    local TBDtick37CalledonceEver = 0
+    local TBDtick38CalledonceEver = 0
+    local TBDtick39CalledonceEver = 0
+    local TBDtick40CalledonceEver = 0
+    local TBDtick41CalledonceEver = 0
+    local TBDtick42CalledonceEver = 0
+    local TBDtick43CalledonceEver = 0
+    local TBDtick44CalledonceEver = 0
+    local TBDtick45CalledonceEver = 0
+    local TBDtick46CalledonceEver = 0
+    local TBDtick47CalledonceEver = 0
+    local TBDtick48CalledonceEver = 0
+    local TBDtick49CalledonceEver = 0
+    local TBDtick50CalledonceEver = 0
+    local TBDtick51CalledonceEver = 0
+    local TBDtick52CalledonceEver = 0
+    local TBDtick53CalledonceEver = 0
+    local TBDtick54CalledonceEver = 0
+    local TBDtick55CalledonceEver = 0
+    local TBDtick56CalledonceEver = 0
+    local TBDtick57CalledonceEver = 0
+    local TBDtick58CalledonceEver = 0
+    local TBDtick59CalledonceEver = 0
+    local TBDtick60CalledonceEver = 0
+    local TBDtick61CalledonceEver = 0
+    local TBDtick62CalledonceEver = 0
+    local TBDtick63CalledonceEver = 0
+    local TBDtick64CalledonceEver = 0
+    local TBDtick65CalledonceEver = 0
+    local TBDtick66CalledonceEver = 0
+    local TBDtick67CalledonceEver = 0
+    local TBDtick68CalledonceEver = 0
+    local TBDtick69CalledonceEver = 0
+    local TBDtick70CalledonceEver = 0
+    
+    local phonePickedUp = 0
+
+    local banditoHackSuccessful = 0
+    local banditoHackFailed = 0
+
+    local ToreadorCanBeDestroyed = 0
+    
+    local TBDtargetHacked1 = 0
+    local TBDtargetHacked2 = 0
+    local TBDtargetHacked3 = 0
+    
+    local TooLateAntonovCutscene = 0
+    local AntonovLostCutscene = 0
+
+function ResetTBD()
+            
+
+    for i, blip in TBDblips do
+        util.remove_blip(blip)
+    end
+    TBDblips = {}
+
+    for i, blipO in TBDblipsOther do
+        util.remove_blip(blipO)
+    end
+    TBDblipsOther = {}
+
+
+
+    for i, ped in TBDpeds do
+        entities.delete(ped)
+    end
+    TBDpeds = {}
+
+    for i, pedO in TBDpedsOther do
+        entities.delete(pedO)
+    end
+    TBDpedsOther = {}
+
+
+    for i, vehicle in TBDvehicles do
+        entities.delete(vehicle)
+    end
+    TBDvehicles = {}
+
+    for i, object in TBDobjects do
+        entities.delete(object)
+    end
+    TBDobjects = {} 
+
+    for i, objectO in TBDobjectsOther do
+        entities.delete(objectO)
+    end
+    TBDobjectsOther = {}
+
+    for i, objectP in TBDobjectsPipes do
+        entities.delete(objectP)
+    end
+    TBDobjectsPipes = {}
+
+    --for i, IPL in TBDipls do
+    --    REMOVE_IPL(IPL)
+    --end
+    --TBDipls = {}
+
+    
+    menu.trigger_commands('ussluxington off')
+    menu.trigger_commands('iplcayopercio off')
+    
+    menu.trigger_commands('lockwantedlevel on')
+    menu.trigger_commands('wanted 0')
+
+
+    ANIMPOSTFX_STOP("TinyRacerPink", 0, true)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+
+    
+    RENDER_SCRIPT_CAMS(false, true, 1, 1, 0, 0);
+
+    --if DOES_CAM_EXIST(TBDCutsceneCam) then
+    --    DESTROY_CAM(TBDCutsceneCam, true)
+    --    DESTROY_ALL_CAMS(true)
+    --end
+
+    --TBDCutsceneCam = CREATE_CAMERA(26379945, true)
+    --TBDCutsceneCamPos = v3.new(0, 0, 0)
+    --TBDCutsceneCamRot = v3.new(0, 0, 0)
+    TBD_ph_Step = 0
+
+    TBDPlayerName = players.get_name(players.user())
+    TBDdialogue = 0
+
+    TBD_Tip = 0
+
+    --isTBDrunning = 0
+
+    TBDtick1CalledonceEver = 0
+    TBDtick2CalledonceEver = 0
+    TBDtick3CalledonceEver = 0
+    TBDtick4CalledonceEver = 0
+    TBDtick5CalledonceEver = 0
+    TBDtick6CalledonceEver = 0
+    TBDtick7CalledonceEver = 0
+    TBDtick8CalledonceEver = 0
+    TBDtick9CalledonceEver = 0
+    TBDtick10CalledonceEver = 0
+    TBDtick11CalledonceEver = 0
+    TBDtick12CalledonceEver = 0
+    TBDtick13CalledonceEver = 0
+    TBDtick14CalledonceEver = 0
+    TBDtick15CalledonceEver = 0
+    TBDtick16CalledonceEver = 0
+    TBDtick17CalledonceEver = 0
+    TBDtick18CalledonceEver = 0
+    TBDtick19CalledonceEver = 0
+    TBDtick20CalledonceEver = 0
+    TBDtick21CalledonceEver = 0
+    TBDtick22CalledonceEver = 0
+    TBDtick23CalledonceEver = 0
+    TBDtick24CalledonceEver = 0
+    TBDtick25CalledonceEver = 0
+    TBDtick26CalledonceEver = 0
+    TBDtick27CalledonceEver = 0
+    TBDtick28CalledonceEver = 0
+    TBDtick29CalledonceEver = 0
+    TBDtick30CalledonceEver = 0
+    TBDtick31CalledonceEver = 0
+    TBDtick32CalledonceEver = 0
+    TBDtick33CalledonceEver = 0
+    TBDtick34CalledonceEver = 0
+    TBDtick35CalledonceEver = 0
+    TBDtick36CalledonceEver = 0
+    TBDtick37CalledonceEver = 0
+    TBDtick38CalledonceEver = 0
+    TBDtick39CalledonceEver = 0
+    TBDtick40CalledonceEver = 0
+    TBDtick41CalledonceEver = 0
+    TBDtick42CalledonceEver = 0
+    TBDtick43CalledonceEver = 0
+    TBDtick44CalledonceEver = 0
+    TBDtick45CalledonceEver = 0
+    TBDtick46CalledonceEver = 0
+    TBDtick47CalledonceEver = 0
+    TBDtick48CalledonceEver = 0
+    TBDtick49CalledonceEver = 0
+    TBDtick50CalledonceEver = 0
+    TBDtick51CalledonceEver = 0
+    TBDtick52CalledonceEver = 0
+    TBDtick53CalledonceEver = 0
+    TBDtick54CalledonceEver = 0
+    TBDtick55CalledonceEver = 0
+    TBDtick56CalledonceEver = 0
+    TBDtick57CalledonceEver = 0
+    TBDtick58CalledonceEver = 0
+    TBDtick59CalledonceEver = 0
+    TBDtick60CalledonceEver = 0
+    TBDtick61CalledonceEver = 0
+    TBDtick62CalledonceEver = 0
+    TBDtick63CalledonceEver = 0
+    TBDtick64CalledonceEver = 0
+    TBDtick65CalledonceEver = 0
+    TBDtick66CalledonceEver = 0
+    TBDtick67CalledonceEver = 0
+    TBDtick68CalledonceEver = 0
+    TBDtick69CalledonceEver = 0
+    TBDtick70CalledonceEver = 0
+    
+    phonePickedUp = 0
+
+    TBDtargetHacked1 = 0
+    TBDtargetHacked2 = 0
+    TBDtargetHacked3 = 0
+
+    banditoHackSuccessful = 0
+    banditoHackFailed = 0
+    
+    
+    TooLateAntonovCutscene = 0
+    AntonovLostCutscene = 0
+
+end
+
+
+
+function TBDphase1()
+    if TBDphase == 1 then
+    util.toast("Press the down arrow key to get tips if you are stuck :)")
+
+if TBDtick2CalledonceEver == 0 then
+    TBDtick2CalledonceEver = 1
+    util.create_tick_handler(function ()
+        if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 0 then
+            util.toast("Get in your car")
+        elseif IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 1 then
+            util.toast("Find the target by holding down -LeftShift- to enable the signal detector (The closer you are the shorter the bar)")
+        elseif IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 2 then
+            util.toast("Hack the phone by reaching the end of the track fast enough")
+        end
+        TBDPlayerCurrentExactLocation = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+
+        if IS_CONTROL_PRESSED(0, 187) and IS_PED_IN_VEHICLE(players.user_ped(), TBDvehicles[1]) and  TBD_Tip == 0 then
+            TBD_Tip = 1
+            
+            util.toast("Find the target by holding down -LeftShift- to enable the signal detector (The closer you are the shorter the bar)")
+        end
+
+        if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 2 then
+            
+            util.toast("hack the target")
+        end
+
+        if TBDphase ~= 1 then
+            return false
+        end
+
+        if TBDtick2CalledonceEver == 0 then
+            return false
+        end
+    end)
+end
+
+    local SpawnPoint = v3.new(-765.5, 774.4, 213.2)
+    local SpawnHeading = -72.7
+
+    local PlayerCarSpawnPoint = v3.new(-748.7, 818.2, 213)
+    local PlayerCarSpawnHeading = -145
+
+    local MWagent_1_SpawnPoint = v3.new(686.5, -1749.9, 29)
+    local MWagent_1_SpawnHeading = -90
+
+    
+    local MWagent_2_SpawnPoint = v3.new(-1407.2, -385.0, 37)
+    local MWagent_2_SpawnHeading = -150
+
+    
+    local MWagent_3_SpawnPoint = v3.new(383.3, 143.4, 103)
+    local MWagent_3_SpawnHeading = 72
+
+    local sizeX = 0.95
+    local sizeY = 0.03
+    local current_y_pos = 0.04
+
+    
+
+
+    if TBD_ph_Step == 0 then
+        TBD_ph_Step = 1
+        DO_SCREEN_FADE_OUT(1500)
+    util.yield(1500)
+        FREEZE_ENTITY_POSITION(players.user_ped(), true)
+    util.yield(500)
+        SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), SpawnPoint.x, SpawnPoint.y, SpawnPoint.z)
+        SET_ENTITY_HEADING(players.user_ped(), SpawnHeading)
+    util.yield(500)
+        REQUEST_ANIM_DICT("anim@heists@fleeca_bank@ig_7_jetski_owner")
+        TASK_PLAY_ANIM(players.user_ped(), "anim@heists@fleeca_bank@ig_7_jetski_owner", "owner_idle", 10.0, 1, -1, 2, 1.0, false, false, false)
+    util.yield(500)
+        local TBDCutsceneCamPos = v3.new(-741.1, 785.8, 215.0)
+--goal--TBDCutsceneCamPos = v3.new(-760.9, 776.0, 213.1)
+    local TBDCutsceneCamRot = v3.new(-2, 0, 111)
+    util.yield(100)
+        local TBDCutsceneCam = CREATE_CAMERA(26379945, true)
+        SET_CAM_COORD(TBDCutsceneCam, TBDCutsceneCamPos.x, TBDCutsceneCamPos.y, TBDCutsceneCamPos.z)
+        SET_CAM_ROT(TBDCutsceneCam, TBDCutsceneCamRot.x, TBDCutsceneCamRot.y, TBDCutsceneCamRot.z, 2)
+        RENDER_SCRIPT_CAMS(true, true, 1, 1, 0, 0);
+        DO_SCREEN_FADE_IN(1500)
+    util.yield(1500)
+        RENDER_SCRIPT_CAMS(false, true, 42000, 1, 0, 0)
+
+if TBDtick3CalledonceEver == 0 then
+    TBDtick3CalledonceEver = 1
+    util.create_tick_handler(function () -- Cutscene Dialogues
+
+        if TBDdialogue == 0 then
+            util.toast("Earpiece : Thank you for waiting Agent " .. TBDPlayerName .. ". We finally have an oportunity to overthrow Merryweather. We do know that two files contains the logs of all of their criminal doings. Even a single file will allow us to take them all down. However, these files are yet to be located and that's why we need your help.")
+        elseif TBDdialogue == 1 then
+            util.toast("Earpiece : You will have to hack the phones of multiple goons to get more info. Other agents have located 3 of them. Use your car's signal detector by holding -LeftShift- to find out their exact whereabouts and don't get spotted ! Good luck agent and remember, if you need help at any point, simply press the down arrow key.")
+        elseif TBDdialogue == 2 then
+            return false
+        end
+
+        if TBDphase ~= 1 then
+            return false
+        end
+
+        if TBDtick3CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+end
+    TBDdialogue = 0
+    util.yield(20000)
+    TBDdialogue = 1
+    util.yield(23000)
+    TBDdialogue = 2
+    DESTROY_CAM(TBDCutsceneCam)
+
+        FREEZE_ENTITY_POSITION(players.user_ped(), false)
+        STOP_ANIM_TASK(players.user_ped(), "anim@heists@fleeca_bank@ig_7_jetski_owner", "owner_idle", 0.8)
+    
+        util.yield(1000)
+        util.toast("Get in your car")
+
+        local PlayerCarHash = util.joaat("oracle2")
+        local SignalDetectorHash = util.joaat("oracle2")
+        local MWagent_1_CarHash = util.joaat("casco")
+        local MWagent_2_CarHash = util.joaat("swinger")
+        local MWagent_3_CarHash = util.joaat("stinger")
+
+        util.request_model(PlayerCarHash)
+
+        local TBDPlayerCar = entities.create_vehicle(PlayerCarHash, PlayerCarSpawnPoint, PlayerCarSpawnHeading)
+        SET_VEHICLE_COLOURS(TBDPlayerCar, 147, 26)
+        entities.set_can_migrate(TBDPlayerCar, false)
+        --util.yield(500)
+        SET_ENTITY_AS_MISSION_ENTITY(TBDPlayerCar, true, true)
+            local blipPlayerCar = ADD_BLIP_FOR_ENTITY(TBDPlayerCar)
+            table.insert(TBDblips, 1, blipPlayerCar)
+            SET_BLIP_SPRITE(blipPlayerCar, 530)
+            SET_BLIP_DISPLAY(blipPlayerCar, 2)
+            SET_BLIP_COLOUR(blipPlayerCar, 13)
+        table.insert(TBDvehicles, 1, TBDPlayerCar)
+        SET_VEHICLE_RADIO_ENABLED(TBDvehicles[1], false)
+        local SignalDetector = entities.create_vehicle(SignalDetectorHash, PlayerCarSpawnPoint+10, PlayerCarSpawnHeading)
+        --local blipPlayerSignal = ADD_BLIP_FOR_ENTITY(SignalDetector)--remove
+        --table.insert(TBDblips, 1, blipPlayerSignal)--remove
+        --SET_BLIP_SPRITE(blipPlayerSignal, 50)--remove--remove
+        --SET_BLIP_DISPLAY(blipPlayerSignal, 2)--remove
+        --SET_BLIP_COLOUR(blipPlayerSignal, 15)--remove
+        entities.set_can_migrate(SignalDetector, false)
+        --util.yield(500)
+        SET_ENTITY_AS_MISSION_ENTITY(SignalDetector, true, true)
+        table.insert(TBDvehicles, 2, SignalDetector)
+        SET_ENTITY_COLLISION(SignalDetector, false, false)
+        SET_ENTITY_VISIBLE(SignalDetector, false)
+        SET_VEHICLE_MOD(SignalDetector, 14, 55, false)
+        SET_HORN_PERMANENTLY_ON(SignalDetector)
+        
+        ATTACH_ENTITY_TO_ENTITY(TBDvehicles[2], TBDvehicles[1], 0, 0, 0, 5, 0, 0, 0, true, false, false, true, 0, true, 0)
+
+        util.request_model(MWagent_1_CarHash)
+        local MWagent_1_Car = entities.create_vehicle(MWagent_1_CarHash, MWagent_1_SpawnPoint, MWagent_1_SpawnHeading)
+        entities.set_can_migrate(MWagent_1_Car, false)
+        --util.yield(500)
+        table.insert(TBDvehicles, 3, MWagent_1_Car)
+        SET_ENTITY_AS_MISSION_ENTITY(MWagent_1_Car, true, true)
+        local MWdriver1 = CREATE_RANDOM_PED_AS_DRIVER(MWagent_1_Car, true)
+        table.insert(TBDpeds, 1, MWdriver1)
+        TASK_VEHICLE_DRIVE_WANDER(MWdriver1, MWagent_1_Car, 20.0, 1074528292)
+
+
+
+
+        util.request_model(MWagent_2_CarHash)
+        local MWagent_2_Car = entities.create_vehicle(MWagent_2_CarHash, MWagent_2_SpawnPoint, MWagent_2_SpawnHeading)
+        entities.set_can_migrate(MWagent_2_Car, false)
+        --util.yield(500)
+        table.insert(TBDvehicles, 4, MWagent_2_Car)
+        SET_ENTITY_AS_MISSION_ENTITY(MWagent_2_Car, true, true)
+        local MWdriver2 = CREATE_RANDOM_PED_AS_DRIVER(MWagent_2_Car, true)
+        table.insert(TBDpeds, 2, MWdriver2)
+        TASK_VEHICLE_DRIVE_WANDER(MWdriver2, MWagent_2_Car, 20.0, 1074528292)
+
+
+
+
+        util.request_model(MWagent_3_CarHash)
+        local MWagent_3_Car = entities.create_vehicle(MWagent_3_CarHash, MWagent_3_SpawnPoint, MWagent_3_SpawnHeading)
+        entities.set_can_migrate(MWagent_3_Car, false)
+        --util.yield(500)
+        table.insert(TBDvehicles, 5, MWagent_3_Car)
+        SET_ENTITY_AS_MISSION_ENTITY(MWagent_3_Car, true, true)
+        local MWdriver3 = CREATE_RANDOM_PED_AS_DRIVER(MWagent_3_Car, true)
+        table.insert(TBDpeds, 3, MWdriver3)
+        TASK_VEHICLE_DRIVE_WANDER(MWdriver3, MWagent_3_Car, 20.0, 1074528292)
+
+        
+
+    if TBDtick34CalledonceEver == 0 then
+        TBDtick34CalledonceEver = 1
+        util.create_tick_handler(function()
+            
+            local MWagent_1_CarExactPosBeep = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_1_Car, 0, 0, 0)
+            local MWagent_2_CarExactPosBeep = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_2_Car, 0, 0, 0)
+            local MWagent_3_CarExactPosBeep = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_3_Car, 0, 0, 0)
+
+            local BeepTarget = MWagent_1_CarExactPosBeep
+
+            local PlayerExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+
+        if IS_PED_IN_VEHICLE(players.user_ped(), TBDvehicles[1]) and IS_CONTROL_PRESSED(0, 131) then
+            if TBDtargetHacked1 == 0 and TBDtargetHacked2 == 0 and TBDtargetHacked3 == 0 then
+                sizeX = PlayerExactPos:distance(MWagent_1_CarExactPosBeep)/500  
+            end
+            if TBDtargetHacked1 == 1 and TBDtargetHacked2 == 0 and TBDtargetHacked3 == 0 then
+                sizeX = PlayerExactPos:distance(MWagent_2_CarExactPosBeep)/500  
+            end
+            if TBDtargetHacked1 == 1 and TBDtargetHacked2 == 1 and TBDtargetHacked3 == 0 then
+                sizeX = PlayerExactPos:distance(MWagent_3_CarExactPosBeep)/500  
+            end
+            if TBDtargetHacked1 == 1 and TBDtargetHacked2 == 1 and TBDtargetHacked3 == 1 then
+                sizeX = sizeX/PlayerExactPos:distance(PlayerExactPos)  
+            end
+            directx.draw_rect(0.5 - (sizeX / 2), current_y_pos, sizeX, sizeY, {r=0, g=255, b=0, a=1})
+        end
+            
+
+
+            if TBDphase ~= 1 then
+                return false
+            end
+
+            if TBDtick34CalledonceEver == 0 then
+                return false
+            end
+        end)
+
+        
+
+    end
+
+
+    if TBDtick4CalledonceEver == 0 then
+        TBDtick4CalledonceEver = 1
+        util.create_tick_handler(function()--BlipRadius
+            --util.toast("radius on") -- debug
+            local MWagent_1_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_1_Car, math.random(-75, 75), math.random(-75, 75), 0)
+            local blipMWagent_1_Car = ADD_BLIP_FOR_RADIUS(MWagent_1_CarExactPos.x, MWagent_1_CarExactPos.y, MWagent_1_CarExactPos.z, 250)
+            SET_BLIP_ALPHA(blipMWagent_1_Car, 90)
+            SET_BLIP_COLOUR(blipMWagent_1_Car, 5)
+            SET_BLIP_DISPLAY(blipMWagent_1_Car, 2)
+            --table.insert(TBDblipsOther, 1, blipMWagent_1_Car)
+            util.yield(5000)
+            util.remove_blip(blipMWagent_1_Car)
+
+            if TBDfailMesageShown == 1 then
+                util.remove_blip(blipMWagent_1_Car)
+                --util.toast("TBDfailMesageShown") -- debug
+                return false
+            end
+
+            if TBDtargetHacked1 == 1 then
+                util.remove_blip(blipMWagent_1_Car)
+                --util.toast("TBDtargetHacked1") -- debug
+                return false
+            end
+
+            if TBDphase ~= 1 then
+                util.remove_blip(blipMWagent_1_Car)
+                --util.toast("TBDphase") -- debug
+                return false
+            end
+
+            if TBDtick4CalledonceEver == 0 then
+                util.remove_blip(blipMWagent_1_Car)
+                --util.toast("TBDtick4CalledonceEver") -- debug
+                return false
+            end
+
+        end)
+    end
+        
+if TBDtick5CalledonceEver == 0 then
+    TBDtick5CalledonceEver = 1
+    util.create_tick_handler(function()--BlipRadius
+        if TBDtargetHacked1 == 1 then
+            local MWagent_2_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_2_Car, math.random(-75, 75), math.random(-75, 75), 0)
+            local blipMWagent_2_Car = ADD_BLIP_FOR_RADIUS(MWagent_2_CarExactPos.x, MWagent_2_CarExactPos.y, MWagent_2_CarExactPos.z, 250)
+            SET_BLIP_ALPHA(blipMWagent_2_Car, 90)
+            SET_BLIP_COLOUR(blipMWagent_2_Car, 5)
+            SET_BLIP_DISPLAY(blipMWagent_2_Car, 2)
+            table.insert(TBDblipsOther, 1, blipMWagent_2_Car)
+            util.yield(5000)
+            util.remove_blip(blipMWagent_2_Car)
+
+            if TBDfailMesageShown == 1 then
+                util.remove_blip(blipMWagent_2_Car)
+                return false
+            end
+        
+
+        
+        
+            if TBDtargetHacked2 == 1 then
+                util.remove_blip(blipMWagent_2_Car)
+                return false
+            end
+
+            if TBDphase ~= 1 then
+                util.remove_blip(blipMWagent_2_Car)
+                return false
+            end
+
+            if TBDtick5CalledonceEver == 0 then
+                util.remove_blip(blipMWagent_2_Car)
+                return false
+            end
+        end
+        
+    end)
+
+end
+
+if TBDtick6CalledonceEver == 0 then
+    TBDtick6CalledonceEver = 1
+    util.create_tick_handler(function()--BlipRadius
+        if TBDtargetHacked2 == 1 then
+            local MWagent_3_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_3_Car, math.random(-75, 75), math.random(-75, 75), 0)
+            local blipMWagent_3_Car = ADD_BLIP_FOR_RADIUS(MWagent_3_CarExactPos.x, MWagent_3_CarExactPos.y, MWagent_3_CarExactPos.z, 250)
+            SET_BLIP_ALPHA(blipMWagent_3_Car, 90)
+            SET_BLIP_COLOUR(blipMWagent_3_Car, 5)
+            SET_BLIP_DISPLAY(blipMWagent_3_Car, 2)
+            table.insert(TBDblipsOther, 1, blipMWagent_3_Car)
+            util.yield(5000)
+            util.remove_blip(blipMWagent_3_Car)
+            if TBDfailMesageShown == 1 then
+                util.remove_blip(blipMWagent_3_Car)
+                return false
+            end
+       
+
+        
+
+            if TBDtargetHacked3 == 1 then
+                util.remove_blip(blipMWagent_3_Car)
+                return false
+            end
+
+            if TBDphase ~= 1 then
+                util.remove_blip(blipMWagent_3_Car)
+                return false
+            end
+
+            if TBDtick6CalledonceEver == 0 then
+                util.remove_blip(blipMWagent_3_Car)
+                return false
+            end
+        end
+        end)
+
+    end
+
+        local hack1Status = 0
+        local hack2Status = 0
+        local hack3Status = 0
+
+
+    if TBDtick7CalledonceEver == 0 then
+        TBDtick7CalledonceEver = 1
+        util.create_tick_handler(function()
+            
+            
+            local MWagent_1_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_1_Car, 0, 0, 0)
+            local MWagent_2_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_2_Car, 0, 0, 0)
+            local MWagent_3_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_3_Car, 0, 0, 0)
+
+            local PlayerExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+
+            if MWagent_1_CarExactPos:distance(PlayerExactPos) < 50 and hack1Status < 99 then
+                
+                hack1Status = hack1Status + math.random(3, 18)
+                if hack1Status >=  99 then
+                    hack1Status = 100
+                    util.toast("Hack complete")
+                    TBDtargetHacked1 = 1
+                    TBD_Tip = 1
+                else
+                util.toast("Hack " .. hack1Status .. "% complete")
+                util.yield(math.random(1300, 2900))
+                TBD_Tip = 2
+                end
+            end
+
+
+            if MWagent_2_CarExactPos:distance(PlayerExactPos) < 50 and hack2Status < 99 then
+                hack2Status = hack2Status + math.random(3, 18)
+                if hack2Status >=  99 then
+                    hack2Status = 100
+                    util.toast("Hack complete")
+                    TBDtargetHacked2 = 1
+                    TBD_Tip = 1
+                else
+                util.toast("Hack " .. hack2Status .. "% complete")
+                util.yield(math.random(1300, 2900))
+                TBD_Tip = 2
+                end
+            end
+
+            if MWagent_3_CarExactPos:distance(PlayerExactPos) < 50 and hack3Status < 99 then
+                hack3Status = hack3Status + math.random(3, 18)
+                if hack3Status >=  99 then
+                    hack3Status = 100
+                    util.toast("Hack complete")
+                    TBDtargetHacked3 = 1
+                    TBD_Tip = 1
+                else
+                util.toast("Hack " .. hack3Status .. "% complete")
+                util.yield(math.random(1300, 2900))
+                TBD_Tip = 2
+                end
+            end
+            
+
+            
+
+            if TBDtargetHacked1 == 1 and TBDtargetHacked2 == 1 and TBDtargetHacked3 == 1 then
+                isTBDrunning = 0
+                TBDphase = 2
+                TBD_Tip = 0
+                TBDdialogue = 0
+                TBD_ph_Step = 0
+                return false
+            end
+
+            if TBDphase ~= 1 then
+                return false
+            end
+
+            if TBDtick7CalledonceEver == 0 then
+                return false
+            end
+
+            
+            
+
+        end)
+
+    end
+
+
+if TBDtick8CalledonceEver == 0 then
+    TBDtick8CalledonceEver = 1
+    util.create_tick_handler(function()
+        local MWagent_1_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_1_Car, 0, 0, 0)
+        local MWagent_2_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_2_Car, 0, 0, 0)
+        local MWagent_3_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_3_Car, 0, 0, 0)
+        local PlayerExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+
+        if MWagent_1_CarExactPos:distance(PlayerExactPos) < 50 and TBDtargetHacked1 == 0 then
+            local MWagent_1_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_1_Car, 0, 0, 0)
+            local blipMWagent_1_Car = ADD_BLIP_FOR_ENTITY(MWagent_1_Car)
+            SET_BLIP_SPRITE(blipMWagent_1_Car, 459)
+            SET_BLIP_COLOUR(blipMWagent_1_Car, 59)
+            SET_BLIP_DISPLAY(blipMWagent_1_Car, 2)
+            util.yield(5000)
+            util.remove_blip(blipMWagent_1_Car)
+            
+        elseif MWagent_2_CarExactPos:distance(PlayerExactPos) < 50 and TBDtargetHacked2 == 0 and TBDtargetHacked1 == 1 then
+            local MWagent_2_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_2_Car, 0, 0, 0)
+            local blipMWagent_2_Car = ADD_BLIP_FOR_ENTITY(MWagent_2_Car)
+            SET_BLIP_SPRITE(blipMWagent_2_Car, 459)
+            SET_BLIP_COLOUR(blipMWagent_2_Car, 59)
+            SET_BLIP_DISPLAY(blipMWagent_2_Car, 2)
+            util.yield(5000)
+            util.remove_blip(blipMWagent_2_Car)
+            
+        elseif MWagent_3_CarExactPos:distance(PlayerExactPos) < 50 and TBDtargetHacked3 == 0 and TBDtargetHacked2 == 1 then
+            local MWagent_3_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_3_Car, 0, 0, 0)
+            local blipMWagent_3_Car = ADD_BLIP_FOR_ENTITY(MWagent_3_Car)
+            SET_BLIP_SPRITE(blipMWagent_3_Car, 459)
+            SET_BLIP_COLOUR(blipMWagent_3_Car, 59)
+            SET_BLIP_DISPLAY(blipMWagent_3_Car, 2)
+            util.yield(5000)
+            util.remove_blip(blipMWagent_3_Car)
+            
+        end
+
+
+        if TBDphase ~= 1 then
+            return false
+        end
+
+        if TBDtick8CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+
+end
+
+    if TBDtick9CalledonceEver == 0 then
+        TBDtick9CalledonceEver = 1
+        util.create_tick_handler(function ()--Signal Detector Beep
+
+            local MWagent_1_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_1_Car, 0, 0, 0)
+            local MWagent_2_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_2_Car, 0, 0, 0)
+            local MWagent_3_CarExactPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(MWagent_3_Car, 0, 0, 0)
+
+            if IS_PED_IN_VEHICLE(players.user_ped(), TBDvehicles[1]) and IS_CONTROL_PRESSED(0, 131) and TBDtargetHacked1 == 0 then
+                SET_HORN_ENABLED(SignalDetector, true)
+                SET_HORN_PERMANENTLY_ON(SignalDetector)
+                util.yield(TBDPlayerCurrentExactLocation:distance(MWagent_1_CarExactPos) * 2)
+                --util.draw_centred_text(TBDPlayerCurrentExactLocation:distance(MWagent_1_CarExactPos) * 2)
+                SET_HORN_ENABLED(SignalDetector, false)
+                PLAY_DEFERRED_SOUND_FRONTEND("Beep_Red", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+                util.yield(TBDPlayerCurrentExactLocation:distance(MWagent_1_CarExactPos) * 2)
+            elseif IS_PED_IN_VEHICLE(players.user_ped(), TBDvehicles[1]) and IS_CONTROL_PRESSED(0, 131) and TBDtargetHacked1 == 1 and TBDtargetHacked2 == 0 and TBDtargetHacked3 == 0 then
+            
+                SET_HORN_ENABLED(SignalDetector, true)
+                SET_HORN_PERMANENTLY_ON(SignalDetector)
+                util.yield(TBDPlayerCurrentExactLocation:distance(MWagent_2_CarExactPos) * 2)
+                --util.draw_centred_text(TBDPlayerCurrentExactLocation:distance(MWagent_1_CarExactPos) * 2)
+                SET_HORN_ENABLED(SignalDetector, false)
+                PLAY_DEFERRED_SOUND_FRONTEND("Beep_Red", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+                util.yield(TBDPlayerCurrentExactLocation:distance(MWagent_2_CarExactPos) * 2)
+
+            elseif IS_PED_IN_VEHICLE(players.user_ped(), TBDvehicles[1]) and IS_CONTROL_PRESSED(0, 131) and TBDtargetHacked2 == 1 and TBDtargetHacked1 == 1 and TBDtargetHacked3 == 0 then
+            
+                SET_HORN_ENABLED(SignalDetector, true)
+                SET_HORN_PERMANENTLY_ON(SignalDetector)
+                util.yield(TBDPlayerCurrentExactLocation:distance(MWagent_3_CarExactPos) * 2)
+                --util.draw_centred_text(TBDPlayerCurrentExactLocation:distance(MWagent_1_CarExactPos) * 2)
+                SET_HORN_ENABLED(SignalDetector, false)
+                PLAY_DEFERRED_SOUND_FRONTEND("Beep_Red", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+                util.yield(TBDPlayerCurrentExactLocation:distance(MWagent_3_CarExactPos) * 2)
+
+            end
+
+            if TBDphase ~= 1 then
+                return false
+            end
+
+            if TBDtick9CalledonceEver == 0 then
+                return false
+            end
+
+        end)
+
+    end
+
+    if TBDtick10CalledonceEver == 0 then
+        TBDtick9CalledonceEver = 1
+        util.create_tick_handler(function () --CheckFail
+
+            FailTBD1()
+
+            if TBDfailMesageShown == 1 then
+                return false
+            end
+
+            if TBDphase ~= 1 then
+                return false
+            end
+
+            if TBDtick10CalledonceEver == 0 then
+                return false
+            end
+
+        end)
+    end
+
+    end
+
+end
+end
+
+
+function TBDphase2()
+    if TBDphase == 2 then
+
+        if TBDtick21CalledonceEver == 0 then
+            TBDtick21CalledonceEver = 1
+            util.create_tick_handler(function () --CheckFail
+    
+                FailTBD2()
+    
+                if TBDfailMesageShown == 1 then
+                    return false
+                end
+    
+                if TBDphase ~= 2 then
+                    return false
+                end
+    
+                if TBDtick21CalledonceEver == 0 then
+                    return false
+                end
+    
+            end)
+        end
+
+        local PlayerCarSpawnPoint = v3.new(1129.4, 262.625, 81)
+        local PlayerCarSpawnHeading = 112.4
+
+        local HeliSpawnPoint = v3.new(1909.7, 406.6, 163)
+        local HeliSpawnPointSpawnHeading = 67.5
+        local heliHash = util.joaat("annihilator2")
+
+        local apcSpawnPoint = v3.new(1873.7, 412.0, 162)
+        local apcSpawnPointSpawnHeading = -95
+        local apcHash = util.joaat("apc")
+
+        local VetirSpawnPoint1 = v3.new(1857.0, 450.7, 164)
+        local VetirSpawnPointSpawnHeading1 = -76
+        local VetirHash1 = util.joaat("vetir")
+        
+        local VetirSpawnPoint2 = v3.new(1892.2, 441.9, 166)
+        local VetirSpawnPointSpawnHeading2 = 58
+        local VetirHash2 = util.joaat("vetir")
+
+        local BarrageSpawnPoint = v3.new(1867.6, 430.0, 164)
+        local BarrageSpawnPointSpawnHeading = 22
+        local BarrageHash = util.joaat("barrage")
+
+
+
+        if TBDtick22CalledonceEver == 0 then
+            TBDtick22CalledonceEver = 1
+        util.create_tick_handler(function ()
+            if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 0 then
+                
+                util.toast("Make your way to the high ranking officer")
+            elseif IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 1 then
+                util.toast("Search the high ranking officer's body")
+            elseif IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 2 then
+                util.toast("Reach the end of the data tunnel")
+            end
+    
+            if TBDphase ~= 2 then
+                return false
+            end
+
+            if TBDtick22CalledonceEver == 0 then
+                return false
+            end
+
+
+        end)
+    end
+        if TBD_ph_Step == 0 then
+            TBD_ph_Step = 1
+            DO_SCREEN_FADE_OUT(1500)
+        util.yield(1500)
+            FREEZE_ENTITY_POSITION(players.user_ped(), true)
+        util.yield(500)
+        
+        local PlayerCarHash = util.joaat("oracle2")
+        util.request_model(PlayerCarHash)
+
+        
+        
+        local TBDPlayerCar = entities.create_vehicle(PlayerCarHash, PlayerCarSpawnPoint, PlayerCarSpawnHeading)
+        SET_VEHICLE_COLOURS(TBDPlayerCar, 147, 26)
+            entities.set_can_migrate(TBDPlayerCar, false)
+            --util.yield(500)
+            SET_ENTITY_AS_MISSION_ENTITY(TBDPlayerCar, true, true)
+                local blipPlayerCar = ADD_BLIP_FOR_ENTITY(TBDPlayerCar)
+                table.insert(TBDblips, 1, blipPlayerCar)
+                SET_BLIP_SPRITE(blipPlayerCar, 530)
+                SET_BLIP_DISPLAY(blipPlayerCar, 2)
+                SET_BLIP_COLOUR(blipPlayerCar, 13)
+            table.insert(TBDvehicles, 1, TBDPlayerCar)
+            SET_VEHICLE_RADIO_ENABLED(TBDvehicles[1], false)
+
+
+
+            util.request_model(heliHash)
+            local TBDheli = entities.create_vehicle(heliHash, HeliSpawnPoint, HeliSpawnPointSpawnHeading)
+                entities.set_can_migrate(TBDheli, false)
+                --util.yield(500)
+                SET_ENTITY_AS_MISSION_ENTITY(TBDheli, true, true)
+                table.insert(TBDvehicles, 2, TBDheli)
+
+                util.request_model(apcHash)
+            local TBDapc = entities.create_vehicle(apcHash, apcSpawnPoint, apcSpawnPointSpawnHeading)
+                entities.set_can_migrate(TBDapc, false)
+                --util.yield(500)
+                SET_ENTITY_AS_MISSION_ENTITY(TBDapc, true, true)
+                table.insert(TBDvehicles, 3, TBDapc)
+
+                util.request_model(VetirHash1)
+            local TBDvetir1 = entities.create_vehicle(VetirHash1, VetirSpawnPoint1, VetirSpawnPointSpawnHeading1)
+                entities.set_can_migrate(TBDvetir1, false)
+                --util.yield(500)
+                SET_ENTITY_AS_MISSION_ENTITY(TBDvetir1, true, true)
+                table.insert(TBDvehicles, 4, TBDvetir1)
+
+                util.request_model(VetirHash2)
+            local TBDvetir2 = entities.create_vehicle(VetirHash2, VetirSpawnPoint2, VetirSpawnPointSpawnHeading2)
+                entities.set_can_migrate(TBDvetir2, false)
+                --util.yield(500)
+                SET_ENTITY_AS_MISSION_ENTITY(TBDvetir2, true, true)
+                table.insert(TBDvehicles, 5, TBDvetir2)
+
+                util.request_model(BarrageHash)
+            local TBDbarrage = entities.create_vehicle(BarrageHash, BarrageSpawnPoint, BarrageSpawnPointSpawnHeading)
+                entities.set_can_migrate(TBDbarrage, false)
+                --util.yield(500)
+                SET_ENTITY_AS_MISSION_ENTITY(TBDbarrage, true, true)
+                table.insert(TBDvehicles, 6, TBDbarrage)
+
+    
+
+            SET_ENTITY_COORDS_NO_OFFSET(TBDvehicles[1], PlayerCarSpawnPoint.x, PlayerCarSpawnPoint.y, PlayerCarSpawnPoint.z)
+            SET_ENTITY_HEADING(TBDvehicles[1], PlayerCarSpawnHeading)
+            SET_PED_INTO_VEHICLE(players.user_ped(), TBDvehicles[1], -1)
+        util.yield(500)
+            local TBDCutsceneCam = CREATE_CAMERA(26379945, true)
+            local TBDCutsceneCamPos = v3.new(1129.3, 262.6, 107.0)
+    --goal--TBDCutsceneCamPos = v3.new(-760.9, 776.0, 213.1)
+            local TBDCutsceneCamRot = v3.new(-90, 0, 112.4)
+        util.yield(100)
+            SET_CAM_COORD(TBDCutsceneCam, TBDCutsceneCamPos.x, TBDCutsceneCamPos.y, TBDCutsceneCamPos.z)
+            SET_CAM_ROT(TBDCutsceneCam, TBDCutsceneCamRot.x, TBDCutsceneCamRot.y, TBDCutsceneCamRot.z, 2)
+            RENDER_SCRIPT_CAMS(true, true, 1, 1, 0, 0);
+            DO_SCREEN_FADE_IN(1500)
+        util.yield(1500)
+            RENDER_SCRIPT_CAMS(false, true, 8000, 1, 0, 0)
+
+            if TBDtick23CalledonceEver == 0 then
+                TBDtick23CalledonceEver = 1
+        util.create_tick_handler(function () -- Cutscene Dialogues
+    
+            if TBDdialogue == 0 then
+                util.toast("Earpiece : Great work " .. TBDPlayerName .. " ! Let me compile the results of the hacks to locate the place one of their high ranking officer should be at.")
+            elseif TBDdialogue == 1 then
+                util.toast("Earpiece : Bingo ! I'm sending you the coordinates.")
+            elseif TBDdialogue == 2 then
+                util.toast("Earpiece : Once you killed him you should be able to hack his phone to obtain the location of the files.")
+            elseif TBDdialogue == 3 then
+                return false
+            end
+
+            if TBDtick23CalledonceEver == 0 then
+                return false
+            end
+
+    
+        end)
+    end
+    
+        TBDdialogue = 0
+        util.yield(5000)
+        TBDdialogue = 1
+        util.yield(4000)
+        TBDdialogue = 2
+    
+            FREEZE_ENTITY_POSITION(players.user_ped(), false)
+        
+            util.yield(1000)
+            util.toast("Make your way to the high ranking officer")
+
+        for i = math.random(8, 14), 0, -1 do
+            TBDSpawnMWmercenaries()
+        end
+    
+        TBDSpawnMWmercenaryBoss()
+    
+        for i = math.random(22, 35), 0, -1 do
+            TBDSpawnFlamables()
+        end
+
+        util.yield(4000)
+        DESTROY_CAM(TBDCutsceneCam)
+        for i, pedO in TBDpedsOther do
+            SET_ENTITY_INVINCIBLE(TBDpedsOther[i], false)
+        end
+        SET_ENTITY_INVINCIBLE(TBDpeds[1], false)
+        
+    
+        util.yield(4000)
+        TBDdialogue = 3
+    
+        end
+    end
+
+end
+
+
+
+
+
+function TBDphase3()
+if TBDphase == 3 then
+
+    if TBDtick39CalledonceEver == 0 then
+        TBDtick39CalledonceEver = 1
+        util.create_tick_handler(function () --CheckFail
+
+            FailTBD3()
+
+            if TBDfailMesageShown == 1 then
+                return false
+            end
+
+            if TBDphase ~= 2 then
+                return false
+            end
+
+            if TBDtick39CalledonceEver == 0 then
+                return false
+            end
+
+        end)
+    end
+
+    local HeliSpawnPoint = v3.new(1909.7, 406.6, 163)
+    local HeliSpawnPointSpawnHeading = 67.5
+    local heliHash = util.joaat("annihilator2")
+
+    local apcSpawnPoint = v3.new(1873.7, 412.0, 162)
+    local apcSpawnPointSpawnHeading = -95
+    local apcHash = util.joaat("apc")
+
+    local VetirSpawnPoint1 = v3.new(1857.0, 450.7, 164)
+    local VetirSpawnPointSpawnHeading1 = -76
+    local VetirHash1 = util.joaat("vetir")
+    
+    local VetirSpawnPoint2 = v3.new(1892.2, 441.9, 166)
+    local VetirSpawnPointSpawnHeading2 = 58
+    local VetirHash2 = util.joaat("vetir")
+
+    local BarrageSpawnPoint = v3.new(1867.6, 430.0, 164)
+    local BarrageSpawnPointSpawnHeading = 22
+    local BarrageHash = util.joaat("barrage")
+
+    local BlipHangarLoc = v3.new(136, -3200, 6)
+    local BlipHangarRadius = 25
+
+    local PlayerCarSpawnPoint = v3.new(1906.8, 569.5, 176)
+    local PlayerCarSpawnHeading = -114.5
+
+    local FlatbedSpawnPoint = v3.new(141.8, -3208.4, 7)
+    local FlatbedSpawnHeading = -66
+
+    local ToreadorSpawnPoint = v3.new(141.8, -3208.4, 10)
+    local ToreadorSpawnHeading = -66
+
+    local LuxWP1 = v3.new(3100.1, -4798.6, 2)
+    local LuxWP2 = v3.new(3076.5, -4706.5, 10.5)
+    local LuxWP3 = v3.new(3091.6, -4702.2, 18.5)
+    local LuxWP4 = v3.new(3087, -4699.3, 27)
+    
+    local LuxBriefcaseSpawn = v3.new(3085.1, -4685.7, 28)
+
+
+
+    local PlayerCarHash = util.joaat("oracle2")
+    util.request_model(PlayerCarHash)
+
+    local TBDPlayerCar = entities.create_vehicle(PlayerCarHash, PlayerCarSpawnPoint, PlayerCarSpawnHeading)
+        SET_VEHICLE_COLOURS(TBDPlayerCar, 147, 26)
+            entities.set_can_migrate(TBDPlayerCar, false)
+            --util.yield(500)
+            SET_ENTITY_AS_MISSION_ENTITY(TBDPlayerCar, true, true)
+                local blipPlayerCar = ADD_BLIP_FOR_ENTITY(TBDPlayerCar)
+                table.insert(TBDblips, 1, blipPlayerCar)
+                SET_BLIP_SPRITE(blipPlayerCar, 530)
+                SET_BLIP_DISPLAY(blipPlayerCar, 2)
+                SET_BLIP_COLOUR(blipPlayerCar, 13)
+            table.insert(TBDvehicles, 1, TBDPlayerCar)
+            SET_VEHICLE_RADIO_ENABLED(TBDvehicles[1], false)
+
+            local FlatbedHash = util.joaat("flatbed")
+            util.request_model(FlatbedHash)
+
+            local TBDflatbed = entities.create_vehicle(FlatbedHash, FlatbedSpawnPoint, FlatbedSpawnHeading)
+            entities.set_can_migrate(TBDflatbed, false)
+            --util.yield(500)
+            SET_ENTITY_AS_MISSION_ENTITY(TBDflatbed, true, true)
+            table.insert(TBDvehicles, 2, TBDflatbed)
+
+            local ToreadorHash = util.joaat("toreador")
+            util.request_model(ToreadorHash)
+
+            local TBDtoreador = entities.create_vehicle(ToreadorHash, ToreadorSpawnPoint, ToreadorSpawnHeading)
+            entities.set_can_migrate(TBDtoreador, false)
+            --util.yield(500)
+            SET_ENTITY_AS_MISSION_ENTITY(TBDtoreador, true, true)
+            table.insert(TBDvehicles, 3, TBDtoreador)
+            util.yield(500)
+            ATTACH_ENTITY_TO_ENTITY(TBDvehicles[3], TBDvehicles[2], 0, 0, -2, 0.75, 0, 0, 0, true, false, false, true, 0, true, 0)
+
+            
+            
+
+            util.request_model(heliHash)
+            local TBDheli = entities.create_vehicle(heliHash, HeliSpawnPoint, HeliSpawnPointSpawnHeading)
+                entities.set_can_migrate(TBDheli, false)
+                --util.yield(500)
+                SET_ENTITY_AS_MISSION_ENTITY(TBDheli, true, true)
+                table.insert(TBDvehicles, 4, TBDheli)
+
+                util.request_model(apcHash)
+            local TBDapc = entities.create_vehicle(apcHash, apcSpawnPoint, apcSpawnPointSpawnHeading)
+                entities.set_can_migrate(TBDapc, false)
+                --util.yield(500)
+                SET_ENTITY_AS_MISSION_ENTITY(TBDapc, true, true)
+                table.insert(TBDvehicles, 5, TBDapc)
+
+                util.request_model(VetirHash1)
+            local TBDvetir1 = entities.create_vehicle(VetirHash1, VetirSpawnPoint1, VetirSpawnPointSpawnHeading1)
+                entities.set_can_migrate(TBDvetir1, false)
+                --util.yield(500)
+                SET_ENTITY_AS_MISSION_ENTITY(TBDvetir1, true, true)
+                table.insert(TBDvehicles, 6, TBDvetir1)
+
+                util.request_model(VetirHash2)
+            local TBDvetir2 = entities.create_vehicle(VetirHash2, VetirSpawnPoint2, VetirSpawnPointSpawnHeading2)
+                entities.set_can_migrate(TBDvetir2, false)
+                --util.yield(500)
+                SET_ENTITY_AS_MISSION_ENTITY(TBDvetir2, true, true)
+                table.insert(TBDvehicles, 7, TBDvetir2)
+
+                util.request_model(BarrageHash)
+            local TBDbarrage = entities.create_vehicle(BarrageHash, BarrageSpawnPoint, BarrageSpawnPointSpawnHeading)
+                entities.set_can_migrate(TBDbarrage, false)
+                --util.yield(500)
+                SET_ENTITY_AS_MISSION_ENTITY(TBDbarrage, true, true)
+                table.insert(TBDvehicles, 8, TBDbarrage)
+
+
+
+            local HangarBlip = ADD_BLIP_FOR_RADIUS(BlipHangarLoc.x, BlipHangarLoc.y, BlipHangarLoc.z, BlipHangarRadius)
+            table.insert(TBDblips, 2, HangarBlip)
+            SET_BLIP_ALPHA(HangarBlip, 90)
+            SET_BLIP_COLOUR(HangarBlip, 5)
+            SET_BLIP_DISPLAY(HangarBlip, 2)
+            table.insert( TBDblipsOther, 1, HangarBlip)
+    
+
+    if TBDtick30CalledonceEver == 0 then
+        TBDtick30CalledonceEver = 1
+        util.create_tick_handler(function ()
+
+            TBDPlayerCurrentExactLocation = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+    
+            if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 1 then
+              
+
+                util.toast("Go to Elysian Island")
+            end
+    
+            if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 2 then
+                
+                util.toast("Steal the Toreador")
+            end
+
+            if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 3 then
+                
+                util.toast("Board the USS Luxington")
+            end
+
+            if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 4 then
+                
+                util.toast("Fight your way to the command tower")
+            end
+
+            if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 5 then
+                
+                util.toast("Search the command tower")
+            end
+
+            if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 6 then
+                
+                util.toast("Escape the area")
+            end
+
+            local PlayerOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+            local ToreadorOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TBDvehicles[3], 0, 0, 0)
+
+            if PlayerOffset:distance(BlipHangarLoc) < BlipHangarRadius and TBD_Tip == 1 and IS_PED_IN_ANY_VEHICLE(players.user_ped()) then
+                TBD_Tip = 2
+                util.toast("Steal the Toreador")
+                ToreadorCanBeDestroyed = 1
+            end
+
+            if PlayerOffset:distance(ToreadorSpawnPoint) < 10 then
+                if TBDtick33CalledonceEver == 0 then
+                    TBDtick33CalledonceEver = 1
+                    local ToreadorBlip = ADD_BLIP_FOR_ENTITY(TBDtoreador)
+                    SET_BLIP_SPRITE(ToreadorBlip, 595)
+                    SET_BLIP_COLOUR(ToreadorBlip, 81)
+                    SET_BLIP_DISPLAY(ToreadorBlip, 2)
+                    table.insert(TBDblips, 2, ToreadorBlip)
+                end
+            end
+
+            if PlayerOffset:distance(ToreadorOffset) < 8 and IS_ENTITY_ATTACHED(TBDvehicles[3]) then
+                util.toast("Press -Left arrow key- to detach the Toreador from the Flatbed")
+                if IS_CONTROL_PRESSED(0, 189) then
+                    DETACH_ENTITY(TBDvehicles[3], true, true)
+                end
+            end
+
+            if IS_PED_IN_VEHICLE(players.user_ped(), TBDheli) then
+                util.yield(30000)
+                SET_VEHICLE_ENGINE_HEALTH(TBDheli, -1)
+            end
+
+            local PlayerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+
+            if IS_PED_IN_VEHICLE(players.user_ped(),  TBDtoreador) or (LuxBriefcaseSpawn:distance(PlayerLoc) < 500 and IS_PED_IN_ANY_VEHICLE(players.user_ped())) then
+
+                if TBDtick35CalledonceEver == 0 then 
+                    TBDtick35CalledonceEver = 1
+
+                    TBD_Tip = 3
+                    SET_VEHICLE_ALLOW_HOMING_MISSLE_LOCKON(TBDtoreador, true, true)
+                    util.remove_blip(HangarBlip)
+                    util.toast("Board the USS Luxington")
+
+                    local LuxBlipLoc = v3.new(3088, -4815, 1, 20)
+                    local LuxBlipRadius = 20
+                    local LuxBlip = ADD_BLIP_FOR_RADIUS(LuxBlipLoc.x, LuxBlipLoc.y, LuxBlipLoc.z, LuxBlipRadius) -- Luxington
+                    SET_BLIP_ALPHA(LuxBlip, 90)
+                    SET_BLIP_COLOUR(LuxBlip, 5)
+                    SET_BLIP_DISPLAY(LuxBlip, 2)
+                    table.insert( TBDblips, 3, LuxBlip )
+
+                    if TBDtick36CalledonceEver == 0 then 
+                        TBDtick36CalledonceEver = 1
+
+                        local indicatorArrowLuxHash = util.joaat("prop_mk_arrow_3d")
+                        util.request_model(indicatorArrowLuxHash)
+
+                        local indicatorArrowLuxLocSpawn = v3.new(0, 0, 0)
+                        local indicatorArrowLux = entities.create_object(indicatorArrowLuxHash, indicatorArrowLuxLocSpawn, 0)
+                        entities.set_can_migrate(indicatorArrowLux, false)
+                        --util.yield(500)
+                        SET_ENTITY_AS_MISSION_ENTITY(indicatorArrowLux, true, true)
+                        table.insert( TBDobjects, 1, indicatorArrowLux )
+                        local blipLuxArrow = ADD_BLIP_FOR_ENTITY(indicatorArrowLux)
+                        SET_BLIP_SPRITE(blipLuxArrow, 12) -- Boss 630
+                        SET_BLIP_COLOUR(blipLuxArrow, 5)
+                        SET_BLIP_DISPLAY(blipLuxArrow, 2)
+                        SET_BLIP_SCALE(blipLuxArrow, 0.8)
+                        table.insert(TBDblips, 4, blipLuxArrow)
+
+                        local LuxArrowWP = 1
+                        local BlipApeared = 0
+
+                        util.create_tick_handler(function()
+
+                            --util.toast("boop")
+                            local camHeading = GET_GAMEPLAY_CAM_ROT(0)
+                            SET_ENTITY_ROTATION(indicatorArrowLux, 0, 180, camHeading.z)
+                            --util.toast("blep")
+                            
+                            if LuxArrowWP == 1 then
+                                SET_ENTITY_COORDS_NO_OFFSET(indicatorArrowLux, LuxWP1.x, LuxWP1.y, LuxWP1.z)
+                            elseif LuxArrowWP == 2 then
+                                SET_ENTITY_COORDS_NO_OFFSET(indicatorArrowLux, LuxWP2.x, LuxWP2.y, LuxWP2.z)
+                            elseif LuxArrowWP == 3 then
+                                SET_ENTITY_COORDS_NO_OFFSET(indicatorArrowLux, LuxWP3.x, LuxWP3.y, LuxWP3.z)
+                            elseif LuxArrowWP == 4 then
+                                SET_ENTITY_COORDS_NO_OFFSET(indicatorArrowLux, LuxWP4.x, LuxWP4.y, LuxWP4.z)
+                            elseif LuxArrowWP == 5 then
+                                SET_ENTITY_COORDS_NO_OFFSET(indicatorArrowLux, 0, 0, 0)
+                            end
+                            
+                            local PlayerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+
+                            if PlayerLoc.z < 1 then
+                                LuxArrowWP = 1
+                            end
+
+                            if PlayerLoc:distance(LuxWP1) < 2 then
+                                LuxArrowWP = 2
+                                util.remove_blip(TBDblips[3])
+                            end
+
+                            if PlayerLoc:distance(LuxWP2) < 2 then
+                                LuxArrowWP = 3
+                            end
+
+                            if PlayerLoc:distance(LuxWP3) < 2 then
+                                LuxArrowWP = 4
+                            end
+
+                            if PlayerLoc:distance(LuxWP4) < 2 and BlipApeared == 0 then
+                                LuxArrowWP = 5
+                                BlipApeared = 1
+                                TBD_Tip = 5
+                                util.toast("Search the command tower")
+                                util.remove_blip(LuxArrowWP)
+                                util.remove_blip(LuxBlip)
+                                local LuxCabinBlipLoc = v3.new(3085.5, -4689.2, 28)
+                                local LuxCabinBlipRadius = 20
+                                local LuxCabinBlip = ADD_BLIP_FOR_RADIUS(LuxCabinBlipLoc.x, LuxCabinBlipLoc.y, LuxCabinBlipLoc.z, LuxCabinBlipRadius) -- Luxington
+                                SET_BLIP_ALPHA(LuxCabinBlip, 90)
+                                SET_BLIP_COLOUR(LuxCabinBlip, 5)
+                                SET_BLIP_DISPLAY(LuxCabinBlip, 2)
+                                table.insert( TBDblips, 4, LuxCabinBlip )
+                            end
+
+                            if PlayerLoc:distance(LuxBlipLoc) < LuxBlipRadius/1.5 then
+                                util.toast("Fight your way to the command tower")
+                                TBD_Tip = 4
+                                util.remove_blip(LuxBlip)
+                            end
+
+
+                            
+                            if TBDphase ~= 3 then
+                                return false
+                            end
+                    
+                            if TBDtick36CalledonceEver == 0 then
+                                return false
+                            end
+                        
+                        end)
+                    end
+                end
+            end
+
+    
+            if TBDphase ~= 3 then
+                return false
+            end
+    
+            if TBDtick30CalledonceEver == 0 then
+                return false
+            end
+        end)
+    end
+
+    if TBD_ph_Step == 0 then
+        TBD_ph_Step = 1
+        DO_SCREEN_FADE_OUT(1500)
+    util.yield(1500)
+    local SavedPlayerPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+            util.yield(500)
+            SET_ENTITY_COORDS(players.user_ped(), 138, -3200, 6)
+
+            for i = math.random(6, 9), 0, -1 do
+                TBDSpawnMWguards()
+            end
+        
+            util.yield(1000)
+        
+            for i = math.random(4, 8), 0, -1 do
+                TBDSpawnFlamables2()
+            end
+
+            util.yield(1000)
+
+            
+            
+
+
+            menu.trigger_commands('ussluxington on')
+
+            --[[local LuxIPL1 = REQUEST_IPL("hei_carrier_lodlights")
+            local LuxIPL2 = REQUEST_IPL("hei_carrier")
+            local LuxIPL3 = REQUEST_IPL("hei_carrier_int1")
+            local LuxIPL4 = REQUEST_IPL("hei_carrier_int2")
+            local LuxIPL5 = REQUEST_IPL("hei_carrier_int3")
+            local LuxIPL6 = REQUEST_IPL("hei_carrier_int4")
+            local LuxIPL7 = REQUEST_IPL("hei_carrier_int5")
+            local LuxIPL8 = REQUEST_IPL("hei_carrier_int6")]]
+
+            --table.insert(TBDipls, 1, LuxIPL1)
+            --table.insert(TBDipls, 1, LuxIPL2)
+            --table.insert(TBDipls, 1, LuxIPL3)
+            --table.insert(TBDipls, 1, LuxIPL4)
+            --table.insert(TBDipls, 1, LuxIPL5)
+            --table.insert(TBDipls, 1, LuxIPL6)
+            --table.insert(TBDipls, 1, LuxIPL7)
+            --table.insert(TBDipls, 1, LuxIPL8)
+
+            util.yield(500)
+            SET_ENTITY_COORDS(players.user_ped(), SavedPlayerPos.x, SavedPlayerPos.y, SavedPlayerPos.z)
+        FREEZE_ENTITY_POSITION(players.user_ped(), true)
+    util.yield(500)
+        SET_ENTITY_COORDS_NO_OFFSET(TBDPlayerCar, PlayerCarSpawnPoint.x, PlayerCarSpawnPoint.y, PlayerCarSpawnPoint.z)
+        SET_ENTITY_HEADING(TBDPlayerCar, PlayerCarSpawnHeading)
+     util.yield(500)
+     SET_PED_INTO_VEHICLE(players.user_ped(), TBDPlayerCar, -1)
+    local TBDCutsceneCamPos = v3.new(1912.0, 541.3, 180.0)
+--goal--TBDCutsceneCamPos = v3.new(-760.9, 776.0, 213.1)
+    local TBDCutsceneCamRot = v3.new(-5, 0, 10)
+    util.yield(100)
+        local TBDCutsceneCam = CREATE_CAMERA(26379945, true)
+        SET_CAM_COORD(TBDCutsceneCam, TBDCutsceneCamPos.x, TBDCutsceneCamPos.y, TBDCutsceneCamPos.z)
+        SET_CAM_ROT(TBDCutsceneCam, TBDCutsceneCamRot.x, TBDCutsceneCamRot.y, TBDCutsceneCamRot.z, 2)
+        RENDER_SCRIPT_CAMS(true, true, 1, 1, 0, 0);
+        FREEZE_ENTITY_POSITION(players.user_ped(), false)
+        DO_SCREEN_FADE_IN(1500)
+    util.yield(1500)
+        RENDER_SCRIPT_CAMS(false, true, 8000, 1, 0, 0)
+
+    if TBDtick29CalledonceEver == 0 then
+        TBDtick29CalledonceEver = 1
+        util.create_tick_handler(function()
+            if TBDdialogue == -1 then
+                util.toast("Earpiece : The Luxington ? I knew you would say that")
+            elseif TBDdialogue == 1 then
+                util.toast("Earpiece : There is a submarine car on Elysian Island, we'll be able to 'borrow' it from Merryweather")
+            elseif TBDdialogue == 2 then
+                util.toast("Earpiece : Lucky for us the USS Luxington is near the South-East coast of Los Santos as we speak. You'll have to board it and retrieve the file")
+            elseif TBDdialogue == 3 then
+                
+            end
+
+            if TBDphase ~= 3 then
+                return false
+            end
+    
+            if TBDtick29CalledonceEver == 0 then
+                util.yield(8000)
+                DESTROY_CAM(TBDCutsceneCam)
+                return false
+            end
+
+
+        end)
+
+    end
+
+
+        TBDdialogue = -1
+        util.yield(4000)
+        TBDdialogue = 1
+        util.yield(5000)
+        TBDdialogue = 2
+        util.yield(5000)
+        TBDdialogue = 3
+        util.yield(5000)
+        TBD_Tip = 1
+        util.toast("Go to Elysian Island")
+
+
+        for i = math.random(50, 120), 0, -1 do
+            TBDSpawnMWmarines()
+            util.yield(50)
+        end
+
+        TBDSpawnMWcommander()
+    
+    
+        for i = math.random(80, 150), 0, -1 do
+            TBDSpawnFlamables3()
+            util.yield(50)
+        end
+
+        for i = math.random(6, 10), 0, -1 do
+            TBDSpawnAttackSubmarines()
+            util.yield(100)
+        end
+
+        util.yield(1000)
+
+        for i = math.random(10, 12), 0, -1 do
+            TBDSpawnBoats()
+            util.yield(100)
+        end
+
+
+            local BriefcaseCollected = 0
+            local LuxBriefcaseSpawn = v3.new(3083.92, -4686.34, 27)
+            local LuxBriefcaseHash = util.joaat("hei_p_attache_case_shut")
+            util.request_model(LuxBriefcaseHash)
+            local LuxBriefcase = entities.create_object(LuxBriefcaseHash, LuxBriefcaseSpawn, 0)
+            --PLAY_DEFERRED_SOUND_FRONTEND("BACK", "HUD_FREEMODE_SOUNDSET");
+            --PLAY_DEFERRED_SOUND_FRONTEND("Hack_Success", "DLC_GR_Steal_Railguns_Sounds");
+            --PLAY_DEFERRED_SOUND_FRONTEND("Success", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+            --PLAY_DEFERRED_SOUND_FRONTEND("Click", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+            --PLAY_DEFERRED_SOUND_FRONTEND("Start", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+            --PLAY_DEFERRED_SOUND_FRONTEND("Goal", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+            --PLAY_DEFERRED_SOUND_FRONTEND("Trail_Custom", "DLC_HEIST_HACKING_SNAKE_SOUNDS"); -- CANNOT BE STOPPED
+
+            --PLAY_DEFERRED_SOUND_FRONTEND("Turn", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+            --PLAY_DEFERRED_SOUND_FRONTEND("collect_keys", "dlc_vw_recover_luxury_car_sounds");
+            --PLAY_DEFERRED_SOUND_FRONTEND("collect_keys", "dlc_vw_recover_luxury_car_sounds");
+            entities.set_can_migrate(LuxBriefcase, false)
+            --util.yield(500)
+            SET_ENTITY_AS_MISSION_ENTITY(LuxBriefcase, true, true)
+            FREEZE_ENTITY_POSITION(LuxBriefcase, true)
+            --table.insert(TBDobjects, 1, LuxBriefcase)
+
+            if TBDtick37CalledonceEver == 0 then
+                TBDtick37CalledonceEver = 1
+                util.create_tick_handler(function()
+
+                    local PlayerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                    local LuxBriefcaseLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(LuxBriefcase, 0, 0, 0)
+
+                    if PlayerLoc:distance(LuxBriefcaseLoc) < 1 and BriefcaseCollected == 0 then
+                        BriefcaseCollected = 1
+                        PLAY_DEFERRED_SOUND_FRONTEND("collect_keys", "dlc_vw_recover_luxury_car_sounds"); -- 3 times so its louder ;)
+                        PLAY_DEFERRED_SOUND_FRONTEND("collect_keys", "dlc_vw_recover_luxury_car_sounds");
+                        PLAY_DEFERRED_SOUND_FRONTEND("collect_keys", "dlc_vw_recover_luxury_car_sounds");
+                        entities.delete(LuxBriefcase)
+                        util.toast("You collected the Merryweather file")
+                        util.remove_blip(HangarBlip)
+                        util.remove_blip(TBDblips[3])
+                        util.remove_blip(TBDblips[3])
+                        util.remove_blip(TBDblips[4])
+                        util.yield(2000)
+                        TBD_Tip = 6
+                        util.toast("Escape the area")
+                    end
+
+                    if DOES_ENTITY_EXIST(LuxBriefcase) then
+                    end
+
+                    if BriefcaseCollected == 1 then
+
+                        local LuxCabinLoc = v3.new(3085.5, -4689.2, 28)
+                        local LuxCabinEscapeRadius = 1000
+                                
+                        if PlayerLoc:distance(LuxCabinLoc) > LuxCabinEscapeRadius then
+                            TBDvictory()
+                        end
+                    end
+
+                    if TBDphase ~= 3 then
+                        return false
+                    end
+            
+                    if TBDtick37CalledonceEver == 0 then
+                        return false
+                    end
+        
+        
+                end)
+            end
+    end
+end
+end
+
+TBDEquipementList = {"p_secret_weapon_02", "prop_box_ammo03a_set", "prop_box_ammo03a_set2", "prop_air_cargo_04a", "prop_air_cargo_04b", "prop_air_cargo_04c", "hei_prop_carrier_cargo_04a", "hei_prop_carrier_cargo_02a", "hei_prop_carrier_cargo_01a", "hei_prop_carrier_cargo_05b"}
+
+function TBDphase4()
+    if TBDphase == 4 then
+    
+        if TBDtick51CalledonceEver == 0 then
+            TBDtick51CalledonceEver = 1
+            util.create_tick_handler(function () --CheckFail
+    
+                FailTBD4()
+    
+                if TBDfailMesageShown == 1 then
+                    return false
+                end
+    
+                if TBDphase ~= 4 then
+                    return false
+                end
+    
+                if TBDtick51CalledonceEver == 0 then
+                    return false
+                end
+    
+            end)
+        end
+    
+        local HeliSpawnPoint = v3.new(1909.7, 406.6, 163)
+        local HeliSpawnPointSpawnHeading = 67.5
+        local heliHash = util.joaat("annihilator2")
+    
+        local apcSpawnPoint = v3.new(1873.7, 412.0, 162)
+        local apcSpawnPointSpawnHeading = -95
+        local apcHash = util.joaat("apc")
+    
+        local VetirSpawnPoint1 = v3.new(1857.0, 450.7, 164)
+        local VetirSpawnPointSpawnHeading1 = -76
+        local VetirHash1 = util.joaat("vetir")
+        
+        local VetirSpawnPoint2 = v3.new(1892.2, 441.9, 166)
+        local VetirSpawnPointSpawnHeading2 = 58
+        local VetirHash2 = util.joaat("vetir")
+    
+        local BarrageSpawnPoint = v3.new(1867.6, 430.0, 164)
+        local BarrageSpawnPointSpawnHeading = 22
+        local BarrageHash = util.joaat("barrage")
+    
+        local BlipHangarLoc = v3.new(136, -3200, 6)
+        local BlipHangarRadius = 25
+    
+        local PlayerCarSpawnPoint = v3.new(1906.8, 569.5, 176)
+        local PlayerCarSpawnHeading = -114.5
+    
+        local FlatbedSpawnPoint = v3.new(789.5, 1278.2, 362)
+        local FlatbedSpawnHeading = -58
+    
+        local RuinerSpawnPoint = v3.new(788.5, 1290.9, 360)
+        local RuinerSpawnHeading = -136
+
+        local AntonovSpawnPoint = v3.new(-924.4, -3185.8, 22)
+        local AntonovSpawnHeading = 59.9
+        local showAntonovBlip = 0
+    
+        local LuxWP1 = v3.new(3100.1, -4798.6, 2)
+        local LuxWP2 = v3.new(3076.5, -4706.5, 10.5)
+        local LuxWP3 = v3.new(3091.6, -4702.2, 18.5)
+        local LuxWP4 = v3.new(3087, -4699.3, 27)
+        
+        local LuxBriefcaseSpawn = v3.new(3085.1, -4685.7, 28)
+    
+    
+    
+        local PlayerCarHash = util.joaat("oracle2")
+        util.request_model(PlayerCarHash)
+    
+        local TBDPlayerCar = entities.create_vehicle(PlayerCarHash, PlayerCarSpawnPoint, PlayerCarSpawnHeading)
+            SET_VEHICLE_COLOURS(TBDPlayerCar, 147, 26)
+                entities.set_can_migrate(TBDPlayerCar, false)
+                --util.yield(500)
+                SET_ENTITY_AS_MISSION_ENTITY(TBDPlayerCar, true, true)
+                    local blipPlayerCar = ADD_BLIP_FOR_ENTITY(TBDPlayerCar)
+                    table.insert(TBDblips, 1, blipPlayerCar)
+                    SET_BLIP_SPRITE(blipPlayerCar, 530)
+                    SET_BLIP_DISPLAY(blipPlayerCar, 2)
+                    SET_BLIP_COLOUR(blipPlayerCar, 13)
+                table.insert(TBDvehicles, 1, TBDPlayerCar)
+                SET_VEHICLE_RADIO_ENABLED(TBDvehicles[1], false)
+    
+                local FlatbedHash = util.joaat("flatbed")
+                util.request_model(FlatbedHash)
+    
+                local TBDflatbed = entities.create_vehicle(FlatbedHash, FlatbedSpawnPoint, FlatbedSpawnHeading)
+                entities.set_can_migrate(TBDflatbed, false)
+                --util.yield(500)
+                SET_ENTITY_AS_MISSION_ENTITY(TBDflatbed, true, true)
+                table.insert(TBDvehicles, 2, TBDflatbed)
+    
+                local RuinerHash = util.joaat("Ruiner2")
+                util.request_model(RuinerHash)
+    
+                local TBDruiner = entities.create_vehicle(RuinerHash, RuinerSpawnPoint, RuinerSpawnHeading)
+                entities.set_can_migrate(TBDruiner, false)
+                --util.yield(500)
+                SET_ENTITY_AS_MISSION_ENTITY(TBDruiner, true, true)
+                table.insert(TBDvehicles, 3, TBDruiner)
+                local RuinerBlip = ADD_BLIP_FOR_ENTITY(TBDruiner)
+                    SET_BLIP_SPRITE(RuinerBlip, 530)
+                    SET_BLIP_COLOUR(RuinerBlip, 81)
+                    SET_BLIP_DISPLAY(RuinerBlip, 2)
+                    table.insert(TBDblips, 2, RuinerBlip)
+                util.yield(500)
+    
+                
+                
+                
+    
+                util.request_model(heliHash)
+                local TBDheli = entities.create_vehicle(heliHash, HeliSpawnPoint, HeliSpawnPointSpawnHeading)
+                    entities.set_can_migrate(TBDheli, false)
+                    --util.yield(500)
+                    SET_ENTITY_AS_MISSION_ENTITY(TBDheli, true, true)
+                    table.insert(TBDvehicles, 4, TBDheli)
+    
+                    util.request_model(apcHash)
+                local TBDapc = entities.create_vehicle(apcHash, apcSpawnPoint, apcSpawnPointSpawnHeading)
+                    entities.set_can_migrate(TBDapc, false)
+                    --util.yield(500)
+                    SET_ENTITY_AS_MISSION_ENTITY(TBDapc, true, true)
+                    table.insert(TBDvehicles, 5, TBDapc)
+    
+                    util.request_model(VetirHash1)
+                local TBDvetir1 = entities.create_vehicle(VetirHash1, VetirSpawnPoint1, VetirSpawnPointSpawnHeading1)
+                    entities.set_can_migrate(TBDvetir1, false)
+                    --util.yield(500)
+                    SET_ENTITY_AS_MISSION_ENTITY(TBDvetir1, true, true)
+                    table.insert(TBDvehicles, 6, TBDvetir1)
+    
+                    util.request_model(VetirHash2)
+                local TBDvetir2 = entities.create_vehicle(VetirHash2, VetirSpawnPoint2, VetirSpawnPointSpawnHeading2)
+                    entities.set_can_migrate(TBDvetir2, false)
+                    --util.yield(500)
+                    SET_ENTITY_AS_MISSION_ENTITY(TBDvetir2, true, true)
+                    table.insert(TBDvehicles, 7, TBDvetir2)
+    
+                    util.request_model(BarrageHash)
+                local TBDbarrage = entities.create_vehicle(BarrageHash, BarrageSpawnPoint, BarrageSpawnPointSpawnHeading)
+                    entities.set_can_migrate(TBDbarrage, false)
+                    --util.yield(500)
+                    SET_ENTITY_AS_MISSION_ENTITY(TBDbarrage, true, true)
+                    table.insert(TBDvehicles, 8, TBDbarrage)
+    
+                    local AntonovHash = util.joaat("cargoplane")
+                    util.request_model(AntonovHash)
+    
+                    local TBDantonov = entities.create_vehicle(AntonovHash, AntonovSpawnPoint, AntonovSpawnHeading)
+                    SET_ENTITY_INVINCIBLE(TBDantonov, true)
+                    entities.set_can_migrate(TBDantonov, false)
+                    --util.yield(500)
+                    SET_ENTITY_AS_MISSION_ENTITY(TBDantonov, true, true)
+                    table.insert(TBDvehicles, 9, TBDantonov)
+
+                    
+                    for i = math.random(12, 18), 0, -1 do
+                        SpawnTBDantonovEquipement()
+                    end
+
+                
+                
+        
+    
+        if TBDtick52CalledonceEver == 0 then
+            TBDtick52CalledonceEver = 1
+            util.create_tick_handler(function ()
+    
+                TBDPlayerCurrentExactLocation = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+        
+                if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 1 then
+                  
+    
+                    util.toast("Go to Vinewood Hills and steal the Ruiner 2000")
+                end
+        
+                if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 2 then
+                    
+                    util.toast("Steal the Ruiner 2000")
+                end
+    
+                if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 3 then
+                    
+                    util.toast("Go to LSIA")
+                end
+    
+                if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 4 then
+                    
+                    util.toast("Hack the Antonov's rear door")
+                end
+    
+                if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 5 then
+                    
+                    util.toast("Get in the Antonov")
+                end
+    
+                if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 6 then
+                    
+                    --util.toast("Escape the area")
+                end
+    
+                local PlayerOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                local ToreadorOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TBDvehicles[3], 0, 0, 0)
+
+
+                if TBDphase ~= 4 then
+                    return false
+                end
+        
+                if TBDtick52CalledonceEver == 0 then
+                    return false
+                end
+
+
+            end)
+        end
+
+        if TBD_ph_Step == 0 then
+            TBD_ph_Step = 1
+            DO_SCREEN_FADE_OUT(1500)
+        util.yield(1500)
+        local SavedPlayerPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                util.yield(500)
+                SET_ENTITY_COORDS(players.user_ped(), 138, -3200, 6)
+    
+                for i = math.random(5, 7), 0, -1 do
+                    TBDSpawnMWguards2()
+                end
+            
+                util.yield(1000)
+            
+                for i = math.random(5, 8), 0, -1 do
+                    TBDSpawnFlamables4()
+                end
+    
+                util.yield(1000)
+    
+                
+    
+    
+                --menu.trigger_commands('iplcayopercio on') -- lol they misspelled it
+    
+                --[[local LuxIPL1 = REQUEST_IPL("hei_carrier_lodlights")
+                local LuxIPL2 = REQUEST_IPL("hei_carrier")
+                local LuxIPL3 = REQUEST_IPL("hei_carrier_int1")
+                local LuxIPL4 = REQUEST_IPL("hei_carrier_int2")
+                local LuxIPL5 = REQUEST_IPL("hei_carrier_int3")
+                local LuxIPL6 = REQUEST_IPL("hei_carrier_int4")
+                local LuxIPL7 = REQUEST_IPL("hei_carrier_int5")
+                local LuxIPL8 = REQUEST_IPL("hei_carrier_int6")]]
+    
+                --table.insert(TBDipls, 1, LuxIPL1)
+                --table.insert(TBDipls, 1, LuxIPL2)
+                --table.insert(TBDipls, 1, LuxIPL3)
+                --table.insert(TBDipls, 1, LuxIPL4)
+                --table.insert(TBDipls, 1, LuxIPL5)
+                --table.insert(TBDipls, 1, LuxIPL6)
+                --table.insert(TBDipls, 1, LuxIPL7)
+                --table.insert(TBDipls, 1, LuxIPL8)
+    
+                util.yield(500)
+                SET_ENTITY_COORDS(players.user_ped(), SavedPlayerPos.x, SavedPlayerPos.y, SavedPlayerPos.z)
+            FREEZE_ENTITY_POSITION(players.user_ped(), true)
+        util.yield(500)
+            SET_ENTITY_COORDS_NO_OFFSET(TBDPlayerCar, PlayerCarSpawnPoint.x, PlayerCarSpawnPoint.y, PlayerCarSpawnPoint.z)
+            SET_ENTITY_HEADING(TBDPlayerCar, PlayerCarSpawnHeading)
+         util.yield(500)
+         SET_PED_INTO_VEHICLE(players.user_ped(), TBDPlayerCar, -1)
+        local TBDCutsceneCamPos = v3.new(1912.0, 541.3, 180.0)
+    --goal--TBDCutsceneCamPos = v3.new(-760.9, 776.0, 213.1)
+        local TBDCutsceneCamRot = v3.new(-5, 0, 10)
+        util.yield(100)
+            local TBDCutsceneCam = CREATE_CAMERA(26379945, true)
+            SET_CAM_COORD(TBDCutsceneCam, TBDCutsceneCamPos.x, TBDCutsceneCamPos.y, TBDCutsceneCamPos.z)
+            SET_CAM_ROT(TBDCutsceneCam, TBDCutsceneCamRot.x, TBDCutsceneCamRot.y, TBDCutsceneCamRot.z, 2)
+            RENDER_SCRIPT_CAMS(true, true, 1, 1, 0, 0);
+            FREEZE_ENTITY_POSITION(players.user_ped(), false)
+            DO_SCREEN_FADE_IN(1500)
+        util.yield(1500)
+            RENDER_SCRIPT_CAMS(false, true, 8000, 1, 0, 0)
+    
+        if TBDtick53CalledonceEver == 0 then
+            TBDtick53CalledonceEver = 1
+            util.create_tick_handler(function()
+                if TBDdialogue == -1 then
+                    util.toast("Earpiece : Cayo Perico it is... Very well. A plane is supposed to take off from LSIA very soon to drop some cargo on the island. How about we add ourself as a little gift to the mix ?")
+                elseif TBDdialogue == 1 then
+                    util.toast("Earpiece : You're gonna need a Ruiner 2000 if you want to survive once you've landed on the island...")
+                elseif TBDdialogue == 2 then
+                    util.toast("Earpiece : There ! I located one in Vinewood Hills, this will be our only chance to get one")
+                elseif TBDdialogue == 3 then
+                    
+                end
+    
+                if TBDphase ~= 4 then
+                    return false
+                end
+        
+                if TBDtick53CalledonceEver == 0 then
+                    util.yield(8000)
+                    DESTROY_CAM(TBDCutsceneCam)
+                    return false
+                end
+    
+    
+            end)
+    
+        
+        
+        
+        
+        
+        
+if TBDtick54CalledonceEver == 0 then
+    TBDtick54CalledonceEver = 1
+
+    local doorHack = 0
+    local AntonovTakeoff = 0
+    local AntonovPitchUp = 0
+    local AntonovCurrentPitch = 0
+    local AntonovAccelerate = 0
+    local AntonovSpeed = 0
+    local doorOpened = 0
+
+    local cutsceneOn = 0
+    local stopLoop = 0
+    local win = 0
+    local Lost = 0
+    
+    local TBDCutscene2Cam = CREATE_CAMERA(26379945, true)
+    
+    util.create_tick_handler(function()
+            --SET_PED_INTO_VEHICLE(players.user_ped(), TBDantonov, -1)
+        
+        if IS_PED_IN_VEHICLE(players.user_ped(), TBDruiner) and showAntonovBlip == 0 then
+            
+            showAntonovBlip = 1
+            TBD_Tip = 3
+            util.toast("Go to LSIA")
+            local AntonovZoneBlip = ADD_BLIP_FOR_RADIUS(AntonovSpawnPoint.x, AntonovSpawnPoint.y, AntonovSpawnPoint.z, 300)
+            table.insert(TBDblips, 2, AntonovZoneBlip)
+            SET_BLIP_ALPHA(AntonovZoneBlip, 90)
+            SET_BLIP_COLOUR(AntonovZoneBlip, 5)
+            SET_BLIP_DISPLAY(AntonovZoneBlip, 2)
+            table.insert( TBDblipsOther, 1, AntonovZoneBlip)
+
+            util.create_tick_handler(function()
+
+                local PlayerPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TBDruiner,0 ,0 ,0)
+                local AntonovPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TBDantonov,0 ,0 ,0)
+                local AntonovDoorPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TBDantonov,0 ,-30 ,0)
+
+                if showAntonovBlip == 1 and PlayerPos:distance(AntonovPos) < 200 then
+
+                    showAntonovBlip = 2
+                    local AntonovBlip = ADD_BLIP_FOR_ENTITY(TBDantonov)
+                    SET_BLIP_SPRITE(AntonovBlip, 572)
+                    SET_BLIP_COLOUR(AntonovBlip, 47)
+                    SET_BLIP_DISPLAY(AntonovBlip, 2)
+                    table.insert(TBDblips, 3, AntonovBlip)
+                    util.remove_blip(AntonovZoneBlip)
+                    TBD_Tip = 4
+                    util.toast("Hack the Antonov's rear door")
+                    AntonovTakeoff = 1
+                    AntonovAccelerate = 1
+                    util.yield(20000)
+                    --TooLateAntonovCutscene = 1
+                    util.yield(5000)
+                    AntonovPitchUp = 1
+                    util.yield(3000)
+                    Lost = 1
+                    AntonovPitchUp = 0
+                end
+
+
+                
+
+
+            end)
+
+            util.create_tick_handler(function()
+                
+                local PlayerPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TBDruiner,0 ,0 ,0)
+                local AntonovDoorCutsceneRadiusOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TBDantonov,0 ,-30 ,0)
+
+                if AntonovTakeoff == 1 then
+                    
+                    SET_VEHICLE_FORWARD_SPEED(TBDantonov, AntonovSpeed)
+                    SET_ENTITY_ROTATION(TBDantonov, AntonovCurrentPitch, 0, AntonovSpawnHeading)
+
+                end
+                if AntonovPitchUp == 1 then
+                    
+                    AntonovCurrentPitch = AntonovCurrentPitch + 0.028
+                    if AntonovCurrentPitch > 12 then
+                        AntonovCurrentPitch = 12
+                    end
+
+                end
+
+                if AntonovAccelerate == 1 then
+                    
+                    AntonovSpeed = AntonovSpeed + 0.03
+                    if AntonovSpeed > 30 then
+                        AntonovSpeed = 30
+                    end
+
+                end
+
+                if doorHack >= 100 and doorOpened == 0 then
+                    doorHack = 100
+                    util.toast("Hack complete")
+                    SET_VEHICLE_DOOR_OPEN(TBDantonov, 2, false, false)
+                    doorOpened = 1
+        
+                end
+
+                if doorOpened == 1 then
+                    if PlayerPos:distance(AntonovDoorCutsceneRadiusOffset) < 20 and cutsceneOn == 0 and TooLateAntonovCutscene == 0 then
+                        cutsceneOn = 1
+
+                        HARD_ATTACH_CAM_TO_ENTITY(TBDCutscene2Cam, TBDantonov, 0, 0, -210, 20, -10, 0, true)
+                        SET_CAM_FOV(TBDCutscene2Cam, 60)
+                        RENDER_SCRIPT_CAMS(true, true, 1, 1, 0, 0)
+
+                        ATTACH_ENTITY_TO_ENTITY(TBDruiner, TBDantonov, 0, 0, 0, -20, 0, 0, 0, true, false, false, true, 0, true, 0)
+
+                        
+                    end
+                end
+
+
+
+                    if cutsceneOn == 1 then
+                        cutsceneOn = 2
+
+                        
+                        local AntonovCloneSpawn = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TBDantonov,0 ,-60 ,-6)
+
+                        local RuinerHash = util.joaat("Ruiner2")
+                        util.request_model(RuinerHash)
+            
+                        local TBDclonRruiner = entities.create_vehicle(RuinerHash, AntonovCloneSpawn, AntonovSpawnHeading)
+                        entities.set_can_migrate(TBDclonRruiner, false)
+                        --util.yield(500)
+                        SET_ENTITY_AS_MISSION_ENTITY(TBDclonRruiner, true, true)
+                        table.insert(TBDvehicles, #TBDvehicles, TBDclonRruiner)
+                        local CloneRuinerBlip = ADD_BLIP_FOR_ENTITY(TBDclonRruiner)
+                        SET_BLIP_SPRITE(CloneRuinerBlip, 530)
+                        SET_BLIP_COLOUR(CloneRuinerBlip, 81)
+                        SET_BLIP_DISPLAY(CloneRuinerBlip, 2)
+                        table.insert(TBDblips, 3, CloneRuinerBlip)
+                        util.remove_blip(RuinerBlip)
+
+                        --local ClonePlayer = SET_ENTITY_COLLISION(CLONE_PED(players.user_ped(), true, false, true), false, false) --here
+                        --table.insert(TBDpedsOther, 1, ClonePlayer)
+                        --SET_PED_INTO_VEHICLE(ClonePlayer, TBDclonRruiner, -1)
+
+                        util.create_tick_handler(function()
+                        
+                        if stopLoop == 0 then
+                            SET_VEHICLE_FORWARD_SPEED(TBDclonRruiner, AntonovSpeed+10)
+                        else
+                            return false
+                        end
+
+                        
+                        end)
+                        util.yield(1500)
+                        stopLoop = 1
+                        util.yield(2000)
+                        SET_VEHICLE_DOORS_SHUT(TBDantonov, false)
+                        SET_PED_INTO_VEHICLE(players.user_ped(), TBDclonRruiner, -1)
+
+                        util.yield(3000)
+                        RENDER_SCRIPT_CAMS(false, true, 1, 1, 0, 0)
+                        DESTROY_CAM(TBDCutscene2Cam)
+
+                        if TooLateAntonovCutscene == 0 and PlayerPos:distance(AntonovDoorCutsceneRadiusOffset) < 30 then
+                            win = 1
+                            --util.toast("win!")
+                            isTBDrunning = 0
+                            TBDphase = 5
+                            TBD_Tip = 0
+                            TBDdialogue = 0
+                            TBD_ph_Step = 0
+                        end
+                        
+                    end
+
+
+                    --if TooLateAntonovCutscene == 1 then
+                       -- util.yield(1)
+                        if Lost == 1 and win == 0 then 
+                            AntonovLostCutscene = 1
+                        end
+                    --end
+
+
+                if TBDphase ~= 4 then
+                    return false
+                end
+        
+                if TBDtick54CalledonceEver == 0 then
+                    return false
+                end
+
+            end)
+        end
+        
+        
+        if TBDphase ~= 4 then
+            return false
+        end
+
+        if TBDtick54CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+
+    util.create_tick_handler(function()
+
+        local PlayerPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TBDruiner,0 ,0 ,0)
+        local AntonovPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TBDantonov,0 ,0 ,0)
+        local AntonovDoorPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TBDantonov,0 ,-30 ,0)
+
+        if PlayerPos:distance(AntonovDoorPos) < 80 and doorHack < 100 then
+            doorHack = doorHack + math.random(8, 19)
+            if doorHack > 100 then
+                util.toast("Hack 100% complete")
+                TBD_Tip = 5
+                util.toast("Get in the Antonov")
+            else
+                util.toast("Hack " .. doorHack .. "% complete")
+                TBD_Tip = 4
+            end
+            util.yield(math.random(500, 1200))
+        end
+
+        
+
+
+        if TBDphase ~= 4 then
+            return false
+        end
+
+        if TBDtick54CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+end
+        
+        
+        end
+    
+    
+        TBD_Tip = 1
+            TBDdialogue = -1
+            util.yield(7000)
+            TBDdialogue = 1
+            util.yield(7000)
+            TBDdialogue = 2
+            util.yield(7000)
+            TBDdialogue = 3
+            util.yield(7000)
+            TBDdialogue = 4
+            util.toast("Go to Vinewood Hills and steal the Ruiner 2000")
+            
+    end
+end
+end
+
+function TBDphase5()
+    if TBDphase == 5 then
+    
+        if TBDtick56CalledonceEver == 0 then
+            TBDtick56CalledonceEver = 1
+            util.create_tick_handler(function () --CheckFail
+    
+                FailTBD5()
+    
+                if TBDfailMesageShown == 1 then
+                    return false
+                end
+    
+                if TBDphase ~= 5 then
+                    return false
+                end
+    
+                if TBDtick56CalledonceEver == 0 then
+                    return false
+                end
+    
+            end)
+        end
+    
+       
+        local PlayerCarSpawnPoint = v3.new(1906.8, 569.5, 176)
+        local PlayerCarSpawnHeading = -114.5
+
+    
+        local RuinerSpawnPoint = v3.new(5004, -4958, 1503)
+        local RuinerSpawnHeading = -155
+
+        local AntonovSpawnPoint = v3.new(5011.6, -4974.9, 1500)
+        local AntonovSpawnHeading = -155
+
+        
+        local HangarBlipLocation = v3.new(4510.3, -4528.8, 5)
+        local HangarBlipRadius = 25
+    
+
+
+        local AntonovHash = util.joaat("cargoplane")
+        util.request_model(AntonovHash)
+
+        local TBDantonov = entities.create_vehicle(AntonovHash, AntonovSpawnPoint, AntonovSpawnHeading)
+        FREEZE_ENTITY_POSITION(TBDantonov, true)
+        SET_ENTITY_INVINCIBLE(TBDantonov, true)
+        entities.set_can_migrate(TBDantonov, false)
+        --util.yield(500)
+        SET_ENTITY_AS_MISSION_ENTITY(TBDantonov, true, true)
+        table.insert(TBDvehicles, 1, TBDantonov)--Placeholders
+        table.insert(TBDvehicles, 2, TBDantonov)--Placeholders
+        table.insert(TBDvehicles, 3, TBDantonov)--Placeholders
+        table.insert(TBDvehicles, 4, TBDantonov)--Placeholders
+        table.insert(TBDvehicles, 5, TBDantonov)--Placeholders
+        table.insert(TBDvehicles, 6, TBDantonov)--Placeholders
+        table.insert(TBDvehicles, 7, TBDantonov)--Placeholders
+        table.insert(TBDvehicles, 8, TBDantonov)--Placeholders
+        table.insert(TBDvehicles, 9, TBDantonov)
+
+        
+        for i = math.random(12, 18), 0, -1 do
+            SpawnTBDantonovEquipement()
+        end
+
+        for i = math.random(8, 13), 0, -1 do
+            TBDSpawnMWguards3()
+        end
+
+        local RuinerHash = util.joaat("Ruiner2")
+        util.request_model(RuinerHash)
+
+        local TBDruiner = entities.create_vehicle(RuinerHash, RuinerSpawnPoint, RuinerSpawnHeading)
+        entities.set_can_migrate(TBDruiner, false)
+        --util.yield(500)
+        SET_ENTITY_AS_MISSION_ENTITY(TBDruiner, true, true)
+        table.insert(TBDvehicles, 10, TBDruiner)
+        local RuinerBlip = ADD_BLIP_FOR_ENTITY(TBDruiner)
+            SET_BLIP_SPRITE(RuinerBlip, 530)
+            SET_BLIP_COLOUR(RuinerBlip, 81)
+            SET_BLIP_DISPLAY(RuinerBlip, 2)
+            table.insert(TBDblips, 1, RuinerBlip)
+
+
+
+
+        if TBD_ph_Step == 0 then
+            TBD_ph_Step = 1
+            DO_SCREEN_FADE_OUT(1500)
+        util.yield(1500)
+        menu.trigger_commands('iplcayopercio on') -- lol they misspelled it
+        local SavedPlayerPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                util.yield(500)
+                SET_ENTITY_COORDS(players.user_ped(), 138, -3200, 6)
+    
+                for i = math.random(5, 7), 0, -1 do
+                    TBDSpawnMWguards2()
+                end
+            
+                util.yield(1000)
+            
+                for i = math.random(5, 8), 0, -1 do
+                    TBDSpawnFlamables4()
+                end
+    
+    
+                util.yield(500)
+            FREEZE_ENTITY_POSITION(players.user_ped(), true)
+         util.yield(500)
+         SET_PED_INTO_VEHICLE(players.user_ped(), TBDruiner, -1)
+        util.yield(100)
+            FREEZE_ENTITY_POSITION(players.user_ped(), false)
+            DO_SCREEN_FADE_IN(1500)
+        util.yield(1500)
+        
+        if TBDtick63CalledonceEver == 0 then
+            TBDtick63CalledonceEver = 1
+            util.create_tick_handler(function ()
+    
+                TBDPlayerCurrentExactLocation = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+        
+                if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 1 then
+                  
+    
+                    util.toast("Survive the trip to Cayo Perico")
+                end
+        
+                if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 2 then
+                    
+                    util.toast("Wait for the plane to be above the island")
+                end
+    
+                if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 3 then
+                    
+                    util.toast("Open the Antonov's rear door")
+                end
+    
+                if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 4 then
+                    
+                    util.toast("Dive in")
+                end
+    
+                if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 5 then
+                    
+                    util.toast("Locate and collect the Merryweather file")
+                end
+    
+                if IS_CONTROL_PRESSED(0, 187) and TBD_Tip == 6 then
+                    
+                    util.toast("Escape the area using the nearby plane")
+                end
+    
+                local PlayerOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                local ToreadorOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TBDvehicles[3], 0, 0, 0)
+
+
+                if TBDphase ~= 5 then
+                    return false
+                end
+        
+                if TBDtick63CalledonceEver == 0 then
+                    return false
+                end
+
+
+            end)
+        end
+
+
+        if TBDtick62CalledonceEver == 0 then
+            TBDtick62CalledonceEver = 1
+            util.create_tick_handler(function()
+                if TBDdialogue == -1 then
+                    util.toast("Earpiece : You're in ? That's good news ! However what's bad news is that there is probably some guards trying to kill you.. Fight back !")
+                elseif TBDdialogue == 1 then
+                    util.toast("Earpiece : You're gonna need to wait until you're above the island to dive in, use your car's parachute to land safely. The files should be somewhere near the island's runway")
+                elseif TBDdialogue == 2 then
+                    util.toast("Earpiece : Still alive ? That's a triumph ! We're almost there.")
+                elseif TBDdialogue == 3 then
+                    util.toast("We're there ! Open the rear door and dive in !")
+                end
+    
+
+                
+                if TBDphase ~= 5 then
+                    return false
+                end
+        
+                if TBDtick62CalledonceEver == 0 then
+                    return false
+                end
+    
+    
+            end)
+
+        end
+
+
+        end
+
+
+
+        
+        local BriefcaseCollected = 0
+        local LuxBriefcaseSpawn = v3.new(4504, -4556.48, 4.15)
+        local LuxBriefcaseHash = util.joaat("hei_p_attache_case_shut")
+        util.request_model(LuxBriefcaseHash)
+        local LuxBriefcase = entities.create_object(LuxBriefcaseHash, LuxBriefcaseSpawn, 180 + 20.8)
+        --PLAY_DEFERRED_SOUND_FRONTEND("BACK", "HUD_FREEMODE_SOUNDSET");
+        --PLAY_DEFERRED_SOUND_FRONTEND("Hack_Success", "DLC_GR_Steal_Railguns_Sounds");
+        --PLAY_DEFERRED_SOUND_FRONTEND("Success", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+        --PLAY_DEFERRED_SOUND_FRONTEND("Click", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+        --PLAY_DEFERRED_SOUND_FRONTEND("Start", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+        --PLAY_DEFERRED_SOUND_FRONTEND("Goal", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+        --PLAY_DEFERRED_SOUND_FRONTEND("Trail_Custom", "DLC_HEIST_HACKING_SNAKE_SOUNDS"); -- CANNOT BE STOPPED
+
+        --PLAY_DEFERRED_SOUND_FRONTEND("Turn", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+        --PLAY_DEFERRED_SOUND_FRONTEND("collect_keys", "dlc_vw_recover_luxury_car_sounds");
+        --PLAY_DEFERRED_SOUND_FRONTEND("collect_keys", "dlc_vw_recover_luxury_car_sounds");
+        entities.set_can_migrate(LuxBriefcase, false)
+        --util.yield(500)
+        SET_ENTITY_AS_MISSION_ENTITY(LuxBriefcase, true, true)
+        FREEZE_ENTITY_POSITION(LuxBriefcase, true)
+        --table.insert(TBDobjects, 1, LuxBriefcase)
+
+        if TBDtick61CalledonceEver == 0 then
+            TBDtick61CalledonceEver = 1
+            util.create_tick_handler(function()
+
+                local PlayerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                local LuxBriefcaseLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(LuxBriefcase, 0, 0, 0)
+
+                if PlayerLoc:distance(LuxBriefcaseLoc) < 2 and BriefcaseCollected == 0 then
+                    BriefcaseCollected = 1
+                    PLAY_DEFERRED_SOUND_FRONTEND("collect_keys", "dlc_vw_recover_luxury_car_sounds"); -- 3 times so its louder ;)
+                    PLAY_DEFERRED_SOUND_FRONTEND("collect_keys", "dlc_vw_recover_luxury_car_sounds");
+                    PLAY_DEFERRED_SOUND_FRONTEND("collect_keys", "dlc_vw_recover_luxury_car_sounds");
+                    entities.delete(LuxBriefcase)
+                    util.toast("You collected the Merryweather file")
+                    local TBDstreamerBlip = ADD_BLIP_FOR_ENTITY(TBDvehicles[1])
+                        SET_BLIP_SPRITE(TBDstreamerBlip, 126)
+                        SET_BLIP_COLOUR(TBDstreamerBlip, 46)
+                        SET_BLIP_DISPLAY(TBDstreamerBlip, 2)
+                        table.insert(TBDblips, 1, TBDstreamerBlip)
+                        FREEZE_ENTITY_POSITION(TBDvehicles[1], false)
+                    util.yield(2000)
+                    TBD_Tip = 6
+                    util.toast("Escape the area using the nearby plane")
+                end
+if PlayerLoc:distance(LuxBriefcaseLoc) < 100 and BriefcaseCollected == 0 then
+                TBD_Tip = 5
+end
+                if DOES_ENTITY_EXIST(LuxBriefcase) then
+                end
+
+                if BriefcaseCollected == 1 then
+
+                    local LuxCabinLoc = v3.new(4503.63, -4556.28, 4.15)
+                    local LuxCabinEscapeRadius = 1000
+                            
+                    if PlayerLoc:distance(LuxCabinLoc) > LuxCabinEscapeRadius then
+                        TBDvictory2()
+                    end
+                end
+
+                if TBDphase ~= 5 then
+                    return false
+                end
+        
+                if TBDtick61CalledonceEver == 0 then
+                    return false
+                end
+    
+    
+            end)
+        end
+    
+    
+
+        TBD_Tip = 1
+        util.toast("Survive the trip to Cayo Perico")
+        TBDdialogue = -1
+        util.yield(10000)
+        TBDdialogue = 1
+        util.yield(10000)
+        TBDdialogue = 2
+        TBD_Tip = 2
+        util.toast("Wait for the plane to be above the island")
+        util.yield(5000)
+        TBDdialogue = 3
+        util.yield(3000)
+        TBDdialogue = 4
+        TBD_Tip = 3
+        util.toast("Open the Antonov's rear door")
+
+        local doorOpened = 0
+
+        if TBDtick64CalledonceEver == 0 then
+            TBDtick64CalledonceEver = 1
+            util.create_tick_handler(function()
+                
+                local antonovDoorPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TBDantonov, 0, -30, 0)
+                local playerPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+
+                if playerPos:distance(antonovDoorPos) < 15 and doorOpened == 0 then
+                    util.toast("Press -Left arrow key- to open the rear door")
+                    if IS_CONTROL_PRESSED(0, 189) then
+                        doorOpened = 1
+                        SET_VEHICLE_DOOR_OPEN(TBDantonov, 2, false, false)
+                        local TBDcaseZone = ADD_BLIP_FOR_RADIUS(HangarBlipLocation.x, HangarBlipLocation.y, HangarBlipLocation.z, HangarBlipRadius)
+                        table.insert(TBDblips, 2, TBDcaseZone)
+                        SET_BLIP_ALPHA(TBDcaseZone, 90)
+                        SET_BLIP_COLOUR(TBDcaseZone, 5)
+                        SET_BLIP_DISPLAY(TBDcaseZone, 2)
+                        table.insert( TBDblipsOther, 1, TBDcaseZone)
+                        TBD_Tip = 4
+                        util.toast("Dive in")
+                        for i = math.random(10, 15), 0, -1 do
+                            TBDSpawnMWguards4()
+                            util.yield(100)
+                        end
+
+                        local StreamerHash = util.joaat("streamer216")
+                        util.request_model(StreamerHash)
+
+                        local TBDstreamerBlipSpawnPoint = v3.new(4416.1, -4522.2, 3.5)
+                        local TBDstreamerBlipSpawnHeading = 110
+
+                        local TBDstreamer = entities.create_vehicle(StreamerHash, TBDstreamerBlipSpawnPoint, TBDstreamerBlipSpawnHeading)
+                        SET_ENTITY_INVINCIBLE(TBDstreamer, true)
+                        entities.set_can_migrate(TBDstreamer, false)
+                        --util.yield(500)
+                        SET_ENTITY_AS_MISSION_ENTITY(TBDstreamer, true, true)
+                        table.insert(TBDvehicles, 1, TBDstreamer)
+                        util.yield(3000)
+                        FREEZE_ENTITY_POSITION(TBDstreamer, true)
+                    end
+                end
+
+
+
+
+              
+
+
+
+
+
+
+
+
+
+
+
+
+                if TBDphase ~= 5 then
+                    return false
+                end
+        
+                if TBDtick61CalledonceEver == 0 then
+                    return false
+                end
+            end)
+        end
+
+
+
+
+
+    
+    end
+end
+    
+    
+
+
+
+
+
+
+
+
+
+function TBDbanditoHack()
+
+    local banditoHash = util.joaat("rcbandito")
+    
+    util.request_model(banditoHash)
+    
+    local banditoSpawn = v3.new(10, 0, 1000)
+
+    local bandito = entities.create_vehicle(banditoHash, banditoSpawn, 90)
+    entities.set_can_migrate(bandito, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(bandito, true, true)
+
+    SET_PED_INTO_VEHICLE(players.user_ped(), bandito, -1)
+
+    table.insert(TBDvehicles, 7, bandito)
+
+    
+    ANIMPOSTFX_PLAY("TinyRacerPink", 0, true)
+    local TBDCutsceneCam = CREATE_CAMERA(26379945, true)
+    HARD_ATTACH_CAM_TO_ENTITY(TBDCutsceneCam, bandito, 10, 0, 0, 0, -2, 1, true)
+    SET_CAM_FOV(TBDCutsceneCam, 95)
+    RENDER_SCRIPT_CAMS(true, true, 1, 1, 0, 0)
+
+    local PipeEndHash = util.joaat("stt_prop_stunt_tube_end")
+    local PipeStraightHash = util.joaat("stt_prop_stunt_tube_s")
+    local PipeRotatingHash1 = util.joaat("stt_prop_stunt_tube_fn_04")
+    local PipeRotatingHash2 = util.joaat("stt_prop_stunt_tube_fn_03")
+    local PipeRotatingHash3 = util.joaat("stt_prop_stunt_tube_fn_01")
+    local PipeQuarterWallHash = util.joaat("stt_prop_stunt_tube_qg")
+    local PipeSemiWallHash = util.joaat("stt_prop_stunt_tube_hg")
+    local PipeRampHash = util.joaat("stt_prop_stunt_tube_jmp")
+
+    local PipePartTable = {"stt_prop_stunt_tube_fn_04", "stt_prop_stunt_tube_fn_03", "stt_prop_stunt_tube_fn_01", "stt_prop_stunt_tube_qg", "stt_prop_stunt_tube_hg", "stt_prop_stunt_tube_jmp"}
+    local PipeRotationsTable = {-180, 180}
+
+    util.request_model(PipeStraightHash)
+    util.request_model(PipeRotatingHash1)
+    util.request_model(PipeQuarterWallHash)
+    util.request_model(PipeSemiWallHash)
+    util.request_model(PipeRampHash)
+
+    local Pipe0Loc = v3.new(60, 0, 1000)
+    local Pipe1Loc = v3.new(26.5, 0, 1000)
+    local Pipe2Loc = v3.new(-128, 0, 1000)
+
+
+    local Pipe0 = entities.create_object(PipeEndHash, Pipe0Loc, 0)
+    entities.set_can_migrate(Pipe0, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(Pipe0, true, true)
+    local Pipe1 = entities.create_object(PipeStraightHash, Pipe1Loc, 0)
+    entities.set_can_migrate(Pipe1, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(Pipe1, true, true)
+
+    table.insert(TBDobjectsPipes, 1, Pipe0)
+    table.insert(TBDobjectsPipes, 2, Pipe1)
+
+    for i = 20, 1, -1 do
+        local PipeLoc = v3.new(-35 * i, 0, 1000)
+        local Pipe = entities.create_object(util.joaat(PipePartTable[math.random(1, #PipePartTable)]), PipeLoc, 0)
+        SET_ENTITY_ROTATION(Pipe, math.random(-180, 180), 0, 180)
+        entities.set_can_migrate(Pipe, false)
+        --util.yield(500)
+        SET_ENTITY_AS_MISSION_ENTITY(Pipe, true, true)
+        table.insert(TBDobjectsPipes, #TBDobjectsPipes, Pipe)
+    end
+
+if TBDtick18CalledonceEver == 0 then
+    TBDtick18CalledonceEver = 1
+    
+    local sizeX = 0.95
+    local sizeY = 0.03
+
+    util.create_tick_handler(function()
+            --Took that from LanceScript
+            local vel = GET_ENTITY_VELOCITY(bandito)
+            vel['z'] = -vel['z']
+            APPLY_FORCE_TO_ENTITY(bandito, 2, 0, 0, -50 -vel['z'], 0, 0, 0, 0, true, false, true, false, true)
+
+            local banditoRot = GET_ENTITY_ROTATION(bandito, 2)
+            local banditoPos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(bandito, 0, 0, 0)
+
+            if banditoRot.z < 0 then
+                util.toast("Wrong Direction !")
+            end
+
+            local current_y_pos = 0.00
+            if current_y_pos == 0.00 then 
+                current_y_pos = 0.04 
+            else
+                current_y_pos = 0.07
+            end
+
+
+            directx.draw_rect(0.5 - (sizeX / 2), current_y_pos, sizeX, sizeY, {r=255, g=0, b=0, a=1})
+            
+        if TBDtick19CalledonceEver == 0 then
+            TBDtick19CalledonceEver = 1
+            util.create_tick_handler(function()
+                if sizeX > 0 then
+                    sizeX = sizeX - 0.022
+                    util.yield(1000)
+                end
+
+
+                if TBDphase ~= 2 then
+                    return false
+                end
+        
+                if TBDtick19CalledonceEver == 0 then
+                    DESTROY_CAM(TBDCutsceneCam)
+                    return false
+                end
+
+            end)
+        end
+
+            if sizeX < 0 then
+                sizeX = 0
+                banditoHackFailed = 1
+                return false --TBDfail
+            end
+
+            if sizeX > 0 and banditoPos.x < -700 then
+                DO_SCREEN_FADE_OUT(1500)
+                util.yield(1500)
+                ANIMPOSTFX_STOP("TinyRacerPink", 0, true)
+                banditoHackSuccessful = 1
+                DESTROY_CAM(TBDCutsceneCam)
+                RENDER_SCRIPT_CAMS(false, true, 1, 1, 0, 0)
+                util.toast("Hack complete")
+                entities.delete(GET_VEHICLE_PED_IS_IN(players.user_ped(), true))
+                SET_ENTITY_COORDS(players.user_ped(), TBDSavePlayerOffset.x, TBDSavePlayerOffset.y, TBDSavePlayerOffset.z)
+                REQUEST_ANIM_DICT("amb@code_human_wander_texting_fat@male@base")
+                TASK_PLAY_ANIM(players.user_ped(), "amb@code_human_wander_texting_fat@male@base", "static", 10, 1, -1, 2, 1.0, false, false, false)
+                DO_SCREEN_FADE_IN(1500)
+                util.yield(1500)
+                STOP_ANIM_TASK(players.user_ped(), "amb@code_human_wander_texting_fat@male@base", "static", 0.05)      
+                return false  
+            end
+
+            if TBDphase ~= 2 then
+                return false
+            end
+    
+            if TBDtick18CalledonceEver == 0 then
+                DESTROY_CAM(TBDCutsceneCam)
+                return false
+            end
+    end)
+end
+
+
+
+end
+
+TBDmwMercenariesHashsTable = {"CSB_MWeather", "S_M_Y_ArmyMech_01", "CSB_Ramp_marine", "G_M_ImportExport_01", "G_M_M_Goons_01", "IG_Casey"} -- Boss CSB_Bogdan
+TBDmwMercenariesGunsTable = {453432689, 4024951519, 2210333304, 487013001, 3342088282} -- Boss 1470379660
+TBDflamables = {"prop_gascyl_01a", "prop_gascyl_02a", "prop_gascyl_02b", "prop_gascyl_03a", "prop_gascyl_03b", "prop_gascyl_04a", "imp_prop_groupbarrel_03", "imp_prop_groupbarrel_02", "imp_prop_groupbarrel_01", "prop_barrel_exp_01a", "prop_barrel_exp_01b", "prop_barrel_exp_01c", "prop_box_ammo03a", "prop_box_ammo06a"}
+TBDAttackSubmarines = {"avisa", "submersible", "submersible2", "toreador", "stromberg"}
+TBDboats = {"dinghy4", "patrolboat", "dinghy5"}
+
+function TBDSpawnFlamables()
+
+    local TBDtick17CalledonceEverSpecial = 0
+
+    local SpawnLoc = v3.new(math.random(1855, 1935), math.random(385, 465), 162)
+
+    
+    local FlamableHash = util.joaat(TBDflamables[math.random(1, #TBDflamables)])
+    util.request_model(FlamableHash)
+    local flamable = entities.create_object(FlamableHash, SpawnLoc, math.random(-180, 180))
+    PLACE_OBJECT_ON_GROUND_PROPERLY(flamable)
+    entities.set_can_migrate(flamable, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(flamable, true, true)
+    table.insert(TBDobjectsOther, 1, flamable)
+    
+    local blipFlamable = ADD_BLIP_FOR_ENTITY(flamable)
+    SET_BLIP_SPRITE(blipFlamable, 436) -- Boss 630
+    SET_BLIP_COLOUR(blipFlamable, 47)
+    SET_BLIP_DISPLAY(blipFlamable, 2)
+    SET_BLIP_SCALE(blipFlamable, 0.45)
+    table.insert(TBDblipsOther, 1, blipFlamable)
+
+
+if TBDtick17CalledonceEverSpecial == 0 then
+    TBDtick17CalledonceEverSpecial = 1
+    util.create_tick_handler(function()
+        
+        local flamableHealth = GET_ENTITY_HEALTH(flamable)
+        
+        --util.toast(flamableHealth)
+        if flamableHealth < 100 then
+            util.remove_blip(blipFlamable)
+        end
+        if TBDphase ~= 2 then
+            return false
+        end
+
+        if TBDtick17CalledonceEverSpecial == 0 then
+            return false
+        end
+
+    end)
+end
+
+end
+
+function TBDSpawnMWcommander()
+
+    local TBDtick15CalledonceEverSpecial = 0
+
+    local SpawnLoc = v3.new(3083.06, -4687.25, 28)
+
+    
+    local MWmercenaryHash = util.joaat("CSB_Bogdan")
+    util.request_model(MWmercenaryHash)
+    local mwMercenary = entities.create_ped(0, MWmercenaryHash, SpawnLoc, math.random(-180, 180))
+    --SET_ENTITY_INVINCIBLE(mwMercenary, true)
+    entities.set_can_migrate(mwMercenary, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(mwMercenary, true, true)
+    table.insert(TBDpedsOther, 1, mwMercenary)
+    local target = players.user_ped()
+    local MercenaryGun = 1470379660
+    --util.request_model(MercenaryGun)
+    local blipMWmercenary = ADD_BLIP_FOR_ENTITY(mwMercenary)
+    SET_BLIP_SPRITE(blipMWmercenary, 128) -- Boss 630 -- dead 310 -- flamable 436 -- files 351
+    SET_BLIP_COLOUR(blipMWmercenary, 75)
+    SET_BLIP_DISPLAY(blipMWmercenary, 2)
+    SET_BLIP_SCALE(blipMWmercenary, 0.8)
+    table.insert(TBDblipsOther, 1, blipMWmercenary)
+
+
+    local group = SET_PED_RELATIONSHIP_GROUP_HASH(mwMercenary, util.joaat('GANG_1'))
+    SET_PED_AS_GROUP_MEMBER(mwMercenary, group)
+    SET_PED_NEVER_LEAVES_GROUP(mwMercenary, true)
+
+    TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(mwMercenary, true)
+    SET_PED_ACCURACY(mwMercenary, 50.0)
+    SET_PED_COMBAT_ABILITY(mwMercenary, 2)
+   -- SET_PED_AS_ENEMY(mwMercenary, true)
+    SET_PED_FLEE_ATTRIBUTES(mwMercenary, 0, false)
+    SET_PED_COMBAT_ATTRIBUTES(mwMercenary, 46, true)
+    TASK_COMBAT_PED(mwMercenary, target, 0, 16)
+    GIVE_WEAPON_TO_PED(mwMercenary, MercenaryGun, 1000, false, true)
+
+if TBDtick15CalledonceEverSpecial == 0 then
+    TBDtick15CalledonceEverSpecial = 1
+    util.create_tick_handler(function()
+        
+        if IS_PED_DEAD_OR_DYING(mwMercenary, 1) then
+            util.remove_blip(blipMWmercenary)
+            TBDtick15CalledonceEverSpecial = 0
+            --util.toast("boop")
+            return false
+        end
+
+        if TBDphase ~= 2 then
+            return false
+        end
+
+        if TBDtick15CalledonceEverSpecial == 0 then
+            return false
+        end
+
+    end)
+end
+
+end
+
+function TBDSpawnMWmercenaries()
+
+    local TBDtick15CalledonceEverSpecial = 0
+
+    local SpawnLoc = v3.new(math.random(1855, 1935), math.random(385, 465), 172)
+
+    
+    local MWmercenaryHash = util.joaat(TBDmwMercenariesHashsTable[math.random(1, #TBDmwMercenariesHashsTable)])
+    util.request_model(MWmercenaryHash)
+    local mwMercenary = entities.create_ped(0, MWmercenaryHash, SpawnLoc, math.random(-180, 180))
+    SET_ENTITY_INVINCIBLE(mwMercenary, true)
+    entities.set_can_migrate(mwMercenary, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(mwMercenary, true, true)
+    table.insert(TBDpedsOther, 1, mwMercenary)
+    local target = players.user_ped()
+    local MercenaryGun = TBDmwMercenariesGunsTable[math.random(1, #TBDmwMercenariesGunsTable)]
+    --util.request_model(MercenaryGun)
+    local blipMWmercenary = ADD_BLIP_FOR_ENTITY(mwMercenary)
+    SET_BLIP_SPRITE(blipMWmercenary, 128) -- Boss 630 -- dead 310 -- flamable 436 -- files 351
+    SET_BLIP_COLOUR(blipMWmercenary, 75)
+    SET_BLIP_DISPLAY(blipMWmercenary, 2)
+    SET_BLIP_SCALE(blipMWmercenary, 0.8)
+    table.insert(TBDblipsOther, 1, blipMWmercenary)
+
+
+    local group = SET_PED_RELATIONSHIP_GROUP_HASH(mwMercenary, util.joaat('GANG_1'))
+    SET_PED_AS_GROUP_MEMBER(mwMercenary, group)
+    SET_PED_NEVER_LEAVES_GROUP(mwMercenary, true)
+
+    TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(mwMercenary, true)
+    SET_PED_ACCURACY(mwMercenary, 3.0)
+    SET_PED_COMBAT_ABILITY(mwMercenary, 2)
+   -- SET_PED_AS_ENEMY(mwMercenary, true)
+    SET_PED_FLEE_ATTRIBUTES(mwMercenary, 0, false)
+    SET_PED_COMBAT_ATTRIBUTES(mwMercenary, 46, true)
+    TASK_COMBAT_PED(mwMercenary, target, 0, 16)
+    GIVE_WEAPON_TO_PED(mwMercenary, MercenaryGun, 1000, false, true)
+
+if TBDtick15CalledonceEverSpecial == 0 then
+    TBDtick15CalledonceEverSpecial = 1
+    util.create_tick_handler(function()
+        
+        if IS_PED_DEAD_OR_DYING(mwMercenary, 1) then
+            util.remove_blip(blipMWmercenary)
+            TBDtick15CalledonceEverSpecial = 0
+            --util.toast("boop")
+            return false
+        end
+
+        if TBDphase ~= 2 then
+            return false
+        end
+
+        if TBDtick15CalledonceEverSpecial == 0 then
+            return false
+        end
+
+    end)
+end
+
+end
+
+function TBDSpawnMWmercenaryBoss()
+
+    local SpawnLoc = v3.new(math.random(1855, 1935), math.random(385, 465), 172)
+
+    
+    local MWmercenaryHash = util.joaat("CSB_Bogdan")
+    util.request_model(MWmercenaryHash)
+    local mwMercenary = entities.create_ped(0, MWmercenaryHash, SpawnLoc, math.random(-180, 180))
+    SET_ENTITY_INVINCIBLE(mwMercenary, true)
+    entities.set_can_migrate(mwMercenary, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(mwMercenary, true, true)
+    table.insert(TBDpeds, 1, mwMercenary)
+    local target = players.user_ped()
+    local MercenaryGun = 1470379660
+    --util.request_model(MercenaryGun)
+    local blipMWmercenary = ADD_BLIP_FOR_ENTITY(mwMercenary)
+    SET_BLIP_SPRITE(blipMWmercenary, 630) -- Boss 630
+    SET_BLIP_COLOUR(blipMWmercenary, 41)
+    SET_BLIP_DISPLAY(blipMWmercenary, 2)
+    table.insert(TBDblips, 1, blipMWmercenary)
+
+
+    local group = SET_PED_RELATIONSHIP_GROUP_HASH(mwMercenary, util.joaat('GANG_1'))
+    SET_PED_AS_GROUP_MEMBER(mwMercenary, group)
+    SET_PED_NEVER_LEAVES_GROUP(mwMercenary, true)
+
+    TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(mwMercenary, true)
+    SET_PED_ACCURACY(mwMercenary, 50.0)
+    SET_PED_COMBAT_ABILITY(mwMercenary, 2)
+   -- SET_PED_AS_ENEMY(mwMercenary, true)
+    SET_PED_FLEE_ATTRIBUTES(mwMercenary, 0, false)
+    SET_PED_COMBAT_ATTRIBUTES(mwMercenary, 46, true)
+    TASK_COMBAT_PED(mwMercenary, target, 0, 16)
+    GIVE_WEAPON_TO_PED(mwMercenary, MercenaryGun, 1000, false, true)
+
+    if TBDtick16CalledonceEver == 0 then
+        TBDtick16CalledonceEver = 1
+        util.create_tick_handler(function()
+            
+            if IS_PED_DEAD_OR_DYING(mwMercenary, 1) then
+                util.remove_blip(blipMWmercenary)
+                TBD_Tip = 1
+                util.toast("Search the high ranking officer's body")
+
+            local blipMWmercenaryDeath = ADD_BLIP_FOR_ENTITY(mwMercenary)
+                SET_BLIP_SPRITE(blipMWmercenaryDeath, 310) -- Boss 630
+                SET_BLIP_COLOUR(blipMWmercenaryDeath, 46)
+                SET_BLIP_DISPLAY(blipMWmercenaryDeath, 2)
+                table.insert(TBDblips, 1, blipMWmercenaryDeath)
+
+            if TBDtick17CalledonceEver == 0 then
+                TBDtick17CalledonceEver = 1
+                util.create_tick_handler(function()
+
+                    if TBDphase ~= 2 then
+                        return false
+                    end
+            
+                    if TBDtick17CalledonceEver == 0 then
+                        return false
+                    end
+
+                    local BossLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(mwMercenary, 0, 0, 0)
+                    local PlayerLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                    
+
+                    if BossLoc:distance(PlayerLoc) < 1.5 and phonePickedUp == 0 and not IS_PED_IN_ANY_VEHICLE(players.user_ped()) then
+                        util.toast("Press -Left arrow key- to pickup and hack the phone")
+                    end
+
+                    if BossLoc:distance(PlayerLoc) < 1.5 and IS_CONTROL_PRESSED(0, 189) and phonePickedUp == 0 and banditoHackSuccessful == 0 and not IS_PED_IN_ANY_VEHICLE(players.user_ped()) then
+                        phonePickedUp = 1
+                        TBDSavePlayerOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                        FREEZE_ENTITY_POSITION(players.user_ped(), true)
+                        local text = "You can visualize yourself breaching the firewall. Hack the phone by reaching the end of the track fast enough"
+                        TBD_Tip = 2
+                        REQUEST_ANIM_DICT("anim@amb@clubhouse@tutorial@bkr_tut_ig3@")
+                        TASK_PLAY_ANIM(players.user_ped(), "anim@amb@clubhouse@tutorial@bkr_tut_ig3@", "machinic_loop_mechandplayer", 1.0, 1, -1, 2, 1.0, false, false, false)
+                        util.yield(2000)
+                        --STOP_ANIM_TASK(players.user_ped(), "random@domestic", "pickup_low", 8.0)
+                        
+                        REQUEST_ANIM_DICT("amb@code_human_wander_texting_fat@male@base")
+                        TASK_PLAY_ANIM(players.user_ped(), "amb@code_human_wander_texting_fat@male@base", "static", 1.2, 1, -1, 2, 1.0, false, false, false)
+                        util.yield(1000)
+                        DO_SCREEN_FADE_OUT(1500)
+                        TBD_Tip = 2
+                        util.yield(1500)
+
+                        if TBDtick28CalledonceEver == 0 then
+                            TBDtick28CalledonceEver = 1
+                        util.create_tick_handler(function()
+                            util.toast(text)
+                            if TBDphase ~= 2 then
+                                return false
+                            end
+                    
+                            if TBDtick28CalledonceEver == 0 then
+                                return false
+                            end
+
+                            if banditoHackSuccessful == 1 then
+                                util.remove_blip(blipMWmercenaryDeath)
+                                if TBDtick32CalledonceEver == 0 then
+                                    TBDtick32CalledonceEver = 1
+                                    TBDdialogue = 1
+                                    TBD_Tip = 3
+                                    PLAY_DEFERRED_SOUND_FRONTEND("Start", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+                                    PLAY_DEFERRED_SOUND_FRONTEND("Click", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+                                    PLAY_DEFERRED_SOUND_FRONTEND("Start", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+                                    PLAY_DEFERRED_SOUND_FRONTEND("Goal", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+                                    util.create_tick_handler(function()
+
+
+                                        if TBDdialogue == 1 then
+                                            util.toast("Earpiece : Perfect ! So that's where they are... " .. TBDPlayerName ..", we can either steal the files from aboard the USS Luxington, or take them from the island of Cayo Perico. Either way this is gonna be a big dive. Which one will you choose ?")
+                                        elseif TBDdialogue == 2 then
+                                            util.toast("| -Left arrow key- to select the sea approach | -Right arrow key- to select the sky approach |")
+                                        elseif TBDdialogue == 3 then
+                                            return false
+                                        end
+
+                                        if TBDdialogue == 2 and IS_CONTROL_PRESSED(0, 189) then -- sea approach
+                                            TBDdialogue = 3 -- The sea ? I knew you would say that
+
+                                            if TBDtick25CalledonceEver == 0 then
+                                                TBDtick25CalledonceEver = 1
+                                                util.create_tick_handler(function()
+                                                    isTBDrunning = 0
+                                                    TBDphase = 3
+                                                    TBD_Tip = 0
+                                                    TBDdialogue = 0
+                                                    TBD_ph_Step = 0
+                                                    --StartTBD()
+                                                    
+                                                    if TBDphase ~= 2 then
+                                                        return false
+                                                    end
+            
+                                                    if TBDtick25CalledonceEver == 0 then
+                                                        return false
+                                                    end
+                                                    return false
+                                                end)
+                                            end
+
+                                            TBDdialogue = 1
+                                            util.yield(10000)
+                                            TBDdialogue = 2
+                                            return false
+                                        end
+
+                                        if TBDdialogue == 2 and IS_CONTROL_PRESSED(0, 190) then -- sky approach
+                                            TBDdialogue = 3 -- You choose the sky ? good choice
+
+                                            if TBDtick45CalledonceEver == 0 then
+                                                TBDtick45CalledonceEver = 1
+                                                util.create_tick_handler(function()
+                                                    isTBDrunning = 0
+                                                    TBDphase = 4
+                                                    TBD_Tip = 0
+                                                    TBDdialogue = 0
+                                                    TBD_ph_Step = 0
+                                                    --StartTBD()
+                                                    
+                                                    if TBDphase ~= 2 then
+                                                        return false
+                                                    end
+            
+                                                    if TBDtick45CalledonceEver == 0 then
+                                                        return false
+                                                    end
+                                                    return false
+                                                end)
+                                            end
+                                        end
+
+
+                                        if TBDphase ~= 2 then
+                                            return false
+                                        end
+
+                                        if TBDtick32CalledonceEver == 0 then
+                                            return false
+                                        end
+                                    end)
+
+                                    
+                                    TBDdialogue = 1
+                                    util.yield(15000)
+                                    TBDdialogue = 2
+                                end
+
+                                return false
+                            end
+
+                            if banditoHackFailed == 1 then
+                                return false
+                            end
+                        end)
+
+                        if TBDphase ~= 2 then
+                            return false
+                        end
+                
+                        if TBDtick28CalledonceEver == 0 then
+                            return false
+                        end
+
+                        TBDbanditoHack()
+                        util.yield(1500)
+                        util.toast("Reach the end of the data tunnel")
+                        FREEZE_ENTITY_POSITION(players.user_ped(), false)
+                        DO_SCREEN_FADE_IN(1500)
+                        util.yield(1500)
+                        PLAY_DEFERRED_SOUND_FRONTEND("Start", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+                        PLAY_DEFERRED_SOUND_FRONTEND("Click", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+                        PLAY_DEFERRED_SOUND_FRONTEND("Start", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+                        PLAY_DEFERRED_SOUND_FRONTEND("Goal", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+                        --PLAY_DEFERRED_SOUND_FRONTEND("Trail_Custom", "DLC_HEIST_HACKING_SNAKE_SOUNDS");
+                        STOP_ANIM_TASK(players.user_ped(), "amb@code_human_wander_texting_fat@male@base", "static", 8.0)
+                                    
+                    end
+
+                end
+
+
+                    if TBDphase ~= 2 then
+                        return false
+                    end
+            
+                    if TBDtick17CalledonceEver == 0 then
+                        return false
+                    end
+
+                end)
+            end
+
+                return false
+            end
+    
+            if TBDphase ~= 2 then
+                return false
+            end
+    
+            if TBDtick16CalledonceEver == 0 then
+                return false
+            end
+    
+        end)
+    end
+
+end
+
+
+function TBDSpawnMWguards()
+
+    local TBDtick15CalledonceEverSpecial = 0
+
+    local SpawnLoc = v3.new(math.random(123, 150), math.random(-3215, -3182), 7)
+
+    
+    local MWmercenaryHash = util.joaat(TBDmwMercenariesHashsTable[math.random(1, #TBDmwMercenariesHashsTable)])
+    util.request_model(MWmercenaryHash)
+    local mwMercenary = entities.create_ped(0, MWmercenaryHash, SpawnLoc, math.random(-180, 180))
+    --SET_ENTITY_INVINCIBLE(mwMercenary, true)
+    entities.set_can_migrate(mwMercenary, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(mwMercenary, true, true)
+    table.insert(TBDpedsOther, 1, mwMercenary)
+    local target = players.user_ped()
+    local MercenaryGun = TBDmwMercenariesGunsTable[math.random(1, #TBDmwMercenariesGunsTable)]
+    --util.request_model(MercenaryGun)
+    local blipMWmercenary = ADD_BLIP_FOR_ENTITY(mwMercenary)
+    SET_BLIP_SPRITE(blipMWmercenary, 128) -- Boss 630 -- dead 310 -- flamable 436 -- files 351
+    SET_BLIP_COLOUR(blipMWmercenary, 75)
+    SET_BLIP_DISPLAY(blipMWmercenary, 2)
+    SET_BLIP_SCALE(blipMWmercenary, 0.8)
+    table.insert(TBDblipsOther, 1, blipMWmercenary)
+
+
+    local group = SET_PED_RELATIONSHIP_GROUP_HASH(mwMercenary, util.joaat('GANG_1'))
+    SET_PED_AS_GROUP_MEMBER(mwMercenary, group)
+    SET_PED_NEVER_LEAVES_GROUP(mwMercenary, true)
+
+    TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(mwMercenary, true)
+    SET_PED_ACCURACY(mwMercenary, 3.0)
+    SET_PED_COMBAT_ABILITY(mwMercenary, 2)
+   -- SET_PED_AS_ENEMY(mwMercenary, true)
+    SET_PED_FLEE_ATTRIBUTES(mwMercenary, 0, false)
+    SET_PED_COMBAT_ATTRIBUTES(mwMercenary, 46, true)
+    TASK_COMBAT_PED(mwMercenary, target, 0, 16)
+    GIVE_WEAPON_TO_PED(mwMercenary, MercenaryGun, 1000, false, true)
+
+if TBDtick15CalledonceEverSpecial == 0 then
+    TBDtick15CalledonceEverSpecial = 1
+    util.create_tick_handler(function()
+        
+        if IS_PED_DEAD_OR_DYING(mwMercenary, 1) then
+            util.remove_blip(blipMWmercenary)
+            TBDtick15CalledonceEverSpecial = 0
+            --util.toast("boop")
+            return false
+        end
+
+        if TBDphase ~= 3 then
+            return false
+        end
+
+        if TBDtick15CalledonceEverSpecial == 0 then
+            return false
+        end
+
+    end)
+end
+
+end
+
+function TBDSpawnFlamables2()
+
+    local TBDtick17CalledonceEverSpecial = 0
+
+    local SpawnLoc = v3.new(math.random(123, 150), math.random(-3195, -3182), 7)
+
+    
+    local FlamableHash = util.joaat(TBDflamables[math.random(1, #TBDflamables)])
+    util.request_model(FlamableHash)
+    local flamable = entities.create_object(FlamableHash, SpawnLoc, math.random(-180, 180))
+    PLACE_OBJECT_ON_GROUND_PROPERLY(flamable)
+    entities.set_can_migrate(flamable, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(flamable, true, true)
+    table.insert(TBDobjectsOther, 1, flamable)
+    
+    local blipFlamable = ADD_BLIP_FOR_ENTITY(flamable)
+    SET_BLIP_SPRITE(blipFlamable, 436) -- Boss 630
+    SET_BLIP_COLOUR(blipFlamable, 47)
+    SET_BLIP_DISPLAY(blipFlamable, 2)
+    SET_BLIP_SCALE(blipFlamable, 0.45)
+    table.insert(TBDblipsOther, 1, blipFlamable)
+
+
+if TBDtick17CalledonceEverSpecial == 0 then
+    TBDtick17CalledonceEverSpecial = 1
+    util.create_tick_handler(function()
+
+        local flamableHealth = GET_ENTITY_HEALTH(flamable)
+        
+    --util.toast(flamableHealth)
+if flamableHealth < 100 then
+    util.remove_blip(blipFlamable)
+end
+        if TBDphase ~= 3 then
+            return false
+        end
+
+        if TBDtick17CalledonceEverSpecial == 0 then
+            return false
+        end
+
+    end)
+end
+
+end
+
+function TBDSpawnMWmarines()
+
+    local TBDtick15CalledonceEverSpecial = 0
+
+    local SpawnLoc = v3.new(math.random(3000, 3120), math.random(-4830, -4515), math.random(7, 17))
+
+    
+    local MWmercenaryHash = util.joaat(TBDmwMercenariesHashsTable[math.random(1, #TBDmwMercenariesHashsTable)])
+    util.request_model(MWmercenaryHash)
+    local mwMercenary = entities.create_ped(0, MWmercenaryHash, SpawnLoc, math.random(-180, 180))
+    --SET_ENTITY_INVINCIBLE(mwMercenary, true)
+    entities.set_can_migrate(mwMercenary, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(mwMercenary, true, true)
+    table.insert(TBDpedsOther, 1, mwMercenary)
+    local target = players.user_ped()
+    local MercenaryGun = TBDmwMercenariesGunsTable[math.random(1, #TBDmwMercenariesGunsTable)]
+    --util.request_model(MercenaryGun)
+    local blipMWmercenary = ADD_BLIP_FOR_ENTITY(mwMercenary)
+    SET_BLIP_SPRITE(blipMWmercenary, 128) -- Boss 630 -- dead 310 -- flamable 436 -- files 351
+    SET_BLIP_COLOUR(blipMWmercenary, 75)
+    SET_BLIP_DISPLAY(blipMWmercenary, 2)
+    SET_BLIP_SCALE(blipMWmercenary, 0.8)
+    table.insert(TBDblipsOther, 1, blipMWmercenary)
+
+
+    local group = SET_PED_RELATIONSHIP_GROUP_HASH(mwMercenary, util.joaat('GANG_1'))
+    SET_PED_AS_GROUP_MEMBER(mwMercenary, group)
+    SET_PED_NEVER_LEAVES_GROUP(mwMercenary, true)
+
+    TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(mwMercenary, true)
+    SET_PED_ACCURACY(mwMercenary, 3.0)
+    SET_PED_COMBAT_ABILITY(mwMercenary, 2)
+   -- SET_PED_AS_ENEMY(mwMercenary, true)
+    SET_PED_FLEE_ATTRIBUTES(mwMercenary, 0, false)
+    SET_PED_COMBAT_ATTRIBUTES(mwMercenary, 46, true)
+    TASK_COMBAT_PED(mwMercenary, target, 0, 16)
+    GIVE_WEAPON_TO_PED(mwMercenary, MercenaryGun, 1000, false, true)
+
+if TBDtick15CalledonceEverSpecial == 0 then
+    TBDtick15CalledonceEverSpecial = 1
+    util.create_tick_handler(function()
+        
+        if IS_PED_DEAD_OR_DYING(mwMercenary, 1) then
+            util.remove_blip(blipMWmercenary)
+            TBDtick15CalledonceEverSpecial = 0
+            --util.toast("boop")
+            return false
+        end
+
+        local MarineLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(mwMercenary, 0, 0, 0)
+        if MarineLoc.z < 3 then
+            entities.delete(mwMercenary)
+            util.remove_blip(blipMWmercenary)
+        end
+
+        if TBDphase ~= 3 then
+            return false
+        end
+
+        if TBDtick15CalledonceEverSpecial == 0 then
+            return false
+        end
+
+    end)
+end
+
+end
+
+
+
+
+
+function TBDSpawnFlamables3()
+
+    local TBDtick17CalledonceEverSpecial = 0
+
+    local SpawnLoc = v3.new(math.random(3000, 3120), math.random(-4830, -4515), 7)
+
+    
+    local FlamableHash = util.joaat(TBDflamables[math.random(1, #TBDflamables)])
+    util.request_model(FlamableHash)
+    local flamable = entities.create_object(FlamableHash, SpawnLoc, math.random(-180, 180))
+    PLACE_OBJECT_ON_GROUND_PROPERLY(flamable)
+    entities.set_can_migrate(flamable, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(flamable, true, true)
+    table.insert(TBDobjectsOther, 1, flamable)
+    
+    local blipFlamable = ADD_BLIP_FOR_ENTITY(flamable)
+    SET_BLIP_SPRITE(blipFlamable, 436) -- Boss 630
+    SET_BLIP_COLOUR(blipFlamable, 47)
+    SET_BLIP_DISPLAY(blipFlamable, 2)
+    SET_BLIP_SCALE(blipFlamable, 0.45)
+    table.insert(TBDblipsOther, 1, blipFlamable)
+
+
+if TBDtick17CalledonceEverSpecial == 0 then
+    TBDtick17CalledonceEverSpecial = 1
+    util.create_tick_handler(function()
+
+        local flamableHealth = GET_ENTITY_HEALTH(flamable)
+        
+    --util.toast(flamableHealth)
+if flamableHealth < 100 then
+    util.remove_blip(blipFlamable)
+end
+
+local FlambleLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(flamable, 0, 0, 0)
+if FlambleLoc.z < 3 then
+    entities.delete(flamable)
+    util.remove_blip(blipFlamable)
+end
+        if TBDphase ~= 3 then
+            return false
+        end
+
+        if TBDtick17CalledonceEverSpecial == 0 then
+            return false
+        end
+
+    end)
+end
+
+end
+
+function TBDSpawnAttackSubmarines()
+
+    local TBDtick17CalledonceEverSpecial = 0
+
+    local TestSpawnLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+    local SpawnLoc = v3.new(math.random(700, 3300), math.random(-5000, -3800), math.random(-100, 0))
+
+    
+    local AttackSubmarineHash = util.joaat(TBDAttackSubmarines[math.random(1, #TBDAttackSubmarines)])
+    util.request_model(AttackSubmarineHash)
+    local AttackSubmarine = entities.create_vehicle(AttackSubmarineHash, SpawnLoc, math.random(-180, 180))
+    if IS_VEHICLE_MODEL(AttackSubmarine, util.joaat(TBDAttackSubmarines[4])) or IS_VEHICLE_MODEL(AttackSubmarine, util.joaat(TBDAttackSubmarines[5])) then
+        TRANSFORM_TO_SUBMARINE(AttackSubmarine, true)
+        --util.toast("boop")
+    end
+    --PLACE_OBJECT_ON_GROUND_PROPERLY(AttackSubmarine)
+    entities.set_can_migrate(AttackSubmarine, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(AttackSubmarine, true, true)
+    table.insert(TBDobjectsOther, 1, AttackSubmarine)
+
+    local Driver = CREATE_RANDOM_PED_AS_DRIVER(AttackSubmarine, true)
+    entities.set_can_migrate(Driver, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(Driver, true, true)
+    table.insert(TBDpedsOther, 1, Driver)
+    
+    local blipAttackSubmarine = ADD_BLIP_FOR_ENTITY(AttackSubmarine)
+    SET_BLIP_SPRITE(blipAttackSubmarine, 308) -- Boss 630
+    SET_BLIP_COLOUR(blipAttackSubmarine, 59)
+    SET_BLIP_FLASHES_ALTERNATE(blipAttackSubmarine, true)
+    SET_BLIP_DISPLAY(blipAttackSubmarine, 2)
+    SET_BLIP_SCALE(blipAttackSubmarine, 1)
+    table.insert(TBDblipsOther, 1, blipAttackSubmarine)
+
+    SET_VEHICLE_LIGHTS(AttackSubmarine, 2)
+    SET_VEHICLE_LIGHT_MULTIPLIER(AttackSubmarine, math.random(5.0, 15))
+
+    SET_ENTITY_MAX_HEALTH(AttackSubmarine, 200)
+    SET_VEHICLE_ALLOW_HOMING_MISSLE_LOCKON(AttackSubmarine, true, true)
+
+if TBDtick17CalledonceEverSpecial == 0 then
+    TBDtick17CalledonceEverSpecial = 1
+
+    util.create_tick_handler(function()
+
+
+        local AttackSubmarineHealth = GET_ENTITY_HEALTH(AttackSubmarine)
+        
+        if AttackSubmarineHealth < 40 then
+            util.remove_blip(blipAttackSubmarine)
+            util.yield(20000)
+            entities.delete(AttackSubmarine)
+        else
+            local AttackSubmarinePosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(AttackSubmarine, 0, 0, 0)
+            local PlayerPosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+        if AttackSubmarinePosWorld:distance(PlayerPosWorld) < 100 then
+            --if IS_VEHICLE_MODEL(AttackSubmarine, util.joaat(TBDAttackSubmarines[4])) or IS_VEHICLE_MODEL(AttackSubmarine, util.joaat(TBDAttackSubmarines[5])) then
+
+                
+            --    local BulletSpeed = 10
+            --    local BulletDamage = 5
+                
+            --    local PlayerPosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+            --    local AttackSubmarineWeaponLeft = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(AttackSubmarine, -2, 5, 0)
+            --    SHOOT_SINGLE_BULLET_BETWEEN_COORDS_IGNORE_ENTITY(AttackSubmarineWeaponLeft.x, AttackSubmarineWeaponLeft.y, AttackSubmarineWeaponLeft.z, PlayerPosWorld.x, PlayerPosWorld.y, PlayerPosWorld.z, BulletDamage, true, util.joaat("weapon_heavysniper_mk2"), 0, true, false, BulletSpeed, AttackSubmarine, true)
+            --    util.yield(math.random(50, 500))
+            --    PlayerPosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+            --    local AttackSubmarineWeaponRight = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(AttackSubmarine, 2, 5, 0)
+            --    SHOOT_SINGLE_BULLET_BETWEEN_COORDS_IGNORE_ENTITY(AttackSubmarineWeaponRight.x, AttackSubmarineWeaponRight.y, AttackSubmarineWeaponRight.z, PlayerPosWorld.x, PlayerPosWorld.y, PlayerPosWorld.z, BulletDamage, true, util.joaat("weapon_heavysniper_mk2"), 0, true, false, BulletSpeed, AttackSubmarine, true)
+            --    util.yield(math.random(50, 500))
+
+
+            --else
+
+            if PlayerPosWorld.z < 0 then
+                local torpedoSpeed = 50
+                local torpedoDamage = 20
+                
+                local PlayerPosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                local AttackSubmarineWeaponLeft = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(AttackSubmarine, -2, 5, 0)
+                SHOOT_SINGLE_BULLET_BETWEEN_COORDS_IGNORE_ENTITY(AttackSubmarineWeaponLeft.x, AttackSubmarineWeaponLeft.y, AttackSubmarineWeaponLeft.z, PlayerPosWorld.x, PlayerPosWorld.y, PlayerPosWorld.z, torpedoDamage, true, 3884172218, 0, true, false, torpedoSpeed, AttackSubmarine, true)
+                util.yield(math.random(4000, 8000))
+                PlayerPosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                local AttackSubmarineWeaponRight = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(AttackSubmarine, 2, 5, 0)
+                SHOOT_SINGLE_BULLET_BETWEEN_COORDS_IGNORE_ENTITY(AttackSubmarineWeaponRight.x, AttackSubmarineWeaponRight.y, AttackSubmarineWeaponRight.z, PlayerPosWorld.x, PlayerPosWorld.y, PlayerPosWorld.z, torpedoDamage, true, 3884172218, 0, true, false, torpedoSpeed, AttackSubmarine, true)
+                util.yield(math.random(4000, 8000))
+            end
+            --end
+
+
+        end
+    end
+        if TBDphase ~= 3 then
+            return false
+        end
+
+        if TBDtick17CalledonceEverSpecial == 0 then
+            return false
+        end
+
+    end)
+
+    util.create_tick_handler(function()
+
+
+
+        local AttackSubmarinePosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(AttackSubmarine, 0, 0, 0)
+        local PlayerPosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+        local AttackSubmarineHealth = GET_ENTITY_HEALTH(AttackSubmarine)
+        local PlayerCarHealth = GET_ENTITY_HEALTH(GET_VEHICLE_PED_IS_IN(players.user_ped()))
+    --util.toast(flamableHealth)
+        if AttackSubmarineHealth < 100 then
+            util.remove_blip(blipAttackSubmarine)
+            SET_VEHICLE_LIGHT_MULTIPLIER(AttackSubmarine, -1)
+            util.yield(20000)
+            entities.delete(AttackSubmarine)
+        else
+
+            if AttackSubmarinePosWorld.z < 0 then
+        
+            --local xyz = GET_ENTITY_VELOCITY(AttackSubmarine)
+
+            --util.draw_centred_text(xyz.x)
+            --util.draw_centred_text(xyz.y)
+            --util.draw_centred_text(xyz.z)
+
+        
+        set_entity_face_entity(AttackSubmarine, players.user_ped(), true)
+        --FORCE_SUBMARINE_NEURTAL_BUOYANCY(AttackSubmarine, true)
+        --FORCE_SUBMARINE_SURFACE_MODE(AttackSubmarine, false)
+
+        local vel = GET_ENTITY_VELOCITY(AttackSubmarine)
+
+        if PlayerPosWorld.z > AttackSubmarinePosWorld.z then
+            if AttackSubmarinePosWorld:distance(PlayerPosWorld) > 20 then
+                SET_ENTITY_VELOCITY(AttackSubmarine, vel.x, vel.y, 4)
+            else
+                SET_ENTITY_VELOCITY(AttackSubmarine, vel.x, vel.y, -vel.z)
+            end
+        elseif PlayerPosWorld.z < AttackSubmarinePosWorld.z then
+            if AttackSubmarinePosWorld:distance(PlayerPosWorld) > 20 then
+                SET_ENTITY_VELOCITY(AttackSubmarine, vel.x, vel.y, -4)
+            else
+                SET_ENTITY_VELOCITY(AttackSubmarine, vel.x, vel.y, -vel.z)
+            end
+        end
+
+        local velAdded = 3
+        if AttackSubmarinePosWorld:distance(PlayerPosWorld) < 300 and AttackSubmarinePosWorld:distance(PlayerPosWorld) > 30 then
+            
+            SET_VEHICLE_FORWARD_SPEED_XY(AttackSubmarine, AttackSubmarinePosWorld:distance(PlayerPosWorld) / velAdded)
+
+        end
+
+        if AttackSubmarinePosWorld:distance(PlayerPosWorld) < 10 then
+            
+            SET_VEHICLE_FORWARD_SPEED_XY(AttackSubmarine, AttackSubmarinePosWorld:distance(PlayerPosWorld) / -velAdded)
+
+        end
+
+        
+        
+        
+        
+        if TBDphase ~= 3 then
+            return false
+        end
+
+        if TBDtick17CalledonceEverSpecial == 0 then
+            return false
+        end
+
+        end
+    end
+    end)
+end
+
+end
+
+--set_entity_face_entity(Kamikaze, pedm, true)
+
+
+function TBDSpawnBoats()
+
+    local TBDtick17CalledonceEverSpecial = 0
+
+    local TestSpawnLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 10, 0)
+    local SpawnLoc = v3.new(math.random(700, 3300), math.random(-5000, -3800), 0)
+
+    
+    local AttackSubmarineHash = util.joaat(TBDboats[math.random(1, #TBDboats)])
+    util.request_model(AttackSubmarineHash)
+    local AttackSubmarine = entities.create_vehicle(AttackSubmarineHash, SpawnLoc, math.random(-180, 180))
+    
+    --PLACE_OBJECT_ON_GROUND_PROPERLY(AttackSubmarine)
+    entities.set_can_migrate(AttackSubmarine, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(AttackSubmarine, true, true)
+    table.insert(TBDobjectsOther, 1, AttackSubmarine)
+
+    local Driver = CREATE_RANDOM_PED_AS_DRIVER(AttackSubmarine, true)
+    entities.set_can_migrate(Driver, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(Driver, true, true)
+    table.insert(TBDpedsOther, 1, Driver)
+    
+    local blipAttackSubmarine = ADD_BLIP_FOR_ENTITY(AttackSubmarine)
+    SET_BLIP_SPRITE(blipAttackSubmarine, 754) -- Boss 630
+    SET_BLIP_COLOUR(blipAttackSubmarine, 59)
+    SET_BLIP_FLASHES_ALTERNATE(blipAttackSubmarine, true)
+    SET_BLIP_DISPLAY(blipAttackSubmarine, 2)
+    SET_BLIP_SCALE(blipAttackSubmarine, 1)
+    table.insert(TBDblipsOther, 1, blipAttackSubmarine)
+
+    SET_VEHICLE_LIGHTS(AttackSubmarine, 2)
+    SET_VEHICLE_LIGHT_MULTIPLIER(AttackSubmarine, math.random(5.0, 15))
+
+    SET_ENTITY_MAX_HEALTH(AttackSubmarine, 200)
+    SET_VEHICLE_ALLOW_HOMING_MISSLE_LOCKON(AttackSubmarine, true, true)
+
+if TBDtick17CalledonceEverSpecial == 0 then
+    TBDtick17CalledonceEverSpecial = 1
+
+    util.create_tick_handler(function()
+
+
+        local AttackSubmarinePosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(AttackSubmarine, 0, 0, 0)
+        local PlayerPosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+        local AttackSubmarineHealth = GET_ENTITY_HEALTH(AttackSubmarine)
+        local PlayerCarHealth = GET_ENTITY_HEALTH(GET_VEHICLE_PED_IS_IN(players.user_ped()))
+    --util.toast(flamableHealth)
+        if AttackSubmarineHealth < 100 then
+            util.remove_blip(blipAttackSubmarine)
+            SET_VEHICLE_LIGHT_MULTIPLIER(AttackSubmarine, -1)
+            FREEZE_ENTITY_POSITION(AttackSubmarine, false)
+            util.yield(20000)
+            entities.delete(AttackSubmarine)
+        else
+            FREEZE_ENTITY_POSITION(AttackSubmarine, true)
+
+            TASK_VEHICLE_DRIVE_WANDER(Driver, AttackSubmarine, 100.0, 1074528292)
+
+            if AttackSubmarinePosWorld:distance(PlayerPosWorld) < 30 then
+                --if IS_VEHICLE_MODEL(AttackSubmarine, util.joaat(TBDAttackSubmarines[4])) or IS_VEHICLE_MODEL(AttackSubmarine, util.joaat(TBDAttackSubmarines[5])) then
+    
+                    
+                --    local BulletSpeed = 10
+                --    local BulletDamage = 5
+                    
+                --    local PlayerPosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                --    local AttackSubmarineWeaponLeft = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(AttackSubmarine, -2, 5, 0)
+                --    SHOOT_SINGLE_BULLET_BETWEEN_COORDS_IGNORE_ENTITY(AttackSubmarineWeaponLeft.x, AttackSubmarineWeaponLeft.y, AttackSubmarineWeaponLeft.z, PlayerPosWorld.x, PlayerPosWorld.y, PlayerPosWorld.z, BulletDamage, true, util.joaat("weapon_heavysniper_mk2"), 0, true, false, BulletSpeed, AttackSubmarine, true)
+                --    util.yield(math.random(50, 500))
+                --    PlayerPosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                --    local AttackSubmarineWeaponRight = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(AttackSubmarine, 2, 5, 0)
+                --    SHOOT_SINGLE_BULLET_BETWEEN_COORDS_IGNORE_ENTITY(AttackSubmarineWeaponRight.x, AttackSubmarineWeaponRight.y, AttackSubmarineWeaponRight.z, PlayerPosWorld.x, PlayerPosWorld.y, PlayerPosWorld.z, BulletDamage, true, util.joaat("weapon_heavysniper_mk2"), 0, true, false, BulletSpeed, AttackSubmarine, true)
+                --    util.yield(math.random(50, 500))
+    
+    
+                --else
+    
+                if PlayerPosWorld.z < 0 then
+                    local torpedoSpeed = 50
+                    local torpedoDamage = 15
+                    
+                    local PlayerPosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                    local AttackSubmarineWeaponLeft = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(AttackSubmarine, -2, 0,5)
+                    SHOOT_SINGLE_BULLET_BETWEEN_COORDS_IGNORE_ENTITY(AttackSubmarineWeaponLeft.x, AttackSubmarineWeaponLeft.y, AttackSubmarineWeaponLeft.z, PlayerPosWorld.x, PlayerPosWorld.y, PlayerPosWorld.z, torpedoDamage, true, 2210333304, 0, true, false, torpedoSpeed, AttackSubmarine, true)
+                    util.yield(math.random(50, 500))
+                    PlayerPosWorld = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                    local AttackSubmarineWeaponRight = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(AttackSubmarine, 2, 0, 5)
+                    SHOOT_SINGLE_BULLET_BETWEEN_COORDS_IGNORE_ENTITY(AttackSubmarineWeaponRight.x, AttackSubmarineWeaponRight.y, AttackSubmarineWeaponRight.z, PlayerPosWorld.x, PlayerPosWorld.y, PlayerPosWorld.z, torpedoDamage, true, 2210333304, 0, true, false, torpedoSpeed, AttackSubmarine, true)
+                    util.yield(math.random(50, 500))
+                end
+                --end
+    
+    
+            end
+        end
+        
+        
+        
+        
+        
+        if TBDphase ~= 3 then
+            return false
+        end
+
+        if TBDtick17CalledonceEverSpecial == 0 then
+            return false
+        end
+
+
+    end)
+end
+
+end
+
+
+function TBDSpawnFlamables4()
+
+    local TBDtick17CalledonceEverSpecial = 0
+
+    local SpawnLoc = v3.new(math.random(783, 798), math.random(1270, 1280), 361)
+
+    
+    local FlamableHash = util.joaat(TBDflamables[math.random(1, #TBDflamables)])
+    util.request_model(FlamableHash)
+    local flamable = entities.create_object(FlamableHash, SpawnLoc, math.random(-180, 180))
+    PLACE_OBJECT_ON_GROUND_PROPERLY(flamable)
+    entities.set_can_migrate(flamable, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(flamable, true, true)
+    table.insert(TBDobjectsOther, 1, flamable)
+    
+    local blipFlamable = ADD_BLIP_FOR_ENTITY(flamable)
+    SET_BLIP_SPRITE(blipFlamable, 436) -- Boss 630
+    SET_BLIP_COLOUR(blipFlamable, 47)
+    SET_BLIP_DISPLAY(blipFlamable, 2)
+    SET_BLIP_SCALE(blipFlamable, 0.45)
+    table.insert(TBDblipsOther, 1, blipFlamable)
+
+
+if TBDtick17CalledonceEverSpecial == 0 then
+    TBDtick17CalledonceEverSpecial = 1
+    util.create_tick_handler(function()
+
+        local flamableHealth = GET_ENTITY_HEALTH(flamable)
+        
+    --util.toast(flamableHealth)
+if flamableHealth < 100 then
+    util.remove_blip(blipFlamable)
+end
+
+local FlambleLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(flamable, 0, 0, 0)
+if FlambleLoc.z < 3 then
+    entities.delete(flamable)
+    util.remove_blip(blipFlamable)
+end
+        if TBDphase ~= 4 then
+            return false
+        end
+
+        if TBDtick17CalledonceEverSpecial == 0 then
+            return false
+        end
+
+    end)
+end
+
+end
+
+function TBDSpawnMWguards2()
+
+    local TBDtick15CalledonceEverSpecial = 0
+
+    local SpawnLoc = v3.new(math.random(783, 798), math.random(1270, 1298), 361)
+
+    
+    local MWmercenaryHash = util.joaat(TBDmwMercenariesHashsTable[math.random(1, #TBDmwMercenariesHashsTable)])
+    util.request_model(MWmercenaryHash)
+    local mwMercenary = entities.create_ped(0, MWmercenaryHash, SpawnLoc, math.random(-180, 180))
+    --SET_ENTITY_INVINCIBLE(mwMercenary, true)
+    entities.set_can_migrate(mwMercenary, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(mwMercenary, true, true)
+    table.insert(TBDpedsOther, 1, mwMercenary)
+    local target = players.user_ped()
+    local MercenaryGun = TBDmwMercenariesGunsTable[math.random(1, #TBDmwMercenariesGunsTable)]
+    --util.request_model(MercenaryGun)
+    local blipMWmercenary = ADD_BLIP_FOR_ENTITY(mwMercenary)
+    SET_BLIP_SPRITE(blipMWmercenary, 128) -- Boss 630 -- dead 310 -- flamable 436 -- files 351
+    SET_BLIP_COLOUR(blipMWmercenary, 75)
+    SET_BLIP_DISPLAY(blipMWmercenary, 2)
+    SET_BLIP_SCALE(blipMWmercenary, 0.8)
+    table.insert(TBDblipsOther, 1, blipMWmercenary)
+
+
+    local group = SET_PED_RELATIONSHIP_GROUP_HASH(mwMercenary, util.joaat('GANG_1'))
+    SET_PED_AS_GROUP_MEMBER(mwMercenary, group)
+    SET_PED_NEVER_LEAVES_GROUP(mwMercenary, true)
+
+    TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(mwMercenary, true)
+    SET_PED_ACCURACY(mwMercenary, 3.0)
+    SET_PED_COMBAT_ABILITY(mwMercenary, 2)
+   -- SET_PED_AS_ENEMY(mwMercenary, true)
+    SET_PED_FLEE_ATTRIBUTES(mwMercenary, 0, false)
+    SET_PED_COMBAT_ATTRIBUTES(mwMercenary, 46, true)
+    TASK_COMBAT_PED(mwMercenary, target, 0, 16)
+    GIVE_WEAPON_TO_PED(mwMercenary, MercenaryGun, 1000, false, true)
+
+if TBDtick15CalledonceEverSpecial == 0 then
+    TBDtick15CalledonceEverSpecial = 1
+    util.create_tick_handler(function()
+        
+        if IS_PED_DEAD_OR_DYING(mwMercenary, 1) then
+            util.remove_blip(blipMWmercenary)
+            TBDtick15CalledonceEverSpecial = 0
+            --util.toast("boop")
+            return false
+        end
+
+        if TBDphase ~= 4 then
+            return false
+        end
+
+        if TBDtick15CalledonceEverSpecial == 0 then
+            return false
+        end
+
+    end)
+end
+
+end
+
+function TBDSpawnMWguards3()
+
+    local TBDtick15CalledonceEverSpecial = 0
+
+    local SpawnLoc = v3.new(math.random(5016, 5025), math.random(-4999, -4981), 1506)
+
+    
+    local MWmercenaryHash = util.joaat(TBDmwMercenariesHashsTable[math.random(1, #TBDmwMercenariesHashsTable)])
+    util.request_model(MWmercenaryHash)
+    local mwMercenary = entities.create_ped(0, MWmercenaryHash, SpawnLoc, math.random(-180, 180))
+    --SET_ENTITY_INVINCIBLE(mwMercenary, true)
+    entities.set_can_migrate(mwMercenary, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(mwMercenary, true, true)
+    table.insert(TBDpedsOther, 1, mwMercenary)
+    local target = players.user_ped()
+    local MercenaryGun = TBDmwMercenariesGunsTable[math.random(1, #TBDmwMercenariesGunsTable)]
+    --util.request_model(MercenaryGun)
+    local blipMWmercenary = ADD_BLIP_FOR_ENTITY(mwMercenary)
+    SET_BLIP_SPRITE(blipMWmercenary, 128) -- Boss 630 -- dead 310 -- flamable 436 -- files 351
+    SET_BLIP_COLOUR(blipMWmercenary, 75)
+    SET_BLIP_DISPLAY(blipMWmercenary, 2)
+    SET_BLIP_SCALE(blipMWmercenary, 0.8)
+    table.insert(TBDblipsOther, 1, blipMWmercenary)
+
+
+    local group = SET_PED_RELATIONSHIP_GROUP_HASH(mwMercenary, util.joaat('GANG_1'))
+    SET_PED_AS_GROUP_MEMBER(mwMercenary, group)
+    SET_PED_NEVER_LEAVES_GROUP(mwMercenary, true)
+
+    TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(mwMercenary, true)
+    SET_PED_ACCURACY(mwMercenary, 3.0)
+    SET_PED_COMBAT_ABILITY(mwMercenary, 2)
+   -- SET_PED_AS_ENEMY(mwMercenary, true)
+    SET_PED_FLEE_ATTRIBUTES(mwMercenary, 0, false)
+    SET_PED_COMBAT_ATTRIBUTES(mwMercenary, 46, true)
+    TASK_COMBAT_PED(mwMercenary, target, 0, 16)
+    GIVE_WEAPON_TO_PED(mwMercenary, MercenaryGun, 1000, false, true)
+
+if TBDtick15CalledonceEverSpecial == 0 then
+    TBDtick15CalledonceEverSpecial = 1
+    util.create_tick_handler(function()
+        
+        if IS_PED_DEAD_OR_DYING(mwMercenary, 1) then
+            util.remove_blip(blipMWmercenary)
+            TBDtick15CalledonceEverSpecial = 0
+            --util.toast("boop")
+            return false
+        end
+
+        local mwMercenaryOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(mwMercenary, 0, 0, 0)
+        if mwMercenaryOffset.z < 1000 then
+            util.remove_blip(blipMWmercenary)
+            TBDtick15CalledonceEverSpecial = 0
+            entities.delete(mwMercenary)
+            --util.toast("boop")
+            return false
+        end
+
+
+        if TBDphase ~= 5 then
+            return false
+        end
+
+        if TBDtick15CalledonceEverSpecial == 0 then
+            return false
+        end
+
+    end)
+end
+
+end
+
+function TBDSpawnMWguards4()
+
+    local TBDtick15CalledonceEverSpecial = 0
+
+    local SpawnLoc = v3.new(math.random(4405, 4601), math.random(-4541, -4499), 8)
+
+    
+    local MWmercenaryHash = util.joaat(TBDmwMercenariesHashsTable[math.random(1, #TBDmwMercenariesHashsTable)])
+    util.request_model(MWmercenaryHash)
+    local mwMercenary = entities.create_ped(0, MWmercenaryHash, SpawnLoc, math.random(-180, 180))
+    --SET_ENTITY_INVINCIBLE(mwMercenary, true)
+    entities.set_can_migrate(mwMercenary, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(mwMercenary, true, true)
+    table.insert(TBDpedsOther, 1, mwMercenary)
+    local target = players.user_ped()
+    local MercenaryGun = TBDmwMercenariesGunsTable[math.random(1, #TBDmwMercenariesGunsTable)]
+    --util.request_model(MercenaryGun)
+    local blipMWmercenary = ADD_BLIP_FOR_ENTITY(mwMercenary)
+    SET_BLIP_SPRITE(blipMWmercenary, 128) -- Boss 630 -- dead 310 -- flamable 436 -- files 351
+    SET_BLIP_COLOUR(blipMWmercenary, 75)
+    SET_BLIP_DISPLAY(blipMWmercenary, 2)
+    SET_BLIP_SCALE(blipMWmercenary, 0.8)
+    table.insert(TBDblipsOther, 1, blipMWmercenary)
+
+
+    local group = SET_PED_RELATIONSHIP_GROUP_HASH(mwMercenary, util.joaat('GANG_1'))
+    SET_PED_AS_GROUP_MEMBER(mwMercenary, group)
+    SET_PED_NEVER_LEAVES_GROUP(mwMercenary, true)
+
+    TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(mwMercenary, true)
+    SET_PED_ACCURACY(mwMercenary, 3.0)
+    SET_PED_COMBAT_ABILITY(mwMercenary, 2)
+   -- SET_PED_AS_ENEMY(mwMercenary, true)
+    SET_PED_FLEE_ATTRIBUTES(mwMercenary, 0, false)
+    SET_PED_COMBAT_ATTRIBUTES(mwMercenary, 46, true)
+    TASK_COMBAT_PED(mwMercenary, target, 0, 16)
+    GIVE_WEAPON_TO_PED(mwMercenary, MercenaryGun, 1000, false, true)
+
+if TBDtick15CalledonceEverSpecial == 0 then
+    TBDtick15CalledonceEverSpecial = 1
+    util.create_tick_handler(function()
+        
+        if IS_PED_DEAD_OR_DYING(mwMercenary, 1) then
+            util.remove_blip(blipMWmercenary)
+            TBDtick15CalledonceEverSpecial = 0
+            --util.toast("boop")
+            return false
+        end
+
+        local mwMercenaryOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(mwMercenary, 0, 0, 0)
+        --[[if mwMercenaryOffset.z < 1000 then
+            util.remove_blip(blipMWmercenary)
+            TBDtick15CalledonceEverSpecial = 0
+            entities.delete(mwMercenary)
+            --util.toast("boop")
+            return false
+        end--]]
+
+
+        if TBDphase ~= 5 then
+            return false
+        end
+
+        if TBDtick15CalledonceEverSpecial == 0 then
+            return false
+        end
+
+    end)
+end
+
+end
+
+function SpawnTBDantonovEquipement()
+
+    local TBDtick17CalledonceEverSpecial = 0
+
+    local SpawnLoc = v3.new(0, 0, 0)
+
+    
+    local EquipementHash = util.joaat(TBDEquipementList[math.random(1, #TBDEquipementList)])
+    util.request_model(EquipementHash)
+    local Equipement = entities.create_object(EquipementHash, SpawnLoc, math.random(-180, 180))
+    PLACE_OBJECT_ON_GROUND_OR_OBJECT_PROPERLY(Equipement)
+    entities.set_can_migrate(Equipement, false)
+    --util.yield(500)
+    SET_ENTITY_AS_MISSION_ENTITY(Equipement, true, true)
+    table.insert(TBDobjectsOther, 1, Equipement)
+
+    ATTACH_ENTITY_TO_ENTITY(Equipement, TBDvehicles[9], 0, math.random(-2, 2), math.random(-10, 20), -4.5, 0, 0, 0, true, false, false, true, 0, true, 0)
+    SET_ENTITY_COLLISION(Equipement, true, false)
+    --local blipEquipement = ADD_BLIP_FOR_ENTITY(Equipement)
+    --SET_BLIP_SPRITE(blipEquipement, 436) -- Boss 630
+    --SET_BLIP_COLOUR(blipEquipement, 47)
+    --SET_BLIP_DISPLAY(blipEquipement, 2)
+    --SET_BLIP_SCALE(blipEquipement, 0.45)
+    --table.insert(TBDblipsOther, 1, blipEquipement)
+
+
+
+
+end
+
+
+
+function TBDvictory()
+
+    if TBDtick38CalledonceEver == 0 then
+        TBDtick38CalledonceEver = 1
+
+    local TBDtick17CalledonceEverSpecial = 0
+
+    
+    
+    
+    DO_SCREEN_FADE_OUT(1500)
+    util.yield(1500)
+    ResetTBD()
+
+    local EndingText = 0
+    local stopFinalLoop = 0
+        local ToreadorSpawnPoint = v3.new(1190.2, -3236.8, 7)
+        local ToreadorHash = util.joaat("toreador")
+        util.request_model(ToreadorHash)
+
+        local TBDtoreador = entities.create_vehicle(ToreadorHash, ToreadorSpawnPoint, 90)
+        entities.set_can_migrate(TBDtoreador, false)
+        --util.yield(500)
+        SET_ENTITY_AS_MISSION_ENTITY(TBDtoreador, true, true)
+        table.insert(TBDvehicles, 1, TBDtoreador)
+
+        SET_PED_INTO_VEHICLE(players.user_ped(), TBDtoreador, -1)
+    DO_SCREEN_FADE_IN(1500)
+    util.yield(2000)
+
+    PLAY_MISSION_COMPLETE_AUDIO("FRANKLIN_BIG_01");
+    if TBDtick17CalledonceEverSpecial == 0 then
+        TBDtick17CalledonceEverSpecial = 1
+        ANIMPOSTFX_PLAY("HeistCelebPass", 0, true)
+        ANIMPOSTFX_PLAY("HeistCelebPass", 0, true)
+        ANIMPOSTFX_PLAY("HeistCelebPass", 0, true)
+        ANIMPOSTFX_PLAY("HeistCelebPass", 0, true)
+        ANIMPOSTFX_PLAY("HeistCelebPass", 0, true)
+        util.create_tick_handler(function()
+
+
+            if EndingText == 1 then
+                util.toast("Thank you so much for playing !")
+            end
+
+            if EndingText == 2 then
+                util.toast("Please give me feedbacks ! My Discord server is in the 'About LolaScript' tab !")
+            end
+
+            if EndingText == 3 then
+                util.toast("Did you try the other choice after hacking the officer's phone ? Peace, love and stay squishy ! Lola")
+            end
+
+            if stopFinalLoop == 1 then
+                return false
+            end
+        end)
+
+    end
+    util.yield(750)
+    util.toast("Mission Complete !")
+    util.yield(8000)
+    EndingText = 1
+    util.yield(5000)
+    EndingText = 2
+    util.yield(8000)
+    EndingText = 3
+    util.yield(8000)
+    stopFinalLoop = 1
+    util.yield(200)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    util.yield(200)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    util.yield(200)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    util.yield(200)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    util.yield(200)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    util.yield(200)
+
+    end
+end
+
+function TBDvictory2()
+
+    if TBDtick38CalledonceEver == 0 then
+        TBDtick38CalledonceEver = 1
+
+    local TBDtick17CalledonceEverSpecial = 0
+
+    
+    
+    
+    DO_SCREEN_FADE_OUT(1500)
+    util.yield(1500)
+    ResetTBD()
+
+    local EndingText = 0
+    local stopFinalLoop = 0
+        local ToreadorSpawnPoint = v3.new(1190.2, -3236.8, 7)
+        local ToreadorHash = util.joaat("ruiner2")
+        util.request_model(ToreadorHash)
+
+        local TBDtoreador = entities.create_vehicle(ToreadorHash, ToreadorSpawnPoint, 90)
+        entities.set_can_migrate(TBDtoreador, false)
+        --util.yield(500)
+        SET_ENTITY_AS_MISSION_ENTITY(TBDtoreador, true, true)
+        table.insert(TBDvehicles, 1, TBDtoreador)
+
+        SET_PED_INTO_VEHICLE(players.user_ped(), TBDtoreador, -1)
+    DO_SCREEN_FADE_IN(1500)
+    util.yield(2000)
+
+    PLAY_MISSION_COMPLETE_AUDIO("FRANKLIN_BIG_01");
+    if TBDtick17CalledonceEverSpecial == 0 then
+        TBDtick17CalledonceEverSpecial = 1
+        ANIMPOSTFX_PLAY("HeistCelebPass", 0, true)
+        ANIMPOSTFX_PLAY("HeistCelebPass", 0, true)
+        ANIMPOSTFX_PLAY("HeistCelebPass", 0, true)
+        ANIMPOSTFX_PLAY("HeistCelebPass", 0, true)
+        ANIMPOSTFX_PLAY("HeistCelebPass", 0, true)
+        util.create_tick_handler(function()
+
+
+            if EndingText == 1 then
+                util.toast("Thank you so much for playing !")
+            end
+
+            if EndingText == 2 then
+                util.toast("Please give me feedbacks ! My Discord server is in the 'About LolaScript' tab !")
+            end
+
+            if EndingText == 3 then
+                util.toast("Did you try the other choice after hacking the officer's phone ? Peace, love and stay squishy ! Lola")
+            end
+
+            if stopFinalLoop == 1 then
+                return false
+            end
+        end)
+
+    end
+    util.yield(750)
+    util.toast("Mission Complete !")
+    util.yield(8000)
+    EndingText = 1
+    util.yield(5000)
+    EndingText = 2
+    util.yield(8000)
+    EndingText = 3
+    util.yield(8000)
+    stopFinalLoop = 1
+    util.yield(200)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    util.yield(200)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    util.yield(200)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    util.yield(200)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    util.yield(200)
+    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+    util.yield(200)
+
+    end
+end
+
+function TheBigDiveMission()
+    local TBDcheckpoints = {"Start", "Officer assassination", "Board the USS Luxington", "Infiltrate the Antonov", "Time to dive in"}
+
+        menu.textslider(myListFunMissionsSettings, "Checkpoint Selector", {}, "Select the Checkpoint you wanna start at (Using the Reset button below will select 'Start')", TBDcheckpoints, function (index, name)
+
+            if name == "Start" then
+                TBDphase = 1
+                util.toast("You selected " .. name .. " ! Click The Mission Button to Start")
+            end
+
+            if name == "Officer assassination" then
+                TBDphase = 2
+                util.toast("You selected " .. name .. " ! Click The Mission Button to Continue")
+            end
+
+            if name == "Board the USS Luxington" then
+                TBDphase = 3
+                util.toast("You selected " .. name .. " ! Click The Mission Button to Continue")
+            end
+
+            if name == "Infiltrate the Antonov" then
+                TBDphase = 4
+                util.toast("You selected " .. name .. " ! Click The Mission Button to Continue")
+            end
+            
+            if name == "Time to dive in" then
+                TBDphase = 5
+                util.toast("You selected " .. name .. " ! Click The Mission Button to Continue")
+            end
+
+        end)
+
+        --menu.action(myListFunMissionsSettings, "Temp Test", {}, "Spawn Mercenaries", function()
+
+            
+
+        --end)
+
+
+        menu.action(myListFunMissionsSettings, "Reset : The Big Dive !", {}, "Resets the big dive !", function()
+            ResetTBD()
+            TBDphase = 1
+            util.toast("The Big Dive checkpoints has been cleared !")
+        end)
+        
+        menu.action(myListFunMissionsSettings, "Mission : The Big Dive !", {}, "Plays the big dive !", function()
+function StartTBD()
+            
+    if TBDtick27CalledonceEver == 0 then
+        TBDtick27CalledonceEver = 1
+        util.create_tick_handler(function()
+            players.set_wanted_level(players.user(), 0)
+
+            if TBDtick27CalledonceEver == 0 then
+                return false
+            end
+    end)
+
+    end
+        -----------------------------------------------------------
+        --------------------------Useful---------------------------
+        -----------------------------------------------------------
+
+
+        --    DO_SCREEN_FADE_OUT(2000)
+        --    util.yield(5000)
+        --    DO_SCREEN_FADE_IN(2000)
+
+        --    TRIGGER_SCREENBLUR_FADE_IN(2000)
+        --    util.yield(5000)
+        --    TRIGGER_SCREENBLUR_FADE_OUT(2000)
+
+
+        -----------------------------------------------------------
+
+  
+
+    if TBDtick14CalledonceEver == 0 then
+        TBDtick14CalledonceEver = 1
+        util.create_tick_handler(function () -- This checks the phase of the mission
+            if TBDphase == 1 and isTBDrunning == 0 then
+
+                util.create_tick_handler(function()
+                    ResetTBD()
+                    TBDphase1()
+                    return false
+                end)
+
+                isTBDrunning = 1
+                util.yield(60000)
+                isTBDrunning = 0 
+                return false
+            elseif TBDphase == 1 and isTBDrunning == 1 then
+                util.toast("Please wait a minute before restarting to the last checkpoint !")
+                TBDtick14CalledonceEver = 0
+                return false
+            end
+
+            if TBDphase ~= 1 then
+                return false
+            end
+
+            if TBDtick14CalledonceEver == 0 then
+                return false
+            end
+
+        end)
+    end
+
+    if TBDtick13CalledonceEver == 0 then
+        TBDtick13CalledonceEver = 1
+        util.create_tick_handler(function ()
+            if TBDphase == 2 and isTBDrunning == 0 then
+
+                util.create_tick_handler(function()
+                    isTBDrunning = 0
+                    ResetTBD()
+                    TBDphase2()
+                    if TBDphase == 2 then
+                        return false
+                    end
+                end)
+
+                isTBDrunning = 1
+                util.yield(60000)
+                isTBDrunning = 0 
+                return false
+            elseif TBDphase == 2 and isTBDrunning == 1 then
+                util.toast("Please wait a minute before restarting to the last checkpoint !")
+                TBDtick13CalledonceEver = 0
+                return false
+            end
+
+            if TBDphase ~= 2 then
+                --return false
+            end
+
+            if TBDtick13CalledonceEver == 0 then
+                --return false
+            end
+
+        end)
+    end
+
+
+    if TBDtick31CalledonceEver == 0 then
+        TBDtick31CalledonceEver = 1
+        util.create_tick_handler(function () -- This checks the phase of the mission
+            if TBDphase == 3 and isTBDrunning == 0 then
+
+                util.create_tick_handler(function()
+                    ResetTBD()
+                    TBDphase3()
+                    if TBDphase == 3 then
+                        return false
+                    end
+                end)
+
+                isTBDrunning = 1
+                util.yield(60000)
+                isTBDrunning = 0 
+                return false
+            elseif TBDphase == 3 and isTBDrunning == 1 then
+                util.toast("Please wait a minute before restarting to the last checkpoint !")
+                TBDtick31CalledonceEver = 0
+                return false
+            end
+
+            if TBDphase ~= 3 then
+                --return false
+            end
+
+            if TBDtick31CalledonceEver == 0 then
+                --return false
+            end
+
+        end)
+    end
+
+
+    if TBDtick42CalledonceEver == 0 then
+        TBDtick42CalledonceEver = 1
+        util.create_tick_handler(function () -- This checks the phase of the mission
+            if TBDphase == 4 and isTBDrunning == 0 then
+
+                util.create_tick_handler(function()
+                    ResetTBD()
+                    TBDphase4()
+                    if TBDphase == 4 then
+                        return false
+                    end
+                end)
+
+                isTBDrunning = 1
+                util.yield(60000)
+                isTBDrunning = 0 
+                return false
+            elseif TBDphase == 4 and isTBDrunning == 1 then
+                util.toast("Please wait a minute before restarting to the last checkpoint !")
+                TBDtick42CalledonceEver = 0
+                return false
+            end
+
+            if TBDphase ~= 4 then
+                --return false
+            end
+
+            if TBDtick42CalledonceEver == 0 then
+                --return false
+            end
+
+        end)
+    end
+
+    if TBDtick55CalledonceEver == 0 then
+        TBDtick55CalledonceEver = 1
+        util.create_tick_handler(function () -- This checks the phase of the mission
+            if TBDphase == 5 and isTBDrunning == 0 then
+
+                util.create_tick_handler(function()
+                    ResetTBD()
+                    TBDphase5()
+                    if TBDphase == 5 then
+                        return false
+                    end
+                end)
+
+                isTBDrunning = 1
+                util.yield(60000)
+                isTBDrunning = 0 
+                return false
+            elseif TBDphase == 5 and isTBDrunning == 1 then
+                util.toast("Please wait a minute before restarting to the last checkpoint !")
+                TBDtick42CalledonceEver = 0
+                return false
+            end
+
+            if TBDphase ~= 5 then
+                --return false
+            end
+
+            if TBDtick55CalledonceEver == 0 then
+                --return false
+            end
+
+        end)
+    end
+
+
+
+
+
+
+
+
+    end
+    StartTBD()
+    end)
+end
+
+
+
+function FailTBD1()
+
+    local failtext = -1
+    
+
+if TBDtick1CalledonceEver == 0 then
+    TBDtick1CalledonceEver = 1
+    util.create_tick_handler(function()
+        
+        
+
+        
+
+        if GET_VEHICLE_BODY_HEALTH(TBDvehicles[3]) < 10 or GET_VEHICLE_BODY_HEALTH(TBDvehicles[4]) < 10 or GET_VEHICLE_BODY_HEALTH(TBDvehicles[5]) < 10 then
+            if TBDfailMesageShown == 0 then
+            TBDfailMesageShown = 1
+            failtext = 0
+            isTBDrunning = 0
+            if failtext == 0 and TBDfailMesageShown == 1 then
+                util.toast("Mission failed ! The phone has been destroyed")
+            end
+    
+            DO_SCREEN_FADE_OUT(1000)
+            util.yield(5000)
+            FREEZE_ENTITY_POSITION(players.user_ped(), true)
+            StartTBD()
+            failtext = -1
+            TBDfailMesageShown = 0
+            return false
+            end
+        end
+
+        if HAS_ENTITY_BEEN_DAMAGED_BY_ENTITY(TBDvehicles[3], players.user_ped(), 1) or HAS_ENTITY_BEEN_DAMAGED_BY_ENTITY(TBDvehicles[4], players.user_ped(), 1) or HAS_ENTITY_BEEN_DAMAGED_BY_ENTITY(TBDvehicles[5], players.user_ped(), 1) or HAS_ENTITY_BEEN_DAMAGED_BY_ENTITY(TBDvehicles[3], TBDvehicles[1], 1) or HAS_ENTITY_BEEN_DAMAGED_BY_ENTITY(TBDvehicles[4], TBDvehicles[1], 1) or HAS_ENTITY_BEEN_DAMAGED_BY_ENTITY(TBDvehicles[5], TBDvehicles[1], 1) then
+            util.yield(300)
+            if TBDfailMesageShown == 0 then
+            TBDfailMesageShown = 1
+            failtext = 1
+            isTBDrunning = 0
+            if failtext == 1 and TBDfailMesageShown == 1 then
+                util.toast("Mission failed ! You've been spotted by the target")
+            
+            end
+            DO_SCREEN_FADE_OUT(1000)
+            util.yield(5000)
+            FREEZE_ENTITY_POSITION(players.user_ped(), true)
+            StartTBD()
+            failtext = -1
+            TBDfailMesageShown = 0
+            return false
+            end
+        end
+
+    if TBDphase == 1 then
+        if IS_PLAYER_DEAD(players.user()) then
+            if TBDfailMesageShown == 0 then
+            TBDfailMesageShown = 1
+            failtext = 2
+            isTBDrunning = 0
+            if failtext == 2 and TBDfailMesageShown == 1 then
+                util.toast("Mission failed ! You died")
+            
+            end
+            DO_SCREEN_FADE_OUT(1000)
+            util.yield(5000)
+            FREEZE_ENTITY_POSITION(players.user_ped(), true)
+            StartTBD()
+            failtext = -1
+            TBDfailMesageShown = 0
+            return false
+            end
+        end
+    end
+
+        if TBDphase ~= 1 then
+            return false
+        end
+        
+        if TBDtick1CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+end
+
+end
+
+function FailTBD2()
+
+    local failtext = -1
+    
+
+if TBDtick20CalledonceEver == 0 then
+    TBDtick20CalledonceEver = 1
+    util.create_tick_handler(function()
+        
+
+        if TBDphase ~= 2 then
+            return false
+        end
+        
+        if TBDtick20CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+end
+
+if TBDtick12CalledonceEver == 0 then
+    TBDtick12CalledonceEver = 1
+    util.create_tick_handler(function()
+
+    if TBDphase == 2 then
+        if IS_PLAYER_DEAD(players.user()) then
+            if TBDfailMesageShown == 0 then
+            TBDfailMesageShown = 1
+            failtext = 0
+            isTBDrunning = 0
+            if failtext == 0 and TBDfailMesageShown == 1 then
+                util.toast("Mission failed ! You died")
+            end
+            DO_SCREEN_FADE_OUT(1000)
+            util.yield(15000)
+            FREEZE_ENTITY_POSITION(players.user_ped(), true)
+            StartTBD()
+            failtext = -1
+            TBDfailMesageShown = 0
+            return false
+            end
+        end
+    end
+        
+        if banditoHackFailed == 1 then
+            util.yield(300)
+            if TBDfailMesageShown == 0 then
+                TBDfailMesageShown = 1
+                failtext = 1
+                isTBDrunning = 0
+                if failtext == 1 and TBDfailMesageShown == 1 then
+                    util.toast("Mission failed ! Hacking took too long")
+                
+                end
+                DO_SCREEN_FADE_OUT(1000)
+                ANIMPOSTFX_STOP("TinyRacerPink", 0, true)
+                util.yield(5000)
+                FREEZE_ENTITY_POSITION(players.user_ped(), true)
+                StartTBD()
+                failtext = -1
+                TBDfailMesageShown = 0
+                return false
+            end
+            
+        end
+
+        if TBDphase ~= 2 then
+            return false
+        end
+
+        if TBDtick12CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+
+end
+if TBDtick11CalledonceEver == 0 then
+    TBDtick11CalledonceEver = 1
+    util.create_tick_handler(function()
+        if TBDfailMesageShown == 1 then
+            util.yield(4000)
+            TBDfailMesageShown = 0
+            return false
+        end
+
+        if TBDphase ~= 2 then
+            return false
+        end
+
+        if TBDtick11CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+end
+end
+
+function FailTBD3()
+
+    local failtext = -1
+    
+
+if TBDtick40CalledonceEver == 0 then
+    TBDtick40CalledonceEver = 1
+    util.create_tick_handler(function()
+        
+
+        if TBDphase ~= 3 then
+            return false
+        end
+        
+        if TBDtick40CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+end
+
+if TBDtick41CalledonceEver == 0 then
+    TBDtick41CalledonceEver = 1
+    util.create_tick_handler(function()
+
+    if TBDphase == 3 then
+        if IS_PLAYER_DEAD(players.user()) then
+            if TBDfailMesageShown == 0 then
+            TBDfailMesageShown = 1
+            failtext = 0
+            isTBDrunning = 0
+            if failtext == 0 and TBDfailMesageShown == 1 then
+                util.toast("Mission failed ! You died")
+            end
+            DO_SCREEN_FADE_OUT(1000)
+            util.yield(15000)
+            FREEZE_ENTITY_POSITION(players.user_ped(), true)
+            StartTBD()
+            failtext = -1
+            TBDfailMesageShown = 0
+            return false
+            end
+        end
+    end
+        
+        if GET_VEHICLE_BODY_HEALTH(TBDvehicles[3]) < 10  --[[and ToreadorCanBeDestroyed == 1]] then
+            util.yield(300)
+            if TBDfailMesageShown == 0 then
+                TBDfailMesageShown = 1
+                failtext = 1
+                isTBDrunning = 0
+                if failtext == 1 and TBDfailMesageShown == 1 then
+                    util.toast("Mission failed ! The Toreador was destroyed")
+                
+                end
+                DO_SCREEN_FADE_OUT(1000)
+                util.yield(5000)
+                FREEZE_ENTITY_POSITION(players.user_ped(), true)
+                StartTBD()
+                failtext = -1
+                TBDfailMesageShown = 0
+                return false
+            end
+            
+        end
+
+        if TBDphase ~= 3 then
+            return false
+        end
+
+        if TBDtick41CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+
+end
+if TBDtick11CalledonceEver == 0 then
+    TBDtick11CalledonceEver = 1
+    util.create_tick_handler(function()
+        if TBDfailMesageShown == 1 then
+            util.yield(4000)
+            TBDfailMesageShown = 0
+            return false
+        end
+
+        if TBDphase ~= 3 then
+            return false
+        end
+
+        if TBDtick11CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+end
+end
+
+
+
+function FailTBD4()
+
+    local failtext = -1
+    
+
+if TBDtick46CalledonceEver == 0 then
+    TBDtick46CalledonceEver = 1
+    util.create_tick_handler(function()
+        
+
+        if TBDphase ~= 4 then
+            return false
+        end
+        
+        if TBDtick46CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+end
+
+if TBDtick47CalledonceEver == 0 then
+    TBDtick47CalledonceEver = 1
+    util.create_tick_handler(function()
+
+    if TBDphase == 4 then
+        if IS_PLAYER_DEAD(players.user()) then
+            if TBDfailMesageShown == 0 then
+            TBDfailMesageShown = 1
+            failtext = 0
+            isTBDrunning = 0
+            if failtext == 0 and TBDfailMesageShown == 1 then
+                util.toast("Mission failed ! You died")
+            end
+            DO_SCREEN_FADE_OUT(1000)
+            util.yield(15000)
+            FREEZE_ENTITY_POSITION(players.user_ped(), true)
+            ResetTBD()
+            StartTBD()
+            failtext = -1
+            TBDfailMesageShown = 0
+            return false
+            end
+        end
+    end
+        
+        if GET_VEHICLE_BODY_HEALTH(TBDvehicles[3]) < 10  --[[and ToreadorCanBeDestroyed == 1]] then
+            util.yield(300)
+            --[[if TBDfailMesageShown == 0 then
+                TBDfailMesageShown = 1
+                failtext = 1
+                isTBDrunning = 0
+                if failtext == 1 and TBDfailMesageShown == 1 then
+                    util.toast("Mission failed ! The Ruiner 2000 was destroyed")
+                
+                end
+                DO_SCREEN_FADE_OUT(1000)
+                util.yield(5000)
+                FREEZE_ENTITY_POSITION(players.user_ped(), true)
+                ResetTBD()
+                StartTBD()
+                failtext = -1
+                TBDfailMesageShown = 0
+                return false
+            end]]
+            
+    APPLY_DAMAGE_TO_PED(players.user_ped(), 100000, true, 0)
+    util.toast("Mission failed ! The Toreador was destroyed")
+            
+        end
+
+        if AntonovLostCutscene == 1 then
+            util.yield(300)
+            --[[if TBDfailMesageShown == 0 then
+                TBDfailMesageShown = 1
+                failtext = 1
+                isTBDrunning = 0
+                if failtext == 1 and TBDfailMesageShown == 1 then
+                    util.toast("Mission failed ! The Antonov took off without you")
+                
+                end
+                DO_SCREEN_FADE_OUT(1000)
+                util.yield(5000)
+                FREEZE_ENTITY_POSITION(players.user_ped(), true)
+                ResetTBD()
+                StartTBD()
+                failtext = -1
+                TBDfailMesageShown = 0
+                return false
+            end]]
+            
+    APPLY_DAMAGE_TO_PED(players.user_ped(), 100000, true, 0)
+    util.toast("Mission failed ! The Antonov took off without you")
+            
+        end
+
+        if TBDphase ~= 4 then
+            return false
+        end
+
+        if TBDtick47CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+
+end
+if TBDtick48CalledonceEver == 0 then
+    TBDtick48CalledonceEver = 1
+    util.create_tick_handler(function()
+        if TBDfailMesageShown == 1 then
+            util.yield(4000)
+            TBDfailMesageShown = 0
+            return false
+        end
+
+        if TBDphase ~= 4 then
+            return false
+        end
+
+        if TBDtick48CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+end
+end
+
+function FailTBD5()
+
+    local failtext = -1
+    
+
+if TBDtick59CalledonceEver == 0 then
+    TBDtick59CalledonceEver = 1
+    util.create_tick_handler(function()
+        
+
+        if TBDphase ~= 5 then
+            return false
+        end
+        
+        if TBDtick59CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+end
+
+if TBDtick41CalledonceEver == 0 then
+    TBDtick41CalledonceEver = 1
+    util.create_tick_handler(function()
+
+    if TBDphase == 5 then
+        if IS_PLAYER_DEAD(players.user()) then
+            if TBDfailMesageShown == 0 then
+            TBDfailMesageShown = 1
+            failtext = 0
+            isTBDrunning = 0
+            if failtext == 0 and TBDfailMesageShown == 1 then
+                util.toast("Mission failed ! You died")
+            end
+            DO_SCREEN_FADE_OUT(1000)
+            util.yield(15000)
+            FREEZE_ENTITY_POSITION(players.user_ped(), true)
+            StartTBD()
+            failtext = -1
+            TBDfailMesageShown = 0
+            return false
+            end
+        end
+    end
+        
+        if GET_VEHICLE_BODY_HEALTH(TBDvehicles[3]) < 10  --[[and ToreadorCanBeDestroyed == 1]] then
+            util.yield(300)
+            if TBDfailMesageShown == 0 then
+                TBDfailMesageShown = 1
+                failtext = 1
+                isTBDrunning = 0
+                if failtext == 1 and TBDfailMesageShown == 1 then
+                    util.toast("Mission failed ! The Ruiner 2000 was destroyed")
+                
+                end
+                DO_SCREEN_FADE_OUT(1000)
+                util.yield(5000)
+                FREEZE_ENTITY_POSITION(players.user_ped(), true)
+                StartTBD()
+                failtext = -1
+                TBDfailMesageShown = 0
+                return false
+            end
+            
+        end
+
+        if TBDphase ~= 5 then
+            return false
+        end
+
+        if TBDtick41CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+
+end
+if TBDtick60CalledonceEver == 0 then
+    TBDtick60CalledonceEver = 1
+    util.create_tick_handler(function()
+        if TBDfailMesageShown == 1 then
+            util.yield(4000)
+            TBDfailMesageShown = 0
+            return false
+        end
+
+        if TBDphase ~= 5 then
+            return false
+        end
+
+        if TBDtick60CalledonceEver == 0 then
+            return false
+        end
+
+    end)
+end
+end
+
+
+    
+
+function missionTest()
+    --[[local selectedRP = 1
+
+    local RPstarted = 0
+    local RPended = 0
+    local showscore = 0
+
+    local RPdialogue = 0
+
+    local RPphase = 0 --default=0
+   
+    local RP1blips = {}
+    local RP1peds = {}
+    local RP1vehicles = {}
+    local RP1objects = {}
+
+    local RP1Waypoint = 0
+
+    local RP1CutsceneCam1 = CREATE_CAMERA(26379945, true)
+
+    local RP1CutsceneCam1Loc = v3.new(-546.4, -8.1, 45.5)
+    local RP1CutsceneCam1Rot = v3.new(-10, 0, -136)
+    local RP1CutsceneCam1FOV = (70)
+
+    
+    local RP1ChaseWaypoint1 = v3.new(-2937.7, 2105, 41)
+
+    
+    local starttick1 = 0
+    local starttick2 = 0
+    local starttick3 = 0
+    local starttick4 = 0
+    local starttick5 = 0
+    local starttick6 = 0
+    local starttick7 = 0
+    local starttick8 = 0
+    local starttick9 = 0
+
+
+    local PoliceRoleplayScenarios = { "Street Race gone wrong" }
+    menu.textslider(myListFunMissionsSettings, "Select Mission", {}, "Selects a mission to play !", PoliceRoleplayScenarios, function (index, name)
+   
+
+        
+
+        if name == "Street Race gone wrong" then
+            selectedRP = 1
+            util.toast("Scenario Selected ! You can enable the Toggle Loop below to start !")
+        end
+
+    end)
+    local Missiontime = 0--]]
+   --WILL LAG GAME BC I MESSED UP AND EACH FREAKIN SINGLE TICK DOWN THERE IS BEING CALLED ON EVERY FRAME TILL IT LAGS THE GAME HARD--[[menu.toggle_loop(myListFunMissionsSettings, "Start Mission !", {}, "Plays the currently selected mission !", function(index, name)
+
+    --here--[[local PlayerName = players.get_name(players.user())
+
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+
+    --if IS_CONTROL_PRESSED(0, 187) and RPphase < 8 then--remove
+    --    util.yield(300)--remove
+    --    RPphase = RPphase + 1--remove
+    --end--remove
+
+    --here if starttick1 == 1 then
+    --[[here   util.create_tick_handler(function()
+               
+            
+       if RPended == 0 then
+        Missiontime = Missiontime + 1
+            util.yield(1000)
+       end
+    end
+        
+
+    end)
+
+    local SpikesHash = util.joaat("prop_rub_wreckage_7")
+    util.request_model(SpikesHash)
+
+    if IS_CONTROL_PRESSED(0, 341) and IS_PED_IN_VEHICLE(players.user_ped(), RP1vehicles[1]) then--remove
+        local SpikesSpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], -5, -5, -2.4)
+        local heading = GET_ENTITY_HEADING(RP1vehicles[1])
+        util.request_model(SpikesHash)
+        local Spikes = entities.create_object(SpikesHash, SpikesSpawnOffset, 0)
+        SET_ENTITY_ROTATION(Spikes, 45, 90, heading, 2, true)
+        table.insert(RP1objects, #RP1objects, Spikes)
+        FREEZE_ENTITY_POSITION(Spikes, true)
+        --util.yield(500)
+        util.create_tick_handler(function()
+            SET_ENTITY_AS_MISSION_ENTITY(Spikes, true, true)
+        end)
+        util.yield(2000)
+    end--remove
+    
+
+
+    if selectedRP == 0 then
+        util.toast("Please select a scenario to start !")
+    end
+
+   if selectedRP == 1 then
+        if RPphase == 0 then
+            RPphase = 1
+
+            RP1CutsceneCam1Loc = v3.new(-546.4, -8.1, 45.5)
+            RP1CutsceneCam1Rot = v3.new(-10, 0, -136)
+            RP1CutsceneCam1FOV = (70)
+        end
+
+
+        
+
+        local PlayerCopCarHash = util.joaat("police")
+        util.request_model(PlayerCopCarHash)
+        local PlayerCopCarLocation = v3.new(408, -984.5, 30)
+        local TeamMateCopCarLocation = v3.new(408, -989, 30)
+
+        local CopPedHash = util.joaat("S_M_Y_Cop_01")
+        util.request_model(CopPedHash)
+        local CopTeamMatePedSpawnLocation = v3.new(433, -981, 31)
+
+        local InvisPillarHash = util.joaat("prop_ld_dstpillar_01")
+        util.request_model(InvisPillarHash)
+        local InvisPillarLoc = v3.new(418.3, -985.2, 30)
+
+        local Patrol1BlipLocation = v3.new(-626, -183, 50)
+        local Patrol1BlipRadius = 400
+        
+        local StreetRacerCar_1_Hash = util.joaat("krieger")
+        util.request_model(StreetRacerCar_1_Hash)
+        local StreetRacerCar_2_Hash = util.joaat("entityxf")
+        util.request_model(StreetRacerCar_2_Hash)
+        local StreetRacerCar_3_Hash = util.joaat("ignus")
+        util.request_model(StreetRacerCar_3_Hash)
+
+        local StreetRacerCar_1_SpawnLoc = v3.new(-531.4, -33.9, 44)
+        local StreetRacerCar_2_SpawnLoc = v3.new(-528.16, -35.1, 44)
+        local StreetRacerCar_3_SpawnLoc = v3.new(-535, -32.75, 44)
+
+        local StreetRacerDriver_1_Hash = util.joaat("U_M_M_Aldinapoli")
+        util.request_model(StreetRacerDriver_1_Hash)
+
+        local StreetRacerDriver_2_Hash = util.joaat("U_M_M_BikeHire_01")
+        util.request_model(StreetRacerDriver_2_Hash)
+
+        local StreetRacerDriver_3_Hash = util.joaat("U_F_Y_Mistress")
+        util.request_model(StreetRacerDriver_3_Hash)
+        
+        local Patrol2BlipLocation = v3.new(-340, -21, 50)
+        local Patrol2BlipRadius = 300
+
+        
+        local ChaseInterceptPointLoc = v3.new(-3029, 1890.75, 29)
+        local ChaseInterceptPointRadius = 500
+
+
+        
+
+
+if RPphase == 1 then
+    util.toast("Reach your car")--Tip
+        if RPstarted == 0 then
+
+            RPstarted = 1
+            util.request_model(PlayerCopCarHash)
+            local PlayerCopCar = entities.create_vehicle(PlayerCopCarHash, PlayerCopCarLocation, -128)
+            table.insert(RP1vehicles, 1, PlayerCopCar)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(PlayerCopCar, true, true)
+            end)
+            SET_VEHICLE_RADIO_ENABLED(PlayerCopCar, false)
+            
+            local TeamMateCopCar = entities.create_vehicle(PlayerCopCarHash, TeamMateCopCarLocation, -128)
+            table.insert(RP1vehicles, 2, TeamMateCopCar)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(TeamMateCopCar, true, true)
+            end)
+            SET_VEHICLE_RADIO_ENABLED(TeamMateCopCar, false)
+
+            util.request_model(InvisPillarHash)
+            local InvisPillar = entities.create_object(InvisPillarHash, InvisPillarLoc, 0)
+            table.insert(RP1objects, 1, InvisPillar)
+            FREEZE_ENTITY_POSITION(InvisPillar, true)
+            SET_ENTITY_VISIBLE(InvisPillar, false, false)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(InvisPillar, true, true)
+            end)
+            
+
+            local blipPlayerCopCar = ADD_BLIP_FOR_ENTITY(PlayerCopCar)
+            table.insert(RP1blips, 1, blipPlayerCopCar)
+
+            SET_BLIP_SPRITE(blipPlayerCopCar, 672)
+            SET_BLIP_DISPLAY(blipPlayerCopCar, 2)
+
+
+                util.create_tick_handler(function()
+                    SET_BLIP_COLOUR(blipPlayerCopCar, 59)
+                    util.yield(500)
+                    SET_BLIP_COLOUR(blipPlayerCopCar, 38)
+                    util.yield(500)
+                end)
+
+                util.create_tick_handler(function()
+                    local PlayerLocation = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+                    if RP1Waypoint == 0 then
+                        if PlayerLocation:distance(PlayerCopCarLocation) > 5  then
+                            SET_NEW_WAYPOINT(PlayerCopCarLocation.x, PlayerCopCarLocation.y)
+                        end
+
+                        if IS_PED_IN_VEHICLE(players.user_ped(), PlayerCopCar, false) then 
+                            RP1Waypoint = 1
+                            RPphase = 2
+                            return false
+                        end
+                    end    
+                end)
+                
+        end
+end--phase1
+
+if RPphase == 2 then
+    util.toast("Wait for Danny to get in")--Tip
+        if RPstarted == 1 then
+            RPstarted = 2
+
+            util.request_model(CopPedHash)
+            local CopTeamMate = entities.create_ped(0, CopPedHash, CopTeamMatePedSpawnLocation, 0)
+            table.insert(RP1peds, 1, CopTeamMate)
+            --util.yield(1000)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(CopTeamMate, true, true)
+            end)
+                --SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(CopTeamMate, true)
+            
+            util.create_tick_handler(function()
+                local currentpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(CopTeamMate, 0, 0, 0)
+                local pos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, 0, 0)
+                if currentpos:distance(pos) < 3 then
+                    TASK_ENTER_VEHICLE(CopTeamMate, RP1vehicles[1], -1, 0, 1.0, 3, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(CopTeamMate, true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+                    FREEZE_ENTITY_POSITION(RP1peds[1], true)
+                    
+                    RPphase = 3
+                    if IS_PED_IN_VEHICLE(CopTeamMate, RP1vehicles[1], false) then
+                        RPphase = 3
+                        
+                    end
+                    return false
+                else
+                    TASK_GO_TO_ENTITY(CopTeamMate, RP1vehicles[1], -1, 1.0, 100, 1073741824, 0)
+                    util.yield(500)
+                end
+            end)
+
+            local blipCopTeamMate = ADD_BLIP_FOR_ENTITY(CopTeamMate)
+            table.insert(RP1blips, 2, blipCopTeamMate)
+
+            SET_BLIP_SPRITE(blipCopTeamMate, 280)
+            SET_BLIP_DISPLAY(blipCopTeamMate, 2)
+            SET_BLIP_COLOUR(blipCopTeamMate, 18)
+            
+    --util.toast("boop")--remove
+    --SET_PED_VEHICLE_FORCED_SEAT_USAGE--remove
+    --IS_PED_SITTING_IN_VEHICLE
+
+        end
+
+end--phase2
+
+
+if RPphase == 3 then
+
+    util.toast("Patrol the area you've been assigned to")--Tip
+
+        if RPstarted == 2 then
+            RPstarted = 3
+
+            local PatrolArea1 = ADD_BLIP_FOR_RADIUS(Patrol1BlipLocation.x, Patrol1BlipLocation.y, Patrol1BlipLocation.z, Patrol1BlipRadius)
+            table.insert(RP1blips, 3, PatrolArea1)
+            SET_BLIP_ALPHA(PatrolArea1, 90)
+            SET_BLIP_DISPLAY(PatrolArea1, 2)
+            SET_BLIP_COLOUR(PatrolArea1, 73)
+            
+            SET_NEW_WAYPOINT(Patrol1BlipLocation.x, Patrol1BlipLocation.y)--]]
+
+            --[[util.create_tick_handler(function()
+                
+                local currentPlayerpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, -5, 0)
+                TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[1], RP1vehicles[2], currentPlayerpos.x, currentPlayerpos.y, currentPlayerpos.z, 150.0, 1074528292, 0.0)
+               SET_PED_KEEP_TASK(RP1peds[1], true)
+                    util.yield(2500)
+            end) --]]
+
+            --[[here util.create_tick_handler(function()
+                --here--[[local currentPlayerpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, 0, 0)
+                --local currentTeamMatepos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[2], 0, 0, 0)
+                --if currentTeamMatepos:distance(currentPlayerpos) > 600 and RPphase == 3 then
+                --    util.toast("Wait for Danny")
+                --end
+                    TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+                if currentPlayerpos:distance(Patrol1BlipLocation) < Patrol1BlipRadius-50 --]]--here  and currentPlayerpos:distance(currentTeamMatepos) < 50 --]]   here --[[ then
+                  --[[ here  util.yield(5000)
+                    RPphase = 4
+                    return false
+                end
+            end)     
+
+        end
+end--phase3
+
+if RPphase == 4 then
+
+    TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+
+    if RPdialogue == 0 then
+        util.toast("Wait for instructions")--Tip
+    elseif RPdialogue == 1 then
+        util.toast("Radio : We need units near Hawick Avenue, a witness reported a number of high-end cars setting up an illegal street race")--Dialogue
+    elseif RPdialogue == 2 then
+        util.toast(PlayerName .. " : Unit 05, agent " .. PlayerName .. " here, agent Danny and I are on it")
+    end
+
+
+        if RPstarted == 3 then
+            RPstarted = 4
+
+            --spawn race cars
+            util.request_model(StreetRacerCar_1_Hash)
+            local StreetRacerCar_1 = entities.create_vehicle(StreetRacerCar_1_Hash, StreetRacerCar_1_SpawnLoc, 10)
+            table.insert(RP1vehicles, 3, StreetRacerCar_1)
+            SET_VEHICLE_MOD_COLOR_1(StreetRacerCar_1, 1, math.random(100, 160), math.random(100, 160))
+            SET_VEHICLE_TYRES_CAN_BURST(StreetRacerCar_1, true)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerCar_1, true, true)
+                
+                TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+            end)
+
+            util.request_model(StreetRacerCar_2_Hash)
+            local StreetRacerCar_2 = entities.create_vehicle(StreetRacerCar_2_Hash, StreetRacerCar_2_SpawnLoc, 10)
+            table.insert(RP1vehicles, 4, StreetRacerCar_2)
+            SET_VEHICLE_MOD_COLOR_1(StreetRacerCar_2, 1, math.random(100, 160), math.random(100, 160))
+            SET_VEHICLE_TYRES_CAN_BURST(StreetRacerCar_2, true)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerCar_2, true, true)
+            end)
+
+            util.request_model(StreetRacerCar_3_Hash)
+            local StreetRacerCar_3 = entities.create_vehicle(StreetRacerCar_3_Hash, StreetRacerCar_3_SpawnLoc, 10)
+            table.insert(RP1vehicles, 5, StreetRacerCar_3)
+            SET_VEHICLE_MOD_COLOR_1(StreetRacerCar_3, 1, math.random(100, 160), math.random(100, 160))
+            SET_VEHICLE_TYRES_CAN_BURST(StreetRacerCar_3, true)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerCar_3, true, true)
+            end)
+
+            --spawn drivers
+            util.request_model(StreetRacerDriver_1_Hash)
+            util.request_model(StreetRacerDriver_2_Hash)
+            util.request_model(StreetRacerDriver_3_Hash)
+
+            local StreetRacerDriver_1 = entities.create_ped(0, StreetRacerDriver_1_Hash, StreetRacerCar_1_SpawnLoc, 0)
+            SET_PED_COMBAT_ATTRIBUTES(StreetRacerDriver_1, 13, true)--aggressive
+            local currentposDriver1 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(StreetRacerDriver_1, 0, 0, 0)
+            local StreetRacerCar1Loc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[3], 0, 0, 0)
+            table.insert(RP1peds, 2, StreetRacerDriver_1)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerCar_1, true, true)
+            end)
+
+            if currentposDriver1:distance(StreetRacerCar1Loc) < 3 then
+                TASK_ENTER_VEHICLE(StreetRacerDriver_1, RP1vehicles[3], -1, -1, 1.0, 16, 0)
+            end
+
+            local StreetRacerDriver_2 = entities.create_ped(0, StreetRacerDriver_2_Hash, StreetRacerCar_2_SpawnLoc, 0)
+            SET_PED_COMBAT_ATTRIBUTES(StreetRacerDriver_2, 13, true)--aggressive
+            local currentposDriver2 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(StreetRacerDriver_2, 0, 0, 0)
+            local StreetRacerCar2Loc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[4], 0, 0, 0)
+            table.insert(RP1peds, 3, StreetRacerDriver_2)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerDriver_2, true, true)
+            end)
+
+            if currentposDriver2:distance(StreetRacerCar2Loc) < 3 then
+                TASK_ENTER_VEHICLE(StreetRacerDriver_2, RP1vehicles[4], -1, -1, 1.0, 16, 0)
+            end
+
+            local StreetRacerDriver_3 = entities.create_ped(0, StreetRacerDriver_3_Hash, StreetRacerCar_3_SpawnLoc, 0)
+            SET_PED_COMBAT_ATTRIBUTES(StreetRacerDriver_3, 13, true)--aggressive
+            local currentposDriver3 = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(StreetRacerDriver_3, 0, 0, 0)
+            local StreetRacerCar3Loc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[5], 0, 0, 0)
+            table.insert(RP1peds, 4, StreetRacerDriver_3)
+            --util.yield(500)
+            util.create_tick_handler(function()
+                SET_ENTITY_AS_MISSION_ENTITY(StreetRacerDriver_3, true, true)
+            end)
+
+            if currentposDriver3:distance(StreetRacerCar3Loc) < 3 then
+                TASK_ENTER_VEHICLE(StreetRacerDriver_3, RP1vehicles[5], -1, -1, 1.0, 16, 0)
+            end
+
+
+
+
+            util.create_tick_handler(function()
+            
+                local currentPlayerpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, 0, 0)
+                --TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[1], RP1vehicles[2], currentPlayerpos.x, currentPlayerpos.y, currentPlayerpos.z, 150.0, 1074528292, 0.0)
+            
+            end)
+
+            util.create_tick_handler(function()
+                util.yield(8000)
+                RPdialogue = 1
+                util.yield(10000)
+                RPdialogue = 2
+                util.yield(10000)
+                RPdialogue = -1
+                RPphase = 5
+                return false
+            end)
+        end
+
+end--phase4
+
+
+
+if RPphase == 5 then
+
+        --Tip
+
+        if RPstarted == 4 then
+            RPstarted = 5
+            util.toast("Look for the street racers")
+
+            util.remove_blip(RP1blips[3])
+
+            local PatrolArea2 = ADD_BLIP_FOR_RADIUS(Patrol2BlipLocation.x, Patrol2BlipLocation.y, Patrol2BlipLocation.z, Patrol2BlipRadius)
+            table.insert(RP1blips, 4, PatrolArea2)
+            SET_BLIP_ALPHA(PatrolArea2, 90)
+            SET_BLIP_DISPLAY(PatrolArea2, 2)
+            SET_BLIP_COLOUR(PatrolArea2, 73)
+            
+            SET_NEW_WAYPOINT(Patrol2BlipLocation.x, Patrol2BlipLocation.y)
+
+        util.create_tick_handler(function()
+            local currentPlayerpos = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(RP1vehicles[1], 0, 0, 0)
+
+            TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+
+
+            if currentPlayerpos:distance(StreetRacerCar_2_SpawnLoc) < 60 then
+                RPphase = 6
+                return false
+            end
+        end)
+
+
+
+        end
+
+end--phase5
+
+if RPphase == 6 then
+
+    --util.toast("")--Tip
+util.create_tick_handler(function()
+    if RPdialogue == 0 then
+        util.toast("Radio : These three matches the descriptions of 'il gatino', the terrorist group responsible for the fall of the US Montana. Shoot them down at all cost")--Tip
+    elseif RPdialogue == 1 then
+        util.toast(PlayerName .. " : Roger that")
+    elseif RPdialogue == 2 and RPended == 1 then
+        util.toast("Mission Complete ! " .. PlayerName .. " please tell me what are you thoughts about this short mission, if a lot of people likes the concept, i have a whole lot of ideas for new short and long missions ! How to tell me your thoughts ? Simply join my discord server ! I have a feedback channel there. You will find a link in the 'About Lolascript' section of the script ! To close this message please restart the script")
+        
+    end
+    
+    if RPended == 1 and showscore == 0 then
+
+            util.create_tick_handler(function()
+                util.toast("The lower the score, the faster you were to complete the mission. " .. PlayerName .. "'s' score : " .. Missiontime)
+                if showscore == 1 then
+                    return false
+                end
+            end)
+        end
+end)
+    util.create_tick_handler(function()
+        
+        util.yield(8000)
+        RPdialogue = 0
+        util.yield(8000)
+        RPdialogue = 1
+        util.yield(8000)
+        RPdialogue = 2
+        RPphase = 5
+        return false
+    end)
+
+    if RPstarted == 5 then
+        RPstarted = 6
+            
+        local StreetCarsLocationsBlipRadius = 50
+        
+        local StreetCarsLocationsBlip = ADD_BLIP_FOR_RADIUS(StreetRacerCar_2_SpawnLoc.x, StreetRacerCar_2_SpawnLoc.y, StreetRacerCar_2_SpawnLoc.z, StreetCarsLocationsBlipRadius)
+        table.insert(RP1blips, 5, StreetCarsLocationsBlip)
+        SET_BLIP_ALPHA(StreetCarsLocationsBlip, 90)
+        SET_BLIP_DISPLAY(StreetCarsLocationsBlip, 2)
+        SET_BLIP_COLOUR(StreetCarsLocationsBlip, 63)
+
+
+        TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+        util.yield(2000)
+        RPphase = 7
+
+        
+    end
+
+    
+end--phase6
+
+
+if RPphase == 7 then
+
+    --util.toast("Look for the street racers")--Tip
+
+   --here --[[if RPstarted == 6 then
+        RPstarted = 7
+
+        local next = 0
+
+        SET_CAM_COORD(RP1CutsceneCam1, RP1CutsceneCam1Loc.x, RP1CutsceneCam1Loc.y, RP1CutsceneCam1Loc.z)
+        SET_CAM_ROT(RP1CutsceneCam1, RP1CutsceneCam1Rot.x, RP1CutsceneCam1Rot.y, RP1CutsceneCam1Rot.z, 2)
+        SET_CAM_FOV(RP1CutsceneCam1, RP1CutsceneCam1FOV)
+
+        RENDER_SCRIPT_CAMS(true, true, 1, 1, 0, 0)
+
+        FREEZE_ENTITY_POSITION(RP1vehicles[1], true)
+        DISABLE_ALL_CONTROL_ACTIONS(0)
+        util.yield(10)
+        FREEZE_ENTITY_POSITION(RP1vehicles[1], false)
+
+        SET_ENTITY_COORDS_NO_OFFSET(RP1vehicles[1], -507.2, -2.2, 45, false, false, false)
+        SET_ENTITY_HEADING(RP1vehicles[1], 125.8)
+        SET_VEHICLE_FORWARD_SPEED_XY(RP1vehicles[1], 12)
+
+        local d1oonce = 0
+            local d2oonce = 0
+            local d3oonce = 0
+            local d4oonce = 0
+            local d5oonce = 0
+            local d6oonce = 0
+
+            local TerroDeath1 = 0
+            local TerroDeath2 = 0
+            local TerroDeath3 = 0
+
+        --util.yield(3000)
+        util.create_tick_handler(function()
+            SET_CAM_ROT(RP1CutsceneCam1, RP1CutsceneCam1Rot.x, RP1CutsceneCam1Rot.y, RP1CutsceneCam1Rot.z, 2)
+            SET_CAM_FOV(RP1CutsceneCam1, RP1CutsceneCam1FOV)
+
+            TASK_ENTER_VEHICLE(RP1peds[1], RP1vehicles[1], -1, 0, 1.0, 16, 0)
+                    SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(RP1peds[1], true)
+                    SET_VEHICLE_DOORS_LOCKED(RP1vehicles[1], 4)
+
+
+            if RP1CutsceneCam1Rot.z > -140 then
+                RP1CutsceneCam1Rot.z = RP1CutsceneCam1Rot.z - 0.05
+            end
+            if RP1CutsceneCam1Rot.x < -5 then
+                RP1CutsceneCam1Rot.x = RP1CutsceneCam1Rot.x + 0.05
+            end
+
+            if RP1CutsceneCam1FOV > 30 then
+                RP1CutsceneCam1FOV = RP1CutsceneCam1FOV - 0.25
+            end
+            
+            if RP1CutsceneCam1FOV <= 30 and next == 0 then
+                
+                util.yield(1500)
+                next = 1
+                SET_VEHICLE_SIREN(RP1vehicles[1], true)
+                util.yield(500)
+                RENDER_SCRIPT_CAMS(false, true, 1, 1, 0, 0);
+                DESTROY_CAM(RP1CutsceneCam1, true)
+                ENABLE_ALL_CONTROL_ACTIONS(0)
+
+                local blipStreetRacer1 = ADD_BLIP_FOR_ENTITY(RP1vehicles[3])
+                table.insert(RP1blips, 6, blipStreetRacer1)
+
+                SET_BLIP_SPRITE(blipStreetRacer1, 669)
+                SET_BLIP_DISPLAY(blipStreetRacer1, 2)
+                SET_BLIP_COLOUR(blipStreetRacer1, 6)
+
+
+                local blipStreetRacer2 = ADD_BLIP_FOR_ENTITY(RP1vehicles[4])
+                table.insert(RP1blips, 7, blipStreetRacer2)
+
+                SET_BLIP_SPRITE(blipStreetRacer2, 663)
+                SET_BLIP_DISPLAY(blipStreetRacer2, 2)
+                SET_BLIP_COLOUR(blipStreetRacer2, 6)
+
+
+                local blipStreetRacer3 = ADD_BLIP_FOR_ENTITY(RP1vehicles[5])
+                table.insert(RP1blips, 8, blipStreetRacer3)
+
+                SET_BLIP_SPRITE(blipStreetRacer3, 523)
+                SET_BLIP_DISPLAY(blipStreetRacer3, 2)
+                SET_BLIP_COLOUR(blipStreetRacer3, 6)
+
+                util.remove_blip(RP1blips[4])
+                util.remove_blip(RP1blips[5])
+
+                local InterceptPointBlip = ADD_BLIP_FOR_RADIUS(ChaseInterceptPointLoc.x, ChaseInterceptPointLoc.y, ChaseInterceptPointLoc.z, ChaseInterceptPointRadius)
+                table.insert(RP1blips, 9, InterceptPointBlip)
+                SET_BLIP_ALPHA(InterceptPointBlip, 0)
+                SET_BLIP_DISPLAY(InterceptPointBlip, 2)
+                SET_BLIP_COLOUR(InterceptPointBlip, 12)
+                
+            end
+
+            if next == 1 then
+                
+                    
+                    TASK_VEHICLE_DRIVE_WANDER(RP1peds[3], RP1vehicles[4], 400.0, 1074528292)
+                    --TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[3], RP1vehicles[4], RP1ChaseWaypoint1.x, RP1ChaseWaypoint1.y, RP1ChaseWaypoint1.z, 400.0, 1074528292, 0.0)
+                    util.yield(750)
+                    TASK_VEHICLE_DRIVE_WANDER(RP1peds[2], RP1vehicles[3], 400.0, 1074528292)
+                    --TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[2], RP1vehicles[3], RP1ChaseWaypoint1.x, RP1ChaseWaypoint1.y, RP1ChaseWaypoint1.z, 400.0, 1074528292, 0.0)
+                    util.yield(750)
+                    TASK_VEHICLE_DRIVE_WANDER(RP1peds[4], RP1vehicles[5], 400.0, 1074528292)
+                    --TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(RP1peds[4], RP1vehicles[5], RP1ChaseWaypoint1.x, RP1ChaseWaypoint1.y, RP1ChaseWaypoint1.z, 400.0, 1074528292, 0.0)
+
+            
+            end
+
+            
+            util.create_tick_handler(function()
+            
+                if IS_VEHICLE_TYRE_BURST(RP1vehicles[3], 0, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[3], 1, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[3], 4, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[3], 5, false) then
+                    
+                    if d1oonce == 0 then
+                    SET_VEHICLE_ENGINE_HEALTH(RP1vehicles[3], -1)
+                    util.remove_blip(RP1blips[6])
+
+                    local blipTerrorist1 = ADD_BLIP_FOR_ENTITY(RP1peds[2])
+                    table.insert(RP1blips, 6, blipTerrorist1)
+
+                    SET_BLIP_SPRITE(blipTerrorist1, 429)
+                    SET_BLIP_DISPLAY(blipTerrorist1, 2)
+                    SET_BLIP_COLOUR(blipTerrorist1, 6)
+                    d1oonce = 1
+                    end
+                end
+
+                if IS_VEHICLE_TYRE_BURST(RP1vehicles[4], 0, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[4], 1, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[4], 4, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[4], 5, false) then
+                    
+                    if d2oonce == 0 then
+                    SET_VEHICLE_ENGINE_HEALTH(RP1vehicles[4], -1)
+                    util.remove_blip(RP1blips[7])
+
+                    local blipTerrorist2 = ADD_BLIP_FOR_ENTITY(RP1peds[3])
+                    table.insert(RP1blips, 7, blipTerrorist2)
+
+                    SET_BLIP_SPRITE(blipTerrorist2, 429)
+                    SET_BLIP_DISPLAY(blipTerrorist2, 2)
+                    SET_BLIP_COLOUR(blipTerrorist2, 6)
+                    d2oonce = 1
+                    end
+                end
+
+                if IS_VEHICLE_TYRE_BURST(RP1vehicles[5], 0, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[5], 1, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[5], 4, false) or IS_VEHICLE_TYRE_BURST(RP1vehicles[5], 5, false) then
+                    
+                    if d3oonce == 0 then
+                    SET_VEHICLE_ENGINE_HEALTH(RP1vehicles[5], -1)
+                    util.remove_blip(RP1blips[8])
+
+                    local blipTerrorist3 = ADD_BLIP_FOR_ENTITY(RP1peds[4])
+                    table.insert(RP1blips, 8, blipTerrorist3)
+
+                    SET_BLIP_SPRITE(blipTerrorist3, 429)
+                    SET_BLIP_DISPLAY(blipTerrorist3, 2)
+                    SET_BLIP_COLOUR(blipTerrorist3, 6)
+                    d3oonce = 1
+                    end
+                end
+
+                if IS_PED_DEAD_OR_DYING(RP1peds[2], 1) then
+                    if d4oonce == 0 then
+                    util.remove_blip(RP1blips[6])
+                    TerroDeath1 = 1
+                    d4oonce = 1
+                    end
+                end
+
+                if IS_PED_DEAD_OR_DYING(RP1peds[3], 1) then
+                    if d5oonce == 0 then
+                    util.remove_blip(RP1blips[7])
+                    TerroDeath2 = 1
+                    d5oonce = 1
+                    end
+                end
+
+                if IS_PED_DEAD_OR_DYING(RP1peds[4], 1) then
+                    if d6oonce == 0 then
+                    util.remove_blip(RP1blips[8])
+                    TerroDeath3 = 1
+                    d6oonce = 1
+                    end
+                end--
+                
+
+                if TerroDeath1 == 1 and TerroDeath2 == 1 and TerroDeath3 == 1 then
+                    RPended = 1
+                    RPdialogue = 2
+                    PLAY_MISSION_COMPLETE_AUDIO("FRANKLIN_BIG_01");
+                    ANIMPOSTFX_PLAY("HeistCelebPass", 0, true)
+                    util.yield(5000)
+                    ANIMPOSTFX_STOP("HeistCelebPass", 0, true)
+                    TerroDeath3 = 2
+                    showscore = 1
+                    return false
+                end
+
+            end)
+
+        end)
+
+
+
+    end
+end--phase7
+
+
+
+end
+
+end)--]] --here
+
+
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------
+
+
+
+
+   --[[end, function()
+
+    RPstarted = 0
+    RPended = 0
+    showscore = 0
+
+    RPdialogue = 0
+
+    RPphase = 0
+
+    RP1Waypoint = 0
+    Missiontime = 0
+
+    for i, blip in RP1blips do
+        util.remove_blip(blip)
+    end
+    RP1blips = {}
+
+    for i, ped in RP1peds do
+        entities.delete(ped)
+    end
+    RP1peds = {}
+
+    for i, vehicle in RP1vehicles do
+        entities.delete(vehicle)
+    end
+    RP1vehicles = {}
+
+    for i, object in RP1objects do
+        entities.delete(object)
+    end
+    RP1objects = {}
+
+    if DOES_CAM_EXIST(RP1CutsceneCam1) then
+        RENDER_SCRIPT_CAMS(false, true, 1, 1, 0, 0);
+        DESTROY_CAM(RP1CutsceneCam1, true)
+    end
+
+    RP1CutsceneCam1Loc = v3.new(-546.4, -8.1, 45.5)
+    RP1CutsceneCam1Rot = v3.new(-10, 0, -136)
+    RP1CutsceneCam1FOV = (70)
+
+end)--]] --here
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 
 
 
