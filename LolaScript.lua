@@ -1,7 +1,7 @@
 -- LolaScript
 -- by LolaTheSquishy
 
-local SCRIPT_VERSION = "1.1.3"
+local SCRIPT_VERSION = "1.1.4"
 
 -- Auto Updater from https://github.com/hexarobi/stand-lua-auto-updater
 local status, auto_updater = pcall(require, "auto-updater")
@@ -90,6 +90,9 @@ auto_updater.run_auto_update(auto_update_config)
 
 ------------------------------------------------------------------------------------------------
 
+--stick to walls/roof
+--horn boost
+--Make a sort of Mario Kart balloon battle minigame
 --Making mount for every big enough animal
 --adding player peds as pet
 --Police RP,missions to do, in solo minigame section
@@ -103,6 +106,7 @@ auto_updater.run_auto_update(auto_update_config)
 --Spawn stunt bumpers under vehicles to slow them down without bonking
 --Spawn a Loop in front of the players
 --Spawns a Hamsterball for the player--
+--Spy RP, infiltrating a subarine after stealing a submarine/sub car
 ---------------
 -----IDEAS-----
 ---------------
@@ -123,13 +127,13 @@ auto_updater.run_auto_update(auto_update_config)
 --A better version of stand’s feature “Rewind”, pestered Sainan when they were around to implement this but it doesn’t sync well for other players, basically rewinds your position up to five seconds (looks smooth locally but laggy for other players)
 
 
---Spy RP, infiltrating a subarine after stealing a submarine/sub car
 
---horn boost
+
 
 --spawns a lot of cars with different horn that follow players location above their head to spam honk them
 
 --Bullet Storm see DM with Devil
+
 
 
 
@@ -173,7 +177,11 @@ end
 local myListVehicle = menu.list(menu.my_root(), "Vehicle", {}, "Vehicle Options")
 local myListWeapon = menu.list(menu.my_root(), "Weapon", {}, "Weapon Options")
 
+--menu.action(menu.my_root(), "Temp Test", {}, "Test button to do stuff, if I forgot to remove it in a release please lemme know", function()
 
+
+
+--end)
 
 
 --  menu.action(myListSelf, "Test Feature", {}, "Tests the current developped feature", function()
@@ -341,8 +349,2744 @@ end)--]]
 
    end)--]]
 
+local function set_entity_face_entity(entity, target, usePitch)
+    local pos1 = GET_ENTITY_COORDS(entity, false)
+    local pos2 = GET_ENTITY_COORDS(target, false)
+    local rel = v3.new(pos2)
+    rel:sub(pos1)
+    local rot = rel:toRot()
+    if not usePitch then
+        SET_ENTITY_HEADING(entity, rot.z)
+    else
+        SET_ENTITY_ROTATION(entity, rot.x, rot.y, rot.z, 2, 0)
+    end
+end
+
    local myListFunMinigamesSettings = menu.list(myListFunSettings, "Minigames", {}, "Play minigames !")
    local myListFunMissionsSettings = menu.list(myListFunMinigamesSettings, "Missions", {}, "Play missions ! IMPORTANT : It is very advised to stop and start the script each time you want to redo a mission !! Also do not play it a very populated lobby or some missions entities will dissapear due to most likely entity cap, thus softlocking the mission. Best is to play it in solo mode")
+   --local myListFunTronSettings = menu.list(myListFunMinigamesSettings, "Tron", {}, "Play Tron !")
+   local myListFunSumoSettings = menu.list(myListFunMinigamesSettings, "Sumo !", {}, "Play Sumo !")
+   local myListFunBowlingSettings = menu.list(myListFunMinigamesSettings, "Bowling !", {}, "Play Bowling !")
+   local myListFunWreckItSettings = menu.list(myListFunMinigamesSettings, "Wreck It !", {}, "Play Wreck It !")
+   local myListFunWreckItM1Settings = menu.list(myListFunWreckItSettings, "The Big Bowl !", {}, "Play in The Big Bowl !")
+   local myListFunWreckItM2Settings = menu.list(myListFunWreckItSettings, "The Wave !", {}, "Play in The Wave !")
+
+
+
+
+--[[local wreckItEnabled = 0
+local wreckItStarted = 0
+local wreckItFloorElements = {}
+local wreckItPowerUps = {}
+local wreckItBaloons = {}
+local wreckItCars = {}
+
+
+
+
+local function spawnPowerUps(location)
+
+
+
+                local PUsNames = {"prop_mp_rocket_01", "prop_mp_spike_01", "prop_mp_boost_01", "prop_mk_arrow_3d"}
+                
+            
+                local wreckItPowerUpsHash = util.joaat("xm_prop_moderncrate_xplv_01") -- ba_prop_battle_crate_closed_bc
+                local SpawnLoc = v3.new(0, 0, 0)
+            
+                util.request_model(wreckItPowerUpsHash)
+                local wreckItPU = entities.create_object(wreckItPowerUpsHash, location, 0)
+                table.insert(wreckItPowerUps, 1, wreckItPU)
+                --local randomLoc = wreckItPowerUpsLocations[math.random(1, #wreckItPowerUpsLocations)]
+                --while wreckItPU:distance() do
+                --    SET_ENTITY_COORDS_NO_OFFSET(wreckItPU, randomLoc.x, randomLoc.y, randomLoc.z)
+                --end
+
+                
+
+                SET_ENTITY_ROTATION(wreckItPU, 0, 0, 0, 2, true)
+                PLACE_OBJECT_ON_GROUND_OR_OBJECT_PROPERLY(wreckItPU)
+                FREEZE_ENTITY_POSITION(wreckItPU, true)
+                SET_ENTITY_COLLISION(wreckItPU, false, false)
+                SET_ENTITY_AS_MISSION_ENTITY(wreckItPU, true, true)
+
+    util.create_tick_handler(function()
+        
+        local rot = GET_ENTITY_ROTATION(wreckItPU, 2)
+        SET_ENTITY_ROTATION(wreckItPU, 0, 0, rot.z+1, 2, true)
+            
+
+        if wreckItStarted == 0 then
+            if DOES_ENTITY_EXIST(wreckItPU) then
+                entities.delete(wreckItPU)
+            end
+            return false
+        end
+    end)
+
+    util.create_tick_handler(function()
+
+
+
+        if wreckItStarted == 0 then
+            return false
+        end
+    end)
+end
+
+
+
+function spawnWreckItCars(location, rotation)
+    
+    local BaloonsLocations = {
+        v3.new(0, 0, 2),
+        v3.new(0, 0, 2.5),
+        v3.new(0, 0, 3)
+    }
+
+    local BaloonSpawnLoc = v3.new(0, 0, 0)
+
+
+    local wreckItBaloonHash = util.joaat("prop_mk_arrow_3d")
+    local wreckItCarHash = util.joaat("dukes2")
+    --local wreckItHaloHash = util.joaat("prop_mp_halo_rotate_lrg")
+    local wreckItRocketPUHash = util.joaat("prop_mp_rocket_01")
+    local wreckItRailgunPUHash = util.joaat("prop_mp_spike_01")
+    local wreckItBoostPUHash = util.joaat("prop_mp_boost_01")
+    local wreckItJumpPUHash = util.joaat("prop_mk_arrow_3d")
+
+    local Player
+    local pname
+    
+
+    util.request_model(wreckItCarHash)
+    local wreckItCar = entities.create_vehicle(wreckItCarHash, location, 0)
+    table.insert(wreckItCars, 1, wreckItCar)
+    SET_ENTITY_ROTATION(wreckItCar, 0, 0, rotation.z, 2, true)
+    PLACE_OBJECT_ON_GROUND_OR_OBJECT_PROPERLY(wreckItCar)
+    FREEZE_ENTITY_POSITION(wreckItCar, true)
+    --entities.set_can_migrate(wreckItCar, false)
+    SET_ENTITY_AS_MISSION_ENTITY(wreckItCar, true, true)
+
+    --[[util.request_model(wreckItHaloHash)
+    local wreckItHalo = entities.create_object(wreckItHaloHash, location, 0)
+    table.insert(wreckItBaloons, 1, wreckItHalo)
+    SET_ENTITY_ROTATION(wreckItHalo, 0, 0, rotation.z, 2, true)
+    PLACE_OBJECT_ON_GROUND_OR_OBJECT_PROPERLY(wreckItHalo)
+    FREEZE_ENTITY_POSITION(wreckItHalo, true)
+    --entities.set_can_migrate(wreckItCar, false)
+    SET_ENTITY_AS_MISSION_ENTITY(wreckItHalo, true, true)
+    ATTACH_ENTITY_TO_ENTITY(wreckItHalo, wreckItCar, 0, 0, 0, -0.25, 0, 0, 0, true, false, false, true, 0, true, 0)
+    SET_ENTITY_COLLISION(wreckItHalo, false, false)]]
+
+    --[[local PUiconeHeight = 2
+
+    util.request_model(wreckItRocketPUHash)
+    local wreckItRocketPU = entities.create_object(wreckItRocketPUHash, location, 0)
+    table.insert(wreckItBaloons, 1, wreckItRocketPU)
+    SET_ENTITY_ROTATION(wreckItRocketPU, 0, 0, rotation.z, 2, true)
+    PLACE_OBJECT_ON_GROUND_OR_OBJECT_PROPERLY(wreckItRocketPU)
+    FREEZE_ENTITY_POSITION(wreckItRocketPU, true)
+    --entities.set_can_migrate(wreckItCar, false)
+    SET_ENTITY_AS_MISSION_ENTITY(wreckItRocketPU, true, true)
+    SET_ENTITY_COLLISION(wreckItRocketPU, false, false)
+
+    util.request_model(wreckItRailgunPUHash)
+    local wreckItRailgunPU = entities.create_object(wreckItRailgunPUHash, location, 0)
+    table.insert(wreckItBaloons, 1, wreckItRailgunPU)
+    SET_ENTITY_ROTATION(wreckItRailgunPU, 0, 0, rotation.z, 2, true)
+    PLACE_OBJECT_ON_GROUND_OR_OBJECT_PROPERLY(wreckItRailgunPU)
+    FREEZE_ENTITY_POSITION(wreckItRailgunPU, true)
+    --entities.set_can_migrate(wreckItCar, false)
+    SET_ENTITY_AS_MISSION_ENTITY(wreckItRailgunPU, true, true)
+    SET_ENTITY_COLLISION(wreckItRailgunPU, false, false)
+
+    util.request_model(wreckItBoostPUHash)
+    local wreckItBoostPU = entities.create_object(wreckItBoostPUHash, location, 0)
+    table.insert(wreckItBaloons, 1, wreckItBoostPU)
+    SET_ENTITY_ROTATION(wreckItBoostPU, 0, 0, rotation.z, 2, true)
+    PLACE_OBJECT_ON_GROUND_OR_OBJECT_PROPERLY(wreckItBoostPU)
+    FREEZE_ENTITY_POSITION(wreckItBoostPU, true)
+    --entities.set_can_migrate(wreckItCar, false)
+    SET_ENTITY_AS_MISSION_ENTITY(wreckItBoostPU, true, true)
+    SET_ENTITY_COLLISION(wreckItBoostPU, false, false)
+
+    util.request_model(wreckItJumpPUHash)
+    local wreckItJumpPU = entities.create_object(wreckItJumpPUHash, location, 0)
+    table.insert(wreckItBaloons, 1, wreckItJumpPU)
+    SET_ENTITY_ROTATION(wreckItJumpPU, 0, 0, rotation.z, 2, true)
+    PLACE_OBJECT_ON_GROUND_OR_OBJECT_PROPERLY(wreckItJumpPU)
+    FREEZE_ENTITY_POSITION(wreckItJumpPU, true)
+    --entities.set_can_migrate(wreckItCar, false)
+    SET_ENTITY_AS_MISSION_ENTITY(wreckItJumpPU, true, true)
+    SET_ENTITY_COLLISION(wreckItJumpPU, false, false)
+
+
+    ATTACH_ENTITY_TO_ENTITY(wreckItJumpPU, wreckItCar, 0, 0, 0, PUiconeHeight, 0, 0, 0, true, false, false, true, 0, true, 0)
+    ATTACH_ENTITY_TO_ENTITY(wreckItBoostPU, wreckItCar, 0, 0, 0, PUiconeHeight, 0, 0, 0, true, false, false, true, 0, true, 0)
+    ATTACH_ENTITY_TO_ENTITY(wreckItRailgunPU, wreckItCar, 0, 0, 0, PUiconeHeight, 0, 0, 0, true, false, false, true, 0, true, 0)
+    ATTACH_ENTITY_TO_ENTITY(wreckItRocketPU, wreckItCar, 0, 0, 0, PUiconeHeight, 0, 0, 0, true, false, false, true, 0, true, 0)
+    
+    
+    
+    --SET_VEHICLE_BODY_HEALTH(wreckItCar, 1000)
+    --for i = 1, 3, 1 do
+
+      --  util.request_model(wreckItBaloonHash)
+      --  local wreckItBaloon = entities.create_object(wreckItBaloonHash, BaloonSpawnLoc, 0)
+      --  table.insert(wreckItBaloons, 1, wreckItBaloon)
+     --   SET_ENTITY_ROTATION(wreckItBaloon, 0, 0, 0, 2, true)
+     --   FREEZE_ENTITY_POSITION(wreckItBaloon, true)
+     --   ATTACH_ENTITY_TO_ENTITY(wreckItBaloon, wreckItCar, 0, 0, 0, BaloonsLocations[1].z, 180, 0, 0, true, false, false, true, 0, true, 0)
+        --entities.set_can_migrate(wreckItBaloon, false)
+      --  SET_ENTITY_AS_MISSION_ENTITY(wreckItBaloon, true, true)
+
+    --end
+
+    local CurrentPowerUp = 0 -- Change Number For Power Up Testing, 0 Default, no power up -- 1 = 2138347493 -- 2 = 3800181289
+
+
+    util.create_tick_handler(function()
+
+        --[[if CurrentPowerUp ~= 0 then
+            SET_ENTITY_VISIBLE(wreckItHalo, true, true)
+        else
+            SET_ENTITY_VISIBLE(wreckItHalo, false, false)
+        end]]
+
+        --local SphereCenter = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(wreckItCar, 0, 0, 0)
+        --DRAW_MARKER_SPHERE(SphereCenter.x, SphereCenter.y, SphereCenter.z, 5, 100, 50, 100, 255)
+
+        --[[if CurrentPowerUp == 1 then
+            SET_ENTITY_VISIBLE(wreckItRocketPU, true, true)
+        else
+            SET_ENTITY_VISIBLE(wreckItRocketPU, false, false)
+        end
+
+        if CurrentPowerUp == 2 then
+            SET_ENTITY_VISIBLE(wreckItRailgunPU, true, true)
+        else
+            SET_ENTITY_VISIBLE(wreckItRailgunPU, false, false)
+        end
+
+        if CurrentPowerUp == 3 then
+            SET_ENTITY_VISIBLE(wreckItBoostPU, true, true)
+        else
+            SET_ENTITY_VISIBLE(wreckItBoostPU, false, false)
+        end
+
+        if CurrentPowerUp == 4 then
+            SET_ENTITY_VISIBLE(wreckItJumpPU, true, true)
+        else
+            SET_ENTITY_VISIBLE(wreckItJumpPU, false, false)
+        end
+
+        for k,p in pairs(players.list(true, true, true)) do
+            local Pedm = GET_PLAYER_PED(p)
+            if IS_PED_IN_VEHICLE(Pedm, wreckItCar, false) then
+                Player = GET_PLAYER_PED_SCRIPT_INDEX(p)
+                pname = GET_PLAYER_NAME(p)
+                local carVelocityRaw = GET_ENTITY_VELOCITY(wreckItCar)
+                local carVelocityY = math.abs(carVelocityRaw.y)
+                local carVelocityX = math.abs(carVelocityRaw.x)
+                local SpeedDistanceMultiplier = 0.2
+                local PayerLocation = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(wreckItCar, 0, 0, 0) 
+
+
+            
+                for i, PU in wreckItPowerUps do
+                    local PUlocation = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(wreckItPowerUps[i], 0, 0, 0) 
+                    local loc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PU, 0, 0, 0)
+                    if PayerLocation:distance(PUlocation) < 2.5 then
+                        
+                        if IS_ENTITY_VISIBLE(PU) then
+                            SET_ENTITY_VISIBLE(PU, false, false)
+                            CurrentPowerUp = math.random(1, 4)
+                            util.yield(2000)
+                            SET_ENTITY_VISIBLE(PU, true, true)
+                        end
+                        
+                    if CurrentPowerUp ~= 0 then
+                        util.yield(1000)
+                    end
+                        
+                    end
+                    
+
+                end
+
+                --util.toast(GET_VEHICLE_BODY_HEALTH(wreckItCar))
+
+                if GET_VEHICLE_BODY_HEALTH(wreckItCar) < 10 then
+                    
+                    APPLY_DAMAGE_TO_PED(p, 100000, true, 0)
+                elseif GET_VEHICLE_BODY_HEALTH(wreckItCar) < 300 and GET_VEHICLE_BODY_HEALTH(wreckItCar) > 9 then
+                    SET_VEHICLE_COLOURS(wreckItCar, 30, 30)
+                elseif GET_VEHICLE_BODY_HEALTH(wreckItCar) < 600 and GET_VEHICLE_BODY_HEALTH(wreckItCar) > 299  then
+                    SET_VEHICLE_COLOURS(wreckItCar, 42, 42)
+                elseif GET_VEHICLE_BODY_HEALTH(wreckItCar) > 599 then
+                    SET_VEHICLE_COLOURS(wreckItCar, 55, 55)
+                    
+                end
+
+                
+
+            if CurrentPowerUp == 1 then
+                
+                local WeaponPlacementOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(wreckItCar, 0, 3 + SpeedDistanceMultiplier * carVelocityY + SpeedDistanceMultiplier * carVelocityX, 0.5)
+                local WeaponAimOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(wreckItCar, 0, 3000, 0)
+                local MissleSpeed = 500 + SpeedDistanceMultiplier * carVelocityY + SpeedDistanceMultiplier * carVelocityX
+                local MissleDamage = 15
+                --util.draw_centred_text(carVelocityY)
+                --util.draw_centred_text(carVelocityX)
+                if IS_PLAYER_PRESSING_HORN(p) then
+                    
+                    SHOOT_SINGLE_BULLET_BETWEEN_COORDS_IGNORE_ENTITY(WeaponPlacementOffset.x, WeaponPlacementOffset.y, WeaponPlacementOffset.z, WeaponAimOffset.x, WeaponAimOffset.y, WeaponAimOffset.z, MissleDamage, true, 3169388763, p, true, false, MissleSpeed, wreckItCar, true)
+                    CurrentPowerUp = 0
+                end
+            end
+
+
+            if CurrentPowerUp == 2 then
+                
+                local WeaponPlacementOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(wreckItCar, 0, 3 + SpeedDistanceMultiplier * carVelocityY + SpeedDistanceMultiplier * carVelocityX, 0.25)
+                local WeaponAimOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(wreckItCar, 0, 3000, 0)
+                local MissleSpeed = 500 + SpeedDistanceMultiplier * carVelocityY + SpeedDistanceMultiplier * carVelocityX
+                local MissleDamage = 15
+                --util.draw_centred_text(carVelocityY)
+                --util.draw_centred_text(carVelocityX)
+                if IS_PLAYER_PRESSING_HORN(p) then
+                    
+                    SHOOT_SINGLE_BULLET_BETWEEN_COORDS_IGNORE_ENTITY(WeaponPlacementOffset.x, WeaponPlacementOffset.y, WeaponPlacementOffset.z, WeaponAimOffset.x, WeaponAimOffset.y, WeaponAimOffset.z, MissleDamage, true, 3800181289, p, true, false, MissleSpeed, wreckItCar, true)
+                    CurrentPowerUp = 0
+                end
+            end
+
+
+            if CurrentPowerUp == 3 then
+                
+                
+                --util.draw_centred_text(carVelocityY)
+                --util.draw_centred_text(carVelocityX)
+                if IS_PLAYER_PRESSING_HORN(p) then
+                    APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(wreckItCar, 1, 0, 100, 0, 0, true, true, 1)
+                    util.yield(100)
+                    CurrentPowerUp = 0
+                end
+            end
+
+            if CurrentPowerUp == 4 then
+                
+                
+                --util.draw_centred_text(carVelocityY)
+                --util.draw_centred_text(carVelocityX)
+                if IS_PLAYER_PRESSING_HORN(p) then
+                    APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(wreckItCar, 1, 0, 0, 30, 0, true, true, 1)
+                    util.yield(100)
+                    CurrentPowerUp = 0
+                end
+            end
+
+
+
+                --util.toast(Player)
+                --util.toast(pname)
+           
+            end
+        end
+
+        if wreckItEnabled == 0 then
+            return false
+        end
+        
+    end)
+
+    
+
+end
+
+
+menu.toggle_loop(myListFunWreckItSettings, "Enable Wreck It", {"enableWreckIt"}, "Sets up the minigame", function()
+
+    if wreckItEnabled == 0 then
+        wreckItEnabled = 1
+
+
+
+
+
+        local wreckItFloorHash = util.joaat("ar_prop_ar_bblock_huge_05")
+
+        local wreckItFloorLoc = v3.new(0, 0, 1000)
+        local wreckItFloorRot = v3.new(0, 0, 0)
+
+        local wreckItCarsLocations = {
+            v3.new(30, 75, 1001),
+            v3.new(-30, 75, 1001),
+            v3.new(-30, -75, 1001),
+            v3.new(30, -75, 1001),
+            v3.new(30, 30, 1001),
+            v3.new(30, -30, 1001),
+            v3.new(-30, -30, 1001),
+            v3.new(-30, 30, 1001)
+        }
+
+        local wreckItCarsRotations = {
+            v3.new(0, 0, 135),
+            v3.new(0, 0, -135),
+            v3.new(0, 0, -45),
+            v3.new(0, 0, 45),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, -90),
+            v3.new(0, 0, -90)
+        }
+
+
+       
+        util.request_model(wreckItFloorHash)
+        local wreckItFloor = entities.create_object(wreckItFloorHash, wreckItFloorLoc, 0)
+        table.insert(wreckItFloorElements, 1, wreckItFloor)
+        SET_ENTITY_ROTATION(wreckItFloor, wreckItFloorRot.x, wreckItFloorRot.y, wreckItFloorRot.z, 2, true)
+        FREEZE_ENTITY_POSITION(wreckItFloor, true)
+        entities.set_can_migrate(wreckItFloor, false)
+        SET_ENTITY_AS_MISSION_ENTITY(wreckItFloor, true, true)
+
+        SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), 0, 0, 1003)
+
+        for i = 1, #wreckItCarsLocations, 1 do
+            spawnWreckItCars(wreckItCarsLocations[i], wreckItCarsRotations[i])
+        end
+
+        
+        
+
+
+
+
+
+
+        
+    end
+    
+end, function()
+
+    wreckItEnabled = 0
+
+    for i, element in wreckItFloorElements do
+        entities.delete(element)
+    end
+    wreckItFloorElements = {}
+
+    
+
+    for i, car in wreckItCars do
+        entities.delete(car)
+    end
+    wreckItCars = {}
+
+    for i, baloon in wreckItBaloons do
+        entities.delete(baloon)
+    end
+    wreckItBaloons = {}
+    
+    menu.trigger_commands("playWreckIt off")
+
+    
+end)
+
+
+menu.toggle_loop(myListFunWreckItSettings, "Wreck It", {"playWreckIt"}, "Wreck the other player's cars 3 times to disqualify them !", function()
+
+if wreckItEnabled == 1 then
+    if wreckItStarted == 0 then
+        wreckItStarted = 1
+        
+        local wreckItPowerUpsLocations = {
+            v3.new(0, 75, 1002),
+            v3.new(0, 56.25, 1002),
+            v3.new(0, 37.5, 1002),
+            v3.new(0, 18.75, 1002),
+            v3.new(0, -18.75, 1002),
+            v3.new(0, -37.5, 1002),
+            v3.new(0, -56.25, 1002),
+            v3.new(0, -75, 1002) -- 8
+        }
+
+        for i = 1, 8, 1 do
+            spawnPowerUps(wreckItPowerUpsLocations[i])
+        end
+
+        for i, car in wreckItCars do
+            FREEZE_ENTITY_POSITION(car, false)
+        end
+
+    end
+
+else
+    util.toast("Please Enable the minigame before trying to play it !")
+    menu.trigger_commands("playWreckIt off")
+end
+
+end, function()
+
+    wreckItStarted = 0
+    triggerOnce = 0
+
+    for i, car in wreckItCars do
+        FREEZE_ENTITY_POSITION(car, true)
+    end
+
+    for i, PU in wreckItPowerUps do
+        entities.delete(PU)
+    end
+    wreckItPowerUps = {}
+
+end)]]
+
+function know_object_dimension(modelHash)
+    local min = v3.new()
+    local max = v3.new()
+
+    GET_MODEL_DIMENSIONS(modelHash, min, max)
+    
+    --util.toast("---------------")
+
+    util.toast("max x : " .. max.x)
+    util.toast("max y : " .. max.y)
+    util.toast("max z : " .. max.z)
+    
+    --util.toast"~~~~~~~~~~~~~~~~~~"
+
+    --util.toast("min x : " .. min.x)
+    --util.toast("min y : " .. min.y)
+    --util.toast("min z : " .. min.z)
+    
+    --util.toast("---------------")
+    
+
+end
+
+local setupSumoArena = 0
+local setupSumoCars = 0
+local SumoElements = {}
+local SumoCars = {}
+
+menu.toggle_loop(myListFunSumoSettings, "Setup Sumo", {"setupSumo"}, "Spawns The Sumo Arena !", function()
+
+    if setupSumoArena == 0 then
+        setupSumoArena = 1
+
+
+
+        local Locations = {
+            --floor
+            v3.new(0, 0, 994),
+            
+
+            
+           
+        }
+
+        local Rotations = {
+            --floor
+            v3.new(0, 0, 0),
+            
+            
+            
+            
+            
+        }
+
+     
+
+        local Hashes = {
+            --floor
+            "stt_prop_stunt_target",
+           
+        }
+
+     
+
+        for i = 1, #Hashes, 1 do
+            local Hash = util.joaat(Hashes[i])
+            util.request_model(Hash)
+
+            local prop = entities.create_object(Hash, Locations[i], 0)
+            --Get_Entity(prop)
+            table.insert(SumoElements, 1, prop)
+            SET_ENTITY_ROTATION(prop, Rotations[i].x, Rotations[i].y, Rotations[i].z, 2, true)
+            FREEZE_ENTITY_POSITION(prop, true)
+            entities.set_can_migrate(prop, false)
+            SET_ENTITY_AS_MISSION_ENTITY(prop, true, true)
+            LOAD_ALL_OBJECTS_NOW()
+            NETWORK_UPDATE_LOAD_SCENE()
+            util.yield(50)
+            --know_object_dimension(Hash)
+            util.show_corner_help("Please wait for the arena to load fully before playing !")
+        end
+
+        if IS_PED_IN_ANY_VEHICLE(players.user_ped(), true) then
+            local PlayerCar = GET_VEHICLE_PED_IS_IN(players.user_ped(), true)
+            SET_ENTITY_COORDS_NO_OFFSET(PlayerCar, 0, 0, 1003)
+        else
+            SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), 0, 0, 1003)
+        end
+
+        util.show_corner_help("The arena is fully loaded ! You can spawn the cars !")
+
+
+    end
+
+end, function()
+
+    for i, element in SumoElements do
+        entities.set_can_migrate(element, true)
+        entities.delete(element)
+    end
+    SumoElements = {}
+
+    setupSumoArena = 0
+
+end)
+
+menu.toggle_loop(myListFunSumoSettings, "2 Players", {"2Psumo"}, "Spawns The Sumo Cars !", function()
+
+if setupSumoArena == 1 then
+
+    if setupSumoCars == 0 then
+        setupSumoCars = 1
+
+
+
+        local Locations = {
+            --floor
+            v3.new(0, -20, 994),
+            v3.new(0, 20, 994),
+            
+
+            
+           
+        }
+
+        local Rotations = {
+            --floor
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 180),
+            
+            
+            
+            
+            
+        }
+
+     
+
+        local Hashes = {
+            --floor
+            "voltic2", --zhaba
+            "voltic2",
+           
+        }
+
+     local car
+        for i = 1, #Hashes, 1 do
+            local Hash = util.joaat(Hashes[i])
+            util.request_model(Hash)
+
+            car = entities.create_vehicle(Hash, Locations[i], 0)
+            --Get_Entity(prop)
+            table.insert(SumoCars, 1, car)
+            SET_ENTITY_ROTATION(car, Rotations[i].x, Rotations[i].y, Rotations[i].z, 2, true)
+            FREEZE_ENTITY_POSITION(car, true)
+            SET_VEHICLE_COLOURS(car, 70, 70)
+            SET_SCRIPT_ROCKET_BOOST_RECHARGE_TIME(car, 0.1)
+            entities.set_can_migrate(car, false)
+            SET_ENTITY_AS_MISSION_ENTITY(car, true, true)
+            LOAD_ALL_OBJECTS_NOW()
+            NETWORK_UPDATE_LOAD_SCENE()
+            util.yield(50)
+            --know_object_dimension(Hash)
+            util.show_corner_help("Please wait for the map to load fully before playing !")
+        end
+
+        util.show_corner_help("The cars are fully loaded ! You can start the Sumo when ready !")
+
+            for j = 1, #SumoCars, 2 do
+                SET_VEHICLE_COLOURS(car, 30, 30)
+            end
+
+
+    end
+    
+
+
+else
+    util.show_corner_help("Please load the Sumo Arena first !")
+    menu.trigger_commands("2Psumo off")
+end
+end, function()
+
+    for i, car in SumoCars do
+        entities.set_can_migrate(car, true)
+        entities.delete(car)
+    end
+    SumoCars = {}
+
+    setupSumoCars = 0
+
+end)
+
+
+menu.toggle_loop(myListFunSumoSettings, "4 Players", {"4Psumo"}, "Spawns The Sumo Cars !", function()
+
+    if setupSumoArena == 1 then
+    
+        if setupSumoCars == 0 then
+            setupSumoCars = 1
+    
+    
+    
+            local Locations = {
+                --floor
+                v3.new(0, -20, 994),
+                v3.new(0, 20, 994),
+                v3.new(20, 0, 994),
+                v3.new(-20, 0, 994),
+                
+    
+                
+               
+            }
+    
+            local Rotations = {
+                --floor
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 180),
+                v3.new(0, 0, 90),
+                v3.new(0, 0, -90),
+                
+                
+                
+                
+                
+            }
+    
+         
+    
+            local Hashes = {
+                --floor
+                "voltic2", --zhaba
+                "voltic2",
+                "voltic2",
+                "voltic2",
+               
+            }
+    
+         local car
+            for i = 1, #Hashes, 1 do
+                local Hash = util.joaat(Hashes[i])
+                util.request_model(Hash)
+    
+                car = entities.create_vehicle(Hash, Locations[i], 0)
+                --Get_Entity(prop)
+                table.insert(SumoCars, 1, car)
+                SET_ENTITY_ROTATION(car, Rotations[i].x, Rotations[i].y, Rotations[i].z, 2, true)
+                FREEZE_ENTITY_POSITION(car, true)
+                SET_VEHICLE_COLOURS(car, 70, 70)
+                if i >= 3 then
+                    SET_VEHICLE_COLOURS(car, 30, 30)
+                end
+                SET_SCRIPT_ROCKET_BOOST_RECHARGE_TIME(car, 0.1)
+                entities.set_can_migrate(car, false)
+                SET_ENTITY_AS_MISSION_ENTITY(car, true, true)
+                LOAD_ALL_OBJECTS_NOW()
+                NETWORK_UPDATE_LOAD_SCENE()
+                util.yield(50)
+                --know_object_dimension(Hash)
+                util.show_corner_help("Please wait for the map to load fully before playing !")
+            end
+    
+            util.show_corner_help("The cars are fully loaded ! You can start the Sumo when ready !")
+    
+                for j = 1, #SumoCars, 2 do
+                    --SET_VEHICLE_COLOURS(j, 30, 30)
+                end
+    
+    
+        end
+        
+    
+    
+    else
+        util.show_corner_help("Please load the Sumo Arena first !")
+        menu.trigger_commands("4Psumo off")
+    end
+    end, function()
+    
+        for i, car in SumoCars do
+            entities.set_can_migrate(car, true)
+            entities.delete(car)
+        end
+        SumoCars = {}
+    
+        setupSumoCars = 0
+    
+    end)
+
+    menu.toggle_loop(myListFunSumoSettings, "8 Players", {"8Psumo"}, "Spawns The Sumo Cars !", function()
+
+        if setupSumoArena == 1 then
+        
+            if setupSumoCars == 0 then
+                setupSumoCars = 1
+        
+        
+        
+                local Locations = {
+                    --floor
+                    v3.new(0, -20, 994),
+                    v3.new(0, 20, 994),
+                    v3.new(20, 0, 994),
+                    v3.new(-20, 0, 994),
+                    v3.new(14.142, 14.142, 994),
+                    v3.new(-14.142, 14.142, 994),
+                    v3.new(14.142, -14.142, 994),
+                    v3.new(-14.142, -14.142, 994),
+                    
+        
+                    
+                   
+                }
+        
+                local Rotations = {
+                    --floor
+                    v3.new(0, 0, 0),
+                    v3.new(0, 0, 180),
+                    v3.new(0, 0, 90),
+                    v3.new(0, 0, -90),
+                    v3.new(0, 0, 135),
+                    v3.new(0, 0, -135),
+                    v3.new(0, 0, 45),
+                    v3.new(0, 0, -45),
+                    
+                    
+                    
+                    
+                    
+                }
+        
+             
+        
+                local Hashes = {
+                    --floor
+                    "voltic2", --zhaba
+                    "voltic2",
+                    "voltic2",
+                    "voltic2",
+                    "voltic2",
+                    "voltic2",
+                    "voltic2",
+                    "voltic2",
+                   
+                }
+        
+             local car
+                for i = 1, #Hashes, 1 do
+                    local Hash = util.joaat(Hashes[i])
+                    util.request_model(Hash)
+        
+                    car = entities.create_vehicle(Hash, Locations[i], 0)
+                    --Get_Entity(prop)
+                    table.insert(SumoCars, 1, car)
+                    SET_ENTITY_ROTATION(car, Rotations[i].x, Rotations[i].y, Rotations[i].z, 2, true)
+                    FREEZE_ENTITY_POSITION(car, true)
+                    SET_VEHICLE_COLOURS(car, 70, 70)
+                    if i >= 5 then
+                        SET_VEHICLE_COLOURS(car, 30, 30)
+                    end
+                    SET_SCRIPT_ROCKET_BOOST_RECHARGE_TIME(car, 0.1)
+                    entities.set_can_migrate(car, false)
+                    SET_ENTITY_AS_MISSION_ENTITY(car, true, true)
+                    LOAD_ALL_OBJECTS_NOW()
+                    NETWORK_UPDATE_LOAD_SCENE()
+                    util.yield(50)
+                    --know_object_dimension(Hash)
+                    util.show_corner_help("Please wait for the map to load fully before playing !")
+                end
+        
+                util.show_corner_help("The cars are fully loaded ! You can start the Sumo when ready !")
+        
+                    for j = 1, #SumoCars, 2 do
+                        --SET_VEHICLE_COLOURS(j, 30, 30)
+                    end
+        
+        
+            end
+            
+        
+        
+        else
+            util.show_corner_help("Please load the Sumo Arena first !")
+            menu.trigger_commands("8Psumo off")
+        end
+        end, function()
+        
+            for i, car in SumoCars do
+                entities.set_can_migrate(car, true)
+                entities.delete(car)
+            end
+            SumoCars = {}
+        
+            setupSumoCars = 0
+        
+        end)
+
+menu.action(myListFunSumoSettings, "Start !", {"StartSumo"}, "Allows the cars to move !", function()
+    if setupSumoArena == 1 and setupSumoCars == 1 then
+        for i, car in SumoCars do
+            entities.set_can_migrate(car, true)
+            FREEZE_ENTITY_POSITION(car, false)
+            util.create_tick_handler(function()
+
+                local carLocation = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(car, 0, 0, 0)
+                if carLocation.z < 990 then
+                    ADD_EXPLOSION(carLocation.x, carLocation.y, carLocation.z, 59, 1, true, false, 1.0, false)
+                    ADD_EXPLOSION(carLocation.x, carLocation.y, carLocation.z, 59, 1, true, false, 1.0, false)
+                    ADD_EXPLOSION(carLocation.x, carLocation.y, carLocation.z, 59, 1, true, false, 1.0, false)
+                    ADD_EXPLOSION(carLocation.x, carLocation.y, carLocation.z, 59, 1, true, false, 1.0, false)
+                    ADD_EXPLOSION(carLocation.x, carLocation.y, carLocation.z, 59, 1, true, false, 1.0, false)
+                    return false 
+                end
+
+                if IS_ROCKET_BOOST_ACTIVE(car) then
+                    --util.toast("BOOOOP!")
+                    --Get_Entity(car)
+                    --APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(car, 1, 0, -1.5, 0, 0, true, true, 1)
+                end
+
+                if setupSumoCars == 0 then
+                    return false                    
+                end
+            end)
+        end
+        
+    else
+        util.show_corner_help("Please load the Sumo Arena and Cars first !")
+    end
+end)
+
+
+local setupBOarena = 0
+local BowlingElements = {}
+
+local setupBOarenaS = 0
+local BowlingElementsS = {}
+
+menu.toggle_loop(myListFunBowlingSettings, "Setup Bowling", {"setupBowling"}, "Spawns The Bowling Layout !", function()
+
+    if setupBOarena == 0 then
+        setupBOarena = 1
+        
+
+        local Locations = {
+            --floor
+            v3.new(0, 0, 1000),
+            v3.new(0, 84, 1000),
+            --Gutters
+            v3.new(22, 44, 990),
+            v3.new(-22, 44, 990),
+            --Pins
+            v3.new(9, 105, 1000.2),
+            v3.new(-9, 105, 1000.2),
+            v3.new(3, 105, 1000.2),
+            v3.new(-3, 105, 1000.2),
+            v3.new(0, 100, 1000.2),
+            v3.new(6, 100, 1000.2),
+            v3.new(-6, 100, 1000.2),
+            v3.new(3, 95, 1000.2),
+            v3.new(-3, 95, 1000.2),
+            v3.new(0, 90, 1000.2),
+            --Ball
+            v3.new(0, 0, 1002.9),
+
+            
+           
+        }
+
+        local Rotations = {
+            --floor
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            --Gutters
+            v3.new(0, 180, 90),
+            v3.new(0, 180, 90),
+            --Pins
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            --Ball
+            v3.new(0, 0, 0),
+            
+            
+            
+            
+        }
+
+     
+
+        local Hashes = {
+            --floor
+            "ar_prop_ar_bblock_huge_02",
+            "ar_prop_ar_bblock_huge_02",
+            --Gutters
+            "stt_prop_stunt_tube_m",
+            "stt_prop_stunt_tube_m",
+        }
+
+        local PropHashes = {
+            --Pins
+            "stt_prop_stunt_bowling_pin",
+            "stt_prop_stunt_bowling_pin",
+            "stt_prop_stunt_bowling_pin",
+            "stt_prop_stunt_bowling_pin",
+            "stt_prop_stunt_bowling_pin",
+            "stt_prop_stunt_bowling_pin",
+            "stt_prop_stunt_bowling_pin",
+            "stt_prop_stunt_bowling_pin",
+            "stt_prop_stunt_bowling_pin",
+            "stt_prop_stunt_bowling_pin",
+            --Ball
+            "stt_prop_stunt_bowling_ball",
+        }
+
+        for i = 1, #Hashes, 1 do
+            local Hash = util.joaat(Hashes[i])
+            util.request_model(Hash)
+
+            local prop = entities.create_object(Hash, Locations[i], 0)
+            --Get_Entity(prop)
+            table.insert(BowlingElements, 1, prop)
+            SET_ENTITY_ROTATION(prop, Rotations[i].x, Rotations[i].y, Rotations[i].z, 2, true)
+            FREEZE_ENTITY_POSITION(prop, true)
+            entities.set_can_migrate(prop, false)
+            SET_ENTITY_AS_MISSION_ENTITY(prop, true, true)
+            LOAD_ALL_OBJECTS_NOW()
+            NETWORK_UPDATE_LOAD_SCENE()
+            util.yield(50)
+            --know_object_dimension(Hash)
+            util.show_corner_help("Please wait for the map to load fully before playing !")
+        end
+
+        for i = 1, #PropHashes, 1 do
+            local Hash = util.joaat(PropHashes[i])
+            util.request_model(Hash)
+
+            local prop = entities.create_object(Hash, Locations[4 + i], 0)
+            SET_ENTITY_SHOULD_FREEZE_WAITING_ON_COLLISION(prop, false)
+            --Get_Entity(prop)
+            table.insert(BowlingElements, 1, prop)
+            SET_ENTITY_ROTATION(prop, Rotations[4 + i].x, Rotations[4 + i].y, Rotations[4 + i].z, 2, true)
+            entities.set_can_migrate(prop, false)
+            SET_ENTITY_AS_MISSION_ENTITY(prop, true, true)
+            LOAD_ALL_OBJECTS_NOW()
+            NETWORK_UPDATE_LOAD_SCENE()
+            util.yield(50)
+            --know_object_dimension(Hash)
+            util.show_corner_help("Please wait for the map to load fully before playing !")
+        end
+
+        --[[if IS_PED_IN_ANY_VEHICLE(players.user_ped(), true) then
+            local PlayerCar = GET_VEHICLE_PED_IS_IN(players.user_ped(), true)
+            SET_ENTITY_COORDS_NO_OFFSET(PlayerCar, 0, -10, 1003)
+        else
+            SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), 0, -10, 1003)
+        end]]
+
+        util.show_corner_help("The map is fully loaded ! You can roll the ball ! Enable Spectator Quarter to TP to the Bowling Layout")
+
+
+    end
+
+end, function()
+
+    for i, element in BowlingElements do
+        entities.set_can_migrate(element, true)
+        entities.delete(element)
+    end
+    BowlingElements = {}
+
+    setupBOarena = 0
+
+end)
+
+
+menu.action(myListFunBowlingSettings, "Take your chance and roll !", {"PlayBowling"}, "Rolls the ball !", function()
+
+    if setupBOarena == 1 then
+        
+        APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(BowlingElements[1], 1, math.random(-8, 8), math.random(100, 350), math.random(5, 12), 0, true, true, 1)
+
+    else
+        util.show_corner_help("Please load the Bowling Layout first !")
+    end
+
+end)
+
+
+menu.toggle_loop(myListFunBowlingSettings, "Setup Bowling Spectator Quarter", {"setupBowlingSQ"}, "Spawns The Spectator Bowling Quarter !", function()
+
+    if setupBOarena == 1 then
+    if setupBOarenaS == 0 then
+        setupBOarenaS = 1
+        
+
+        local Locations = {
+            --floor
+            v3.new(60, 50, 1030),
+    
+
+            
+           
+        }
+
+        local Rotations = {
+            --floor
+            v3.new(0, 0, 0),
+ 
+            
+            
+            
+            
+        }
+
+     
+
+        local Hashes = {
+            --floor
+            "ar_prop_ar_bblock_huge_01",
+          
+        }
+
+        for i = 1, #Hashes, 1 do
+            local Hash = util.joaat(Hashes[i])
+            util.request_model(Hash)
+
+            local prop = entities.create_object(Hash, Locations[i], 0)
+            --Get_Entity(prop)
+            table.insert(BowlingElementsS, 1, prop)
+            SET_ENTITY_ROTATION(prop, Rotations[i].x, Rotations[i].y, Rotations[i].z, 2, true)
+            FREEZE_ENTITY_POSITION(prop, true)
+            entities.set_can_migrate(prop, false)
+            SET_ENTITY_AS_MISSION_ENTITY(prop, true, true)
+            LOAD_ALL_OBJECTS_NOW()
+            NETWORK_UPDATE_LOAD_SCENE()
+            util.yield(50)
+            --know_object_dimension(Hash)
+            util.show_corner_help("Please wait for the map to load fully before playing !")
+        end
+
+        if IS_PED_IN_ANY_VEHICLE(players.user_ped(), true) then
+            local PlayerCar = GET_VEHICLE_PED_IS_IN(players.user_ped(), true)
+            SET_ENTITY_COORDS_NO_OFFSET(PlayerCar, 60, 50, 1032)
+        else
+            SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), 60, 50, 1032)
+        end
+
+        util.show_corner_help("The Spectator Quarter is fully loaded ! You can Reset the Bowling Layout without fear of them falling down in the void !")
+
+
+    end
+else
+    util.show_corner_help("Please load the Bowling Layout first !")
+end
+
+end, function()
+
+    for i, element in BowlingElementsS do
+        entities.set_can_migrate(element, true)
+        entities.delete(element)
+    end
+    BowlingElementsS = {}
+
+    setupBOarenaS = 0
+
+end)
+
+
+local setupWIarena = 0
+local ArenaElements = {}
+local playerWreckItElements = {}
+local GiftsElements = {}
+
+menu.toggle_loop(myListFunWreckItM1Settings, "Setup Arena", {"setupWreckItM1"}, "Spawns The Arena!", function()
+
+    if setupWIarena == 0 then
+        setupWIarena = 1
+        
+        menu.trigger_commands("setupWreckItM2 off")
+        menu.trigger_commands("setupWreckItPowerUpsM2 off")
+
+        local Locations = {
+            --floor
+            v3.new(0, 0, 968.52),
+            --corners
+            v3.new(60, 60, 1000-0.8),
+            v3.new(-60, 60, 1000-0.8),
+            v3.new(-60, -60, 1000-0.8),
+            v3.new(60, -60, 1000-0.8),
+            --walls
+            v3.new(60, 0, 1000),
+            v3.new(0, 60, 1000),
+            v3.new(-60, 0, 1000),
+            v3.new(0, -60, 1000),
+            --ramps
+            v3.new(0, -15, 968.5),
+            v3.new(0, 15, 968.5),
+        }
+
+        local Rotations = {
+            --floor
+            v3.new(0, 0, 0),
+            --corners
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 180),
+            v3.new(0, 0, 270),
+            --walls
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 180),
+            v3.new(0, 0, 270),
+            --ramps
+            v3.new(0, 0, 90),
+            v3.new(0, 0, -90),
+        }
+
+     
+
+        local Hashes = {
+            --floor
+            "bkr_prop_biker_bblock_huge_04",
+            --corners
+            "bkr_prop_biker_bblock_cor",
+            "bkr_prop_biker_bblock_cor",
+            "bkr_prop_biker_bblock_cor",
+            "bkr_prop_biker_bblock_cor",
+            --walls
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            --ramps
+            "stt_prop_ramp_jump_xs",
+            "stt_prop_ramp_jump_xs",
+        }
+
+        for i = 1, #Hashes, 1 do
+            local Hash = util.joaat(Hashes[i])
+            util.request_model(Hash)
+
+            local prop = entities.create_object(Hash, Locations[i], 0)
+            table.insert(ArenaElements, 1, prop)
+            SET_ENTITY_ROTATION(prop, Rotations[i].x, Rotations[i].y, Rotations[i].z, 2, true)
+            FREEZE_ENTITY_POSITION(prop, true)
+            entities.set_can_migrate(prop, false)
+            SET_ENTITY_AS_MISSION_ENTITY(prop, true, true)
+
+            util.yield(500)
+            --know_object_dimension(Hash)
+            util.show_corner_help("Please wait for the map to load fully before spawning the power ups and cars !")
+        end
+
+        SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), 0, 0, 972)
+        util.show_corner_help("The map is fully loaded ! You can spawn the power ups and cars !")
+
+
+    end
+
+end, function()
+
+    for i, element in ArenaElements do
+        entities.set_can_migrate(element, true)
+        entities.delete(element)
+    end
+    ArenaElements = {}
+
+    for i, element in playerWreckItElements do
+        entities.delete(element)
+    end
+    playerWreckItElements = {}
+
+    setupWIarena = 0
+    menu.trigger_commands("setupWreckItPowerUpsM1 off")
+
+end)
+
+
+
+local setupWIpowerups = 0
+local PowerUpsElements = {}
+local allTampas = {}
+local randomPU = 0
+
+
+
+--[[function managePowerUps(Tampa)
+
+    for i, gift in GiftsElements do
+
+        local PUloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(gift, 0, 0, 0)
+        local Tampaloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(Tampa, 0, 0, 0)
+
+        if Tampaloc:distance(PUloc) < 3 and randomPU == 0 then
+
+            --[[randomPU = 2 --math.random(1, 2)
+            
+            if randomPU == 1 then
+                Get_Entity(Tampa)
+                SET_VEHICLE_MOD_KIT(Tampa, 0)
+                SET_VEHICLE_MOD(Tampa, 10, 0, false)
+                util.yield(10000)
+                SET_VEHICLE_MOD(Tampa, 10, -1, false)
+                randomPU = 0
+            end
+
+            if randomPU == 2 then
+                Get_Entity(Tampa)
+                APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(Tampa, 1, 0, 0, 100, 0, false, true, 1)
+                util.yield(5000)--cooldown to prevent jumping 10000x times within a second
+                randomPU = 0
+            end--]]
+
+    --[[        if GET_ENTITY_MODEL(gift) == 1219257666 and IS_ENTITY_VISIBLE(gift) then
+                SET_ENTITY_VISIBLE(gift, false, false)
+                Get_Entity(Tampa)
+                SET_VEHICLE_MOD_KIT(Tampa, 0)
+                SET_VEHICLE_MOD(Tampa, 10, 0, false)
+                util.yield(10000)
+                SET_VEHICLE_MOD(Tampa, 10, -1, false)
+                SET_ENTITY_VISIBLE(gift, true, true)
+                randomPU = 0
+            end
+
+            if GET_ENTITY_MODEL(gift) == -1633273698 and IS_ENTITY_VISIBLE(gift) then
+                SET_ENTITY_VISIBLE(gift, false, false)
+                Get_Entity(Tampa)
+                APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(Tampa, 1, 0, 0, 25, 0, false, true, 1)
+                util.yield(5000)--cooldown to prevent jumping 10000x times within a second
+                SET_ENTITY_VISIBLE(gift, true, true)
+                randomPU = 0
+            end
+
+            if GET_ENTITY_MODEL(gift) == 1709896882 and IS_ENTITY_VISIBLE(gift) then
+                SET_ENTITY_VISIBLE(gift, false, false)
+                Get_Entity(Tampa)
+                APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(Tampa, 1, 0, 30, 0, 0, true, true, 1)
+                util.yield(5000)--cooldown to prevent boosting 10000x times within a second
+                SET_ENTITY_VISIBLE(gift, true, true)
+                randomPU = 0
+            end
+
+            if GET_ENTITY_MODEL(gift) == -1531914544 and IS_ENTITY_VISIBLE(gift) then
+                SET_ENTITY_VISIBLE(gift, false, false)
+                Get_Entity(Tampa)
+                SET_VEHICLE_MOD_KIT(Tampa, 0)
+                SET_VEHICLE_MOD(Tampa, 1, 0, false)
+                SET_VEHICLE_MOD(Tampa, 2, 0, false)
+                util.yield(10000)
+                SET_VEHICLE_MOD(Tampa, 1, -1, false)
+                SET_VEHICLE_MOD(Tampa, 2, -1, false)
+                SET_ENTITY_VISIBLE(gift, true, true)
+                randomPU = 0
+            end
+
+            if GET_ENTITY_MODEL(gift) == 1944414445 and IS_ENTITY_VISIBLE(gift) then
+                SET_ENTITY_VISIBLE(gift, false, false)
+                Get_Entity(Tampa)
+                SET_VEHICLE_MOD_KIT(Tampa, 0)
+                SET_VEHICLE_MOD(Tampa, 9, 0, false)
+                util.yield(10000)
+                SET_VEHICLE_MOD(Tampa, 9, -1, false)
+                SET_ENTITY_VISIBLE(gift, true, true)
+                randomPU = 0
+            end
+
+
+        end
+    end
+
+end--]]
+
+
+menu.toggle_loop(myListFunWreckItM1Settings, "Setup Power Ups and Vehicles", {"setupWreckItPowerUpsM1"}, "Spawns Power Ups and vehicles !", function()
+    if setupWIarena == 1 then
+        if setupWIpowerups == 0 then
+            setupWIpowerups = 1
+
+            
+            local giftsLocations = {
+                --tampas
+                v3.new(50, 0, 970),
+                v3.new(-50, 0, 970),
+                v3.new(0, -50, 970),
+                v3.new(0, 50, 970),
+                v3.new(0, 0, 976),
+            }
+            local giftsRotations = {
+                --tampas
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 90),
+                v3.new(0, 0, 180),
+                v3.new(0, 0, 270),
+                v3.new(0, 0, 0),
+            }
+
+
+            local BoostsLocations = {
+                --tampas
+                v3.new(0, 0, 970),
+            }
+
+            local JumpsLocations = {
+                --tampas
+                v3.new(30, -30, 970),
+                v3.new(-30, -30, 970),
+                v3.new(30, 30, 970),
+                v3.new(-30, 30, 970),
+            }
+
+            local TampaLocations = {
+                --floor
+                v3.new(40, 0, 970),
+                v3.new(-40, 0, 970),
+                v3.new(0, -40, 970),
+                v3.new(0, 40, 970),
+            }
+
+            local TampaRotations = {
+                --floor
+                v3.new(0, 0, 90),
+                v3.new(0, 0, -90),
+                v3.new(0, 0, 0),
+                v3.new(0, 0, -180)
+            }
+
+            local Hashes = {
+                --predefined
+                "prop_mp_boost_01", --xm_prop_rsply_crate04a
+                "prop_mk_race_chevron_02",
+                --random
+                "prop_mp_repair_01",
+                "prop_mp_rocket_01",
+                "prop_mp_spike_01"
+            }
+
+            for i = 1, #Hashes, 1 do
+                local Hash = util.joaat(Hashes[math.random(3, #Hashes)])
+                util.request_model(Hash)
+
+                local gift = entities.create_object(Hash, giftsLocations[i], 0)
+                table.insert(GiftsElements, 1, gift)
+                SET_ENTITY_ROTATION(gift, 0, 0, 0, 2, true)
+                FREEZE_ENTITY_POSITION(gift, true)
+                entities.set_can_migrate(gift, false)
+                SET_ENTITY_AS_MISSION_ENTITY(gift, true, true)
+                SET_ENTITY_COLLISION(gift, false, false)
+
+                util.yield(500)
+                --know_object_dimension(Hash)
+            end
+
+            for i = 1, #BoostsLocations, 1 do
+                local Hash = util.joaat(Hashes[1])
+                util.request_model(Hash)
+
+                local boost = entities.create_object(Hash, BoostsLocations[i], 0)
+                table.insert(GiftsElements, 1, boost)
+                SET_ENTITY_ROTATION(boost, 0, 0, 0, 2, true)
+                FREEZE_ENTITY_POSITION(boost, true)
+                entities.set_can_migrate(boost, false)
+                SET_ENTITY_AS_MISSION_ENTITY(boost, true, true)
+                SET_ENTITY_COLLISION(boost, false, false)
+
+                util.yield(500)
+                --know_object_dimension(Hash)
+            end
+
+            for i = 1, #JumpsLocations, 1 do
+                local Hash = util.joaat(Hashes[2])
+                util.request_model(Hash)
+
+                local jump = entities.create_object(Hash, JumpsLocations[i], 0)
+                table.insert(GiftsElements, 1, jump)
+                SET_ENTITY_ROTATION(jump, 0, 0, 0, 2, true)
+                FREEZE_ENTITY_POSITION(jump, true)
+                entities.set_can_migrate(jump, false)
+                SET_ENTITY_AS_MISSION_ENTITY(jump, true, true)
+                SET_ENTITY_COLLISION(jump, false, false)
+
+                util.yield(500)
+                --know_object_dimension(Hash)
+            end
+
+            --local allVehicles = entities.get_all_vehicles_as_handles()
+            local Player
+            local pname 
+
+            if next(allTampas) == nil then
+
+                    for i = 1, 4, 1 do
+                        local Hash = util.joaat("tampa3")
+                        util.request_model(Hash)
+            
+                        local Tampa = entities.create_vehicle(Hash, TampaLocations[i], 0)
+                        table.insert(allTampas, 1, Tampa)
+                        SET_ENTITY_ROTATION(Tampa, TampaRotations[i].x, TampaRotations[i].y, TampaRotations[i].z, 2, true)
+                        --FREEZE_ENTITY_POSITION(Tampa, true)
+                        SET_ENTITY_AS_MISSION_ENTITY(Tampa, true, true)
+                        SET_VEHICLE_MOD_KIT(Tampa, 0)
+                        SET_VEHICLE_MOD(Tampa, 5, 2, false)
+            
+                        util.yield(500)
+
+                        util.create_tick_handler(function()
+                            for k,p in pairs(players.list(true, true, true)) do
+                                local Pedm = GET_PLAYER_PED(p)
+                                if IS_PED_IN_VEHICLE(Pedm, Tampa, false) then
+                                    Player = GET_PLAYER_PED_SCRIPT_INDEX(p)
+                                    pname = GET_PLAYER_NAME(p)
+                                    --util.toast(Player)
+
+                                    managePowerUps(Tampa)
+                            
+                                end
+                            end
+                    
+                            if not DOES_ENTITY_EXIST(Tampa) then
+                                return false
+                            end
+                            
+                        end)
+
+                    end
+                    
+                end
+
+        
+        
+            --SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), 0, 0, 1003)
+
+
+        end
+    else
+    
+        util.toast("Please spawn the arena first !")
+        menu.trigger_commands("setupWreckItPowerUpsM1 off")
+
+    end
+
+end, function()
+
+    for i, element in PowerUpsElements do
+        entities.set_can_migrate(element, true)
+        entities.delete(element)
+    end
+    PowerUpsElements = {}
+
+    for i, element in GiftsElements do
+        entities.set_can_migrate(element, true)
+        entities.delete(element)
+    end
+    GiftsElements = {}
+
+    for i, car in allTampas do
+        entities.delete(car)
+    end
+    allTampas = {}
+
+    rotatePU = 0
+
+    setupWIpowerups = 0
+
+end)
+
+
+
+
+-------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------
+
+
+
+--[[menu.toggle_loop(myListFunWreckItM2Settings, "Setup Arena", {"setupWreckItM2"}, "Spawns The Arena!", function()
+
+    if setupWIarena == 0 then
+        setupWIarena = 1
+        
+        menu.trigger_commands("setupWreckItM1 off")
+        menu.trigger_commands("setupWreckItPowerUpsM1 off")
+
+        local Locations = {
+            --floors
+            v3.new(0, 0, 1000),
+            v3.new(-32, 0, 1000),
+            v3.new(32, 0, 1000),
+            
+            v3.new(-96, 0, 1000),
+            v3.new(96, 0, 1000),
+            
+            v3.new(-64, 20, 1000),
+            v3.new(64, -20, 1000),
+            
+            v3.new(-96, 60, 1000),
+            v3.new(-64, 60, 1000),
+            v3.new(-32, 60, 1000),
+            v3.new(0, 60, 1000),
+            v3.new(32, 60, 1000),
+            v3.new(64, 60, 1000),
+            v3.new(96, 60, 1000),
+            
+            v3.new(-96, -60, 1000),
+            v3.new(-64, -60, 1000),
+            v3.new(-32, -60, 1000),
+            v3.new(0, -60, 1000),
+            v3.new(32, -60, 1000),
+            v3.new(64, -60, 1000),
+            v3.new(96, -60, 1000),
+            --wave
+            v3.new(0, 113, 1031.48),
+            v3.new(-102.4, 113, 1031.48),
+            v3.new(102.4, 113, 1031.48),
+            v3.new(-51.2, 112.95, 1031.52),
+            v3.new(51.2, 112.95, 1031.52),
+            
+            v3.new(0, 113, 1070),
+            v3.new(-102.4, 113, 1070),
+            v3.new(102.4, 113, 1070),
+            v3.new(-51.2, 112.95, 1069.95),
+            v3.new(51.2, 112.95, 1069.95),
+            --slope
+            v3.new(-96, -150, 1020.4),
+            v3.new(-64, -150, 1020.4),
+            v3.new(-32, -150, 1020.4),
+            v3.new(0, -150, 1020.4),
+            v3.new(32, -150, 1020.4),
+            v3.new(64, -150, 1020.4),
+            v3.new(96, -150, 1020.4),
+            
+            v3.new(-96, -190, 1020.4),
+            v3.new(-64, -190, 1020.4),
+            v3.new(-32, -190, 1020.4),
+            v3.new(0, -190, 1020.4),
+            v3.new(32, -190, 1020.4),
+            v3.new(64, -190, 1020.4),
+            v3.new(96, -190, 1020.4),
+            
+            v3.new(-96, -88.25, 1006),
+            v3.new(-64, -88.25, 1006),
+            v3.new(-32, -88.25, 1006),
+            v3.new(0, -88.25, 1006),
+            v3.new(32, -88.25, 1006),
+            v3.new(64, -88.25, 1006),
+            v3.new(96, -88.25, 1006),
+            --walls
+            v3.new(-96, -210, 1040),
+            v3.new(-64, -210, 1040),
+            v3.new(-32, -210, 1040),
+            v3.new(0, -210, 1040),
+            v3.new(32, -210, 1040),
+            v3.new(64, -210, 1040),
+            v3.new(96, -210, 1040),
+            --ramps
+            v3.new(0, -134, 1020.2),
+            v3.new(-3, -134, 1020.2),
+            v3.new(3, -134, 1020.2),
+            v3.new(-6, -134, 1020.2),
+            v3.new(6, -134, 1020.2),
+            
+            v3.new(70, -134, 1020.2),
+            v3.new(67, -134, 1020.2),
+            v3.new(73, -134, 1020.2),
+            v3.new(64, -134, 1020.2),
+            v3.new(76, -134, 1020.2),
+            
+            v3.new(-70, -134, 1020.2),
+            v3.new(-73, -134, 1020.2),
+            v3.new(-67, -134, 1020.2),
+            v3.new(-76, -134, 1020.2),
+            v3.new(-64, -134, 1020.2),
+            --upper floor
+            v3.new(128, -190, 1020.4),
+            v3.new(128, -150, 1020.4),
+            v3.new(128, -110, 1020.4),
+            v3.new(128, -70, 1020.4),
+            v3.new(128, -30, 1020.4),
+            v3.new(128, 60, 1000),
+            v3.new(-128, -190, 1020.4),
+            v3.new(-128, -150, 1020.4),
+            v3.new(-128, -110, 1020.4),
+            v3.new(-128, -70, 1020.4),
+            v3.new(-128, -30, 1020.4),
+            v3.new(-128, 60, 1000),
+            
+            v3.new(128, 31.75, 1006),
+            v3.new(-128, 31.75, 1006),
+            
+            v3.new(111.5, 26.25, 990.85),
+            v3.new(-111.5, 26.25, 990.85),
+        }
+
+        local Rotations = {
+            --floor
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            --wave
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            
+            v3.new(180, 0, 90),
+            v3.new(180, 0, 90),
+            v3.new(180, 0, 90),
+            v3.new(180, 0, 90),
+            v3.new(180, 0, 90),
+            --slope
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            
+            v3.new(-20, 0, 0),
+            v3.new(-20, 0, 0),
+            v3.new(-20, 0, 0),
+            v3.new(-20, 0, 0),
+            v3.new(-20, 0, 0),
+            v3.new(-20, 0, 0),
+            v3.new(-20, 0, 0),
+            --walls
+            v3.new(90, 0, 0),
+            v3.new(90, 0, 0),
+            v3.new(90, 0, 0),
+            v3.new(90, 0, 0),
+            v3.new(90, 0, 0),
+            v3.new(90, 0, 0),
+            v3.new(90, 0, 0),
+            --ramps
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            --upper floor
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            
+            v3.new(-20, 0, 0),
+            v3.new(-20, 0, 0),
+            
+            v3.new(-20, 90, 0),
+            v3.new(-20, 90, 0),
+        }
+
+     
+
+        local Hashes = {
+            --floor
+            "ar_prop_ar_bblock_huge_02",--89
+            "ar_prop_ar_bblock_huge_02",
+            "ar_prop_ar_bblock_huge_02",
+            
+            "ar_prop_ar_bblock_huge_02",
+            "ar_prop_ar_bblock_huge_02",
+            
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",
+            
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",  
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",--80
+            "ar_prop_ar_bblock_huge_01",  
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",
+            
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",  
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",  
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",--70        -- ar_prop_ar_bblock_huge_01
+            --wave
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",--60
+            --slope
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",  
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",  
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01", 
+            
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",  
+            "ar_prop_ar_bblock_huge_01",--50
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",  
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01", 
+            
+            "ar_prop_ar_bblock_huge_02",
+            "ar_prop_ar_bblock_huge_02",
+            "ar_prop_ar_bblock_huge_02",
+            "ar_prop_ar_bblock_huge_02",
+            "ar_prop_ar_bblock_huge_02",
+            "ar_prop_ar_bblock_huge_02",--40
+            "ar_prop_ar_bblock_huge_02",
+            --walls
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",  
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",  
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01", -- stt_prop_ramp_jump_s
+            --ramps
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",--30
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",--20
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            --upper floor
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",--10
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+        }
+
+        for i = 1, #Hashes, 1 do
+            local Hash = util.joaat(Hashes[i])
+            util.request_model(Hash)
+
+            local prop = entities.create_object(Hash, Locations[i], 0)
+            --Get_Entity(prop)
+            table.insert(ArenaElements, 1, prop)
+            SET_ENTITY_ROTATION(prop, Rotations[i].x, Rotations[i].y, Rotations[i].z, 2, true)
+            FREEZE_ENTITY_POSITION(prop, true)
+            entities.set_can_migrate(prop, false)
+            SET_ENTITY_AS_MISSION_ENTITY(prop, true, true)
+            LOAD_ALL_OBJECTS_NOW()
+            NETWORK_UPDATE_LOAD_SCENE()
+            util.yield(50)
+            --know_object_dimension(Hash)
+            util.show_corner_help("Please wait for the map to load fully before spawning the power ups and cars !")
+        end
+
+        --SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), 0, 0, 1003)
+        util.show_corner_help("The map is fully loaded ! You can spawn the power ups and cars !")
+
+
+    end
+
+end, function()
+
+    for i, element in ArenaElements do
+        entities.set_can_migrate(element, true)
+        entities.delete(element)
+    end
+    ArenaElements = {}
+
+    for i, element in playerWreckItElements do
+        entities.delete(element)
+    end
+    playerWreckItElements = {}
+
+    setupWIarena = 0
+    menu.trigger_commands("setupWreckItPowerUpsM2 off")
+
+end),--]]
+
+
+menu.toggle_loop(myListFunWreckItM2Settings, "Setup Arena", {"setupWreckItM2"}, "Spawns The Arena!", function()
+
+    if setupWIarena == 0 then
+        setupWIarena = 1
+        
+        menu.trigger_commands("setupWreckItM1 off")
+        menu.trigger_commands("setupWreckItPowerUpsM1 off")
+
+        local Locations = {
+            --floors
+            v3.new(0, 0, 1000),
+            v3.new(-155, 0, 1015),
+            v3.new(-55.5, 0, 1001.89),
+            --wave
+            v3.new(75, 32.5, 1031.48),
+            v3.new(75, -32.5, 1031.48),
+            v3.new(75, 116, 1031.48),
+            v3.new(75, -116, 1031.48),
+            
+            v3.new(75, 32.5, 1065),
+            v3.new(75, -32.5, 1065),
+            v3.new(75, 116, 1065),
+            v3.new(75, -116, 1065),
+            --sides
+            v3.new(30, 120, 1000),
+            v3.new(30, -120, 1000),
+            
+            v3.new(13.5, 149, 917),
+            v3.new(13.5, -149, 917),
+            
+            v3.new(-84.5, 148.8, 1015),
+            v3.new(-84.5, -148.8, 1015),
+            --walls
+            v3.new(-84.5, 98.3, 964.5),
+            v3.new(-84.5, -98.3, 964.5),
+            
+            v3.new(-180, 98, 1050),
+            v3.new(-180, -98, 1050),
+            
+            v3.new(13.5, 140.4, 1000),
+            v3.new(13.5, -140.4, 1000),
+            
+            v3.new(13.5, 140.4, 1050),
+            v3.new(13.5, -140.4, 1050),
+            
+            v3.new(-182.5, 140.4, 1050),
+            v3.new(-182.5, -140.4, 1050),
+            --ramps
+            v3.new(-16, 106.8, 1015),
+            v3.new(-16, -106.8, 1015),
+            v3.new(-20, 106.8, 1015),
+            v3.new(-20, -106.8, 1015),
+            v3.new(-12, 106.8, 1015),
+            v3.new(-12, -106.8, 1015),
+            --pipes
+            v3.new(-16, -55, 1025),
+            v3.new(-16, 55, 1025),
+            v3.new(-16, 0, 1020),
+            v3.new(-16, 0, 986),
+            --deco
+            v3.new(-140, 0, 1014.5),
+            v3.new(-140, 0, 1014.5),
+            v3.new(-136, 0, 1000),
+            v3.new(-140, 0, 982),
+            v3.new(-141, 0, 1000),
+            --upper floor
+            v3.new(-180, 148, 1050),
+            v3.new(-180, -148, 1050),
+
+            
+           
+        }
+
+        local Rotations = {
+            --floor
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 15, 0),
+            --wave
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            
+            v3.new(0, 180, 180),
+            v3.new(0, 180, 180),
+            v3.new(0, 180, 180),
+            v3.new(0, 180, 180),
+            --sides
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            
+            v3.new(90, 0, 90),
+            v3.new(90, 0, 90),
+            
+            v3.new(0, 0, 90),
+            v3.new(0, 0, 90),
+            --walls
+            v3.new(0, 90, 90),
+            v3.new(0, 90, 90),
+            
+            v3.new(0, 90, 0),
+            v3.new(0, 90, 0),
+            
+            v3.new(0, 90, 90),
+            v3.new(0, 90, 90),
+            
+            v3.new(0, 90, 90),
+            v3.new(0, 90, 90),
+            
+            v3.new(0, 90, 90),
+            v3.new(0, 90, 90),
+            --ramps
+            v3.new(0, 0, -90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, -90),
+            v3.new(0, 0, 90),
+            v3.new(0, 0, -90),
+            v3.new(0, 0, 90),
+            --pipes
+            v3.new(0, 0, 90),
+            v3.new(0, 0, -90),
+            v3.new(180, 0, 90),
+            v3.new(0, 0, 0),
+            --deco
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 0),
+            v3.new(0, 0, 180),
+            v3.new(0, 0, 90),
+            --upper floor
+            v3.new(0, 0, 90),
+            v3.new(0, 0, -90),
+            
+            
+            
+            
+        }
+
+     
+
+        local Hashes = {
+            --floor
+            "ar_prop_ar_bblock_huge_05",
+            "ar_prop_ar_bblock_huge_05",
+            "ar_prop_ar_bblock_huge_05",
+            --wave
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",
+            "bkr_prop_biker_bblock_qp",--10
+            "bkr_prop_biker_bblock_qp",
+            --sides
+            "ar_prop_ar_bblock_huge_01",
+            "ar_prop_ar_bblock_huge_01",
+            
+            "stt_prop_stunt_bblock_huge_05",
+            "stt_prop_stunt_bblock_huge_05",
+            
+            "stt_prop_stunt_bblock_huge_05",
+            "stt_prop_stunt_bblock_huge_05",
+            --walls
+            "stt_prop_stunt_bblock_huge_05",
+            "stt_prop_stunt_bblock_huge_05",
+            
+            "stt_prop_stunt_bblock_huge_05",--20
+            "stt_prop_stunt_bblock_huge_05",
+            
+            "stt_prop_stunt_bblock_huge_05",
+            "stt_prop_stunt_bblock_huge_05",
+            
+            "stt_prop_stunt_bblock_huge_05",
+            "stt_prop_stunt_bblock_huge_05",
+            
+            "stt_prop_stunt_bblock_huge_05",
+            "stt_prop_stunt_bblock_huge_05",
+            --ramps
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",--30
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            "stt_prop_ramp_jump_s",
+            --pipes
+            "stt_prop_stunt_tube_jmp",
+            "stt_prop_stunt_tube_jmp",
+            "ar_prop_inflategates_cp_loop_h1",
+            "stt_prop_stunt_jump_loop",
+            --deco
+            "xs_prop_ar_tunnel_01a_sf",
+            "xs_prop_ar_gate_01a_sf",
+            "ar_prop_ig_jackal_cp_single",--40
+            "xs_propint4_waste_06_neon",
+            "ar_prop_inflategates_cp_loop_01a",
+            --upper floor
+            "ar_prop_ar_arrow_wide_xl",
+            "ar_prop_ar_arrow_wide_xl",
+        }
+
+        for i = 1, #Hashes, 1 do
+            local Hash = util.joaat(Hashes[i])
+            util.request_model(Hash)
+
+            local prop = entities.create_object(Hash, Locations[i], 0)
+            --Get_Entity(prop)
+            table.insert(ArenaElements, 1, prop)
+            SET_ENTITY_ROTATION(prop, Rotations[i].x, Rotations[i].y, Rotations[i].z, 2, true)
+            FREEZE_ENTITY_POSITION(prop, true)
+            entities.set_can_migrate(prop, false)
+            SET_ENTITY_AS_MISSION_ENTITY(prop, true, true)
+            LOAD_ALL_OBJECTS_NOW()
+            NETWORK_UPDATE_LOAD_SCENE()
+            util.yield(50)
+            --know_object_dimension(Hash)
+            util.show_corner_help("Please wait for the map to load fully before spawning the power ups and cars !")
+        end
+
+        if IS_PED_IN_ANY_VEHICLE(players.user_ped(), true) then
+            local PlayerCar = GET_VEHICLE_PED_IS_IN(players.user_ped(), true)
+            SET_ENTITY_COORDS_NO_OFFSET(PlayerCar, 0, 0, 1003)
+        else
+            SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), 40, 0, 1003)
+        end
+
+        util.show_corner_help("The map is fully loaded ! You can spawn the power ups and cars !")
+
+
+    end
+
+end, function()
+
+    for i, element in ArenaElements do
+        entities.set_can_migrate(element, true)
+        entities.delete(element)
+    end
+    ArenaElements = {}
+
+    for i, element in playerWreckItElements do
+        entities.delete(element)
+    end
+    playerWreckItElements = {}
+
+    setupWIarena = 0
+    menu.trigger_commands("setupWreckItPowerUpsM2 off")
+
+end)
+
+
+
+local setupWIpowerups = 0
+local PowerUpsElements = {}
+local allTampas = {}
+local randomPU = 0
+local rotatePU = 0
+
+
+function rotatePowerUps()
+    if rotatePU == 0 then
+        rotatePU = 1
+        for i, gift in GiftsElements do
+        util.create_tick_handler(function()
+                local rot = GET_ENTITY_ROTATION(gift, 2)
+                util.yield(5)
+                SET_ENTITY_ROTATION(gift, 0, 0, rot.z+2, 2, true)
+            if setupWIpowerups == 0 then
+                return false
+            end
+        end)
+    end
+    end
+end
+
+function managePowerUps(Tampa)
+
+    for i, gift in GiftsElements do
+
+        local PUloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(gift, 0, 0, 0)
+        local Tampaloc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(Tampa, 0, 0, 0)
+
+        if Tampaloc:distance(PUloc) < 3 and randomPU == 0 then
+
+            --[[randomPU = 2 --math.random(1, 2)
+            
+            if randomPU == 1 then
+                Get_Entity(Tampa)
+                SET_VEHICLE_MOD_KIT(Tampa, 0)
+                SET_VEHICLE_MOD(Tampa, 10, 0, false)
+                util.yield(10000)
+                SET_VEHICLE_MOD(Tampa, 10, -1, false)
+                randomPU = 0
+            end
+
+            if randomPU == 2 then
+                Get_Entity(Tampa)
+                APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(Tampa, 1, 0, 0, 100, 0, false, true, 1)
+                util.yield(5000)--cooldown to prevent jumping 10000x times within a second
+                randomPU = 0
+            end--]]
+
+            if GET_ENTITY_MODEL(gift) == 1219257666 and IS_ENTITY_VISIBLE(gift) then -- Minigun
+                SET_ENTITY_VISIBLE(gift, false, false)
+                Get_Entity(Tampa)
+                SET_VEHICLE_MOD_KIT(Tampa, 0)
+                SET_VEHICLE_MOD(Tampa, 10, 0, false)
+                util.toast("Hold -Right Click- to shoot with the rotating miniguns ! (10 seconds)")
+                util.yield(10000)
+                SET_VEHICLE_MOD(Tampa, 10, -1, false)
+                SET_ENTITY_VISIBLE(gift, true, true)
+                randomPU = 0
+            end
+
+            if GET_ENTITY_MODEL(gift) == -1633273698 and IS_ENTITY_VISIBLE(gift) then -- jump
+                SET_ENTITY_VISIBLE(gift, false, false)
+                Get_Entity(Tampa)
+                APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(Tampa, 1, 0, 0, 45, 0, false, true, 1)
+                util.toast("Up we go !")
+                util.yield(1000)--cooldown to prevent jumping 10000x times within a second
+                SET_ENTITY_VISIBLE(gift, true, true)
+                randomPU = 0
+            end
+
+            if GET_ENTITY_MODEL(gift) == 1709896882 and IS_ENTITY_VISIBLE(gift) then -- boost
+                SET_ENTITY_VISIBLE(gift, false, false)
+                Get_Entity(Tampa)
+                APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(Tampa, 1, 0, 50, 0, 0, true, true, 1)
+                util.toast("Weee !")
+                util.yield(1000)--cooldown to prevent boosting 10000x times within a second
+                SET_ENTITY_VISIBLE(gift, true, true)
+                randomPU = 0
+            end
+
+            if GET_ENTITY_MODEL(gift) == -1531914544 and IS_ENTITY_VISIBLE(gift) then -- rocket
+                SET_ENTITY_VISIBLE(gift, false, false)
+                Get_Entity(Tampa)
+                SET_VEHICLE_MOD_KIT(Tampa, 0)
+                SET_VEHICLE_MOD(Tampa, 1, 0, false)
+                SET_VEHICLE_MOD(Tampa, 2, 0, false)
+                util.toast("Use -Scroll Wheel- to change weapon and press -Right Click- to shoot ! (5 seconds)")
+                util.yield(5000)
+                SET_VEHICLE_MOD(Tampa, 1, -1, false)
+                SET_VEHICLE_MOD(Tampa, 2, -1, false)
+                SET_ENTITY_VISIBLE(gift, true, true)
+                randomPU = 0
+            end
+
+            if GET_ENTITY_MODEL(gift) == 1944414445 and IS_ENTITY_VISIBLE(gift) then -- mine
+                SET_ENTITY_VISIBLE(gift, false, false)
+                Get_Entity(Tampa)
+                SET_VEHICLE_MOD_KIT(Tampa, 0)
+                SET_VEHICLE_MOD(Tampa, 9, 0, false)
+                util.toast("Press -Horn Key- to place mines ! (5 seconds)")
+                util.yield(5000)
+                SET_VEHICLE_MOD(Tampa, 9, -1, false)
+                SET_ENTITY_VISIBLE(gift, true, true)
+                randomPU = 0
+            end
+
+
+        end
+    end
+
+end
+
+
+menu.toggle_loop(myListFunWreckItM2Settings, "Setup Power Ups and Vehicles", {"setupWreckItPowerUpsM2"}, "Spawns Power Ups and vehicles !", function()
+    if setupWIarena == 1 then
+        if setupWIpowerups == 0 then
+            setupWIpowerups = 1
+
+            
+            local giftsLocations = {
+                --tampas
+                v3.new(-140.1, 61.2, 1016.2),
+                v3.new(-140.1, -61.2, 1016.2),
+                v3.new(-16, 0, 1078.75),
+                v3.new(-16.84, -20.86, 1001.2),
+                v3.new(-16.84, 20.86, 1001.2),
+                v3.new(-16, 0, 1021),
+                v3.new(-140, 0, 1016.2),
+                v3.new(50.5, 98.27, 1001.2),
+                v3.new(50.5, -98.27, 1001.2),
+                v3.new(50.5, 0, 1001.2),
+                v3.new(-173.2, 131.7, 1052.2),
+                v3.new(-173.2, -131.7, 1052.2),
+            }
+            local giftsRotations = {
+                --tampas
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 0),
+            }
+
+
+            local BoostsLocations = {
+                --tampas
+                v3.new(50.5, -56.135, 1001.2),
+                v3.new(50.5, 56.135, 1001.2),
+                v3.new(-115.5, -120, 1016.2),
+                v3.new(-115.5, 120, 1016.2),
+            }
+
+            local JumpsLocations = {
+                --tampas
+                v3.new(-136.51, 97.67, 1016.2),
+                v3.new(-136.51, -97.67, 1016.2),
+                v3.new(11.57, 100, 1016.2),
+                v3.new(11.57, -100, 1016.2),
+            }
+            
+
+            local TampaLocations = {
+                --floor
+                v3.new(0, 127.5, 1017),
+                v3.new(0, -127.5, 1017),
+                v3.new(-150, -30, 1017),
+                v3.new(-150, 30, 1017),
+                v3.new(28.8, 130, 1002),
+                v3.new(28.8, -130, 1002),
+                v3.new(-17, 83, 1002),
+                v3.new(-17, -50, 1002),
+                v3.new(-17, 50, 1002),
+                v3.new(-16, -83, 1002),
+                v3.new(-16, -60, 1016),
+                v3.new(-16, 60, 1016),
+            }
+
+            local TampaRotations = {
+                --floor
+                v3.new(0, 0, 90),
+                v3.new(0, 0, 90),
+                v3.new(0, 0, -90),
+                v3.new(0, 0, -90),
+                v3.new(0, 0, -180),
+                v3.new(0, 0, 0),
+                v3.new(0, 0, -90),
+                v3.new(0, 0, -90),
+                v3.new(0, 0, 90),
+                v3.new(0, 0, 90),
+                v3.new(0, 0, 0),
+                v3.new(0, 0, 180),
+            }
+
+            local Hashes = {
+                --predefined
+                "prop_mp_boost_01", --xm_prop_rsply_crate04a
+                "prop_mk_race_chevron_02",
+                --random
+                "prop_mp_repair_01",
+                "prop_mp_rocket_01",
+                "prop_mp_spike_01"
+            }
+
+            for i = 1, #giftsLocations, 1 do
+                local Hash = util.joaat(Hashes[math.random(3, #Hashes)])
+                util.request_model(Hash)
+
+                local gift = entities.create_object(Hash, giftsLocations[i], 0)
+                table.insert(GiftsElements, 1, gift)
+                SET_ENTITY_ROTATION(gift, 0, 0, 0, 2, true)
+                FREEZE_ENTITY_POSITION(gift, true)
+                entities.set_can_migrate(gift, false)
+                SET_ENTITY_AS_MISSION_ENTITY(gift, true, true)
+                SET_ENTITY_COLLISION(gift, false, false)
+
+                util.yield(50)
+                util.show_corner_help("Please wait for the assets to load fully before playing !")
+                --know_object_dimension(Hash)
+            end
+
+            for i = 1, #BoostsLocations, 1 do
+                local Hash = util.joaat(Hashes[1])
+                util.request_model(Hash)
+
+                local boost = entities.create_object(Hash, BoostsLocations[i], 0)
+                table.insert(GiftsElements, 1, boost)
+                SET_ENTITY_ROTATION(boost, 0, 0, 0, 2, true)
+                FREEZE_ENTITY_POSITION(boost, true)
+                entities.set_can_migrate(boost, false)
+                SET_ENTITY_AS_MISSION_ENTITY(boost, true, true)
+                SET_ENTITY_COLLISION(boost, false, false)
+
+                util.yield(50)
+                util.show_corner_help("Please wait for the assets to load fully before playing !")
+                --know_object_dimension(Hash)
+            end
+
+            for i = 1, #JumpsLocations, 1 do
+                local Hash = util.joaat(Hashes[2])
+                util.request_model(Hash)
+
+                local jump = entities.create_object(Hash, JumpsLocations[i], 0)
+                table.insert(GiftsElements, 1, jump)
+                SET_ENTITY_ROTATION(jump, 0, 0, 0, 2, true)
+                FREEZE_ENTITY_POSITION(jump, true)
+                entities.set_can_migrate(jump, false)
+                SET_ENTITY_AS_MISSION_ENTITY(jump, true, true)
+                SET_ENTITY_COLLISION(jump, false, false)
+
+                util.yield(50)
+                util.show_corner_help("Please wait for the assets to load fully before playing !")
+                --know_object_dimension(Hash)
+            end
+
+            --local allVehicles = entities.get_all_vehicles_as_handles()
+            local Player
+            local pname 
+
+            if next(allTampas) == nil then
+
+                    for i = 1, #TampaLocations, 1 do
+                        local Hash = util.joaat("tampa3")
+                        util.request_model(Hash)
+            
+                        local Tampa = entities.create_vehicle(Hash, TampaLocations[i], 0)
+                        table.insert(allTampas, 1, Tampa)
+                        SET_ENTITY_ROTATION(Tampa, TampaRotations[i].x, TampaRotations[i].y, TampaRotations[i].z, 2, true)
+                        --FREEZE_ENTITY_POSITION(Tampa, true)
+                        SET_ENTITY_AS_MISSION_ENTITY(Tampa, true, true)
+                        SET_VEHICLE_MOD_KIT(Tampa, 0)
+                        SET_VEHICLE_MOD(Tampa, 5, 2, false)
+            
+                        util.yield(500)
+
+                        util.create_tick_handler(function()
+                            for k,p in pairs(players.list(true, true, true)) do
+                                local Pedm = GET_PLAYER_PED(p)
+                                if IS_PED_IN_VEHICLE(Pedm, Tampa, false) then
+                                    Player = GET_PLAYER_PED_SCRIPT_INDEX(p)
+                                    pname = GET_PLAYER_NAME(p)
+                                    --util.toast(Player)
+
+                                    managePowerUps(Tampa)
+                                    rotatePowerUps()
+                                    local TampaLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(Tampa, 0, 0, 0)
+                                    if TampaLoc.z < 950 then
+                                        APPLY_DAMAGE_TO_PED(Player, 100000, true, 0)
+                                        entities.delete(Tampa)
+                                    end
+                            
+                                end
+                            end
+                    
+                            if not DOES_ENTITY_EXIST(Tampa) then
+                                return false
+                            end
+                            
+                        end)
+
+                    end
+                    
+                util.show_corner_help("Please wait for the assets to load fully before playing !")
+                end
+
+        
+
+    
+            --SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), 0, 0, 1003)
+            util.show_corner_help("The assets are fully loaded ! You can now play !")
+
+
+        end
+    else
+    
+        util.toast("Please spawn the arena first !")
+        menu.trigger_commands("setupWreckItPowerUpsM2 off")
+
+    end
+
+end, function()
+
+    for i, element in PowerUpsElements do
+        entities.set_can_migrate(element, true)
+        entities.delete(element)
+    end
+    PowerUpsElements = {}
+
+    for i, element in GiftsElements do
+        entities.set_can_migrate(element, true)
+        entities.delete(element)
+    end
+    GiftsElements = {}
+
+    for i, car in allTampas do
+        entities.delete(car)
+    end
+    allTampas = {}
+
+    setupWIpowerups = 0
+
+end)
+
+--menu.action(myListFunWreckItSettings, "Player List", {}, "Select a player and spawn them a car for Wreck It !", function()
+--    menu.trigger_commands("tplayer")
+--end)
+
+
+
+
+    local AvalancheFloors = {}
+    local AvalancheSnowElements = {}
+    local AvalancheSpawned = 0
+    local avalancheTime = 0
+    local AvalancheHighscore = 0
+
+    menu.toggle_loop(myListFunMinigamesSettings, "Avalanche", {"playAvalanche"}, "How long can you survive when a ton of stuff rolls down toward you ?", function()
+   
+    if AvalancheSpawned == 0 then
+        AvalancheSpawned = 1
+        avalancheTime = 0
+
+        local AvalancheFloorGutterHash = util.joaat("stt_prop_stunt_bblock_qp")
+        local AvalancheFloorHash = util.joaat("ar_prop_ar_arrow_wide_xl")
+        local AvalancheFloorBoundHash = util.joaat("stt_prop_stunt_bblock_qp")
+
+        local AvalancheFloorGutterLoc = v3.new(0, 0, 800)
+        local AvalancheFloorGutterRot = v3.new(45, 45, 0)
+        
+        local AvalancheFloorLoc = v3.new(0, 0, 755)
+        local AvalancheFloorRot = v3.new(0, 0, 90)
+        
+        local AvalancheFloorBoundLoc = v3.new(0, 35, 850)
+        local AvalancheFloorBoundRot = v3.new(60, 45, 0)
+
+        util.request_model(AvalancheFloorGutterHash)
+        local AvalancheFloorGutter = entities.create_object(AvalancheFloorGutterHash, AvalancheFloorGutterLoc, 0)
+        table.insert(AvalancheFloors, 1, AvalancheFloorGutter)
+        SET_ENTITY_ROTATION(AvalancheFloorGutter, AvalancheFloorGutterRot.x, AvalancheFloorGutterRot.y, AvalancheFloorGutterRot.z, 2, true)
+        FREEZE_ENTITY_POSITION(AvalancheFloorGutter, true)
+        entities.set_can_migrate(AvalancheFloorGutter, false)
+        SET_ENTITY_AS_MISSION_ENTITY(AvalancheFloorGutter, true, true)
+
+        util.request_model(AvalancheFloorHash)
+        local AvalancheFloor = entities.create_object(AvalancheFloorHash, AvalancheFloorLoc, 0)
+        table.insert(AvalancheFloors, 2, AvalancheFloor)
+        SET_ENTITY_ROTATION(AvalancheFloor, AvalancheFloorRot.x, AvalancheFloorRot.y, AvalancheFloorRot.z, 2, true)
+        FREEZE_ENTITY_POSITION(AvalancheFloor, true)
+        entities.set_can_migrate(AvalancheFloor, false)
+        SET_ENTITY_AS_MISSION_ENTITY(AvalancheFloor, true, true)
+
+        util.request_model(AvalancheFloorBoundHash)
+        local AvalancheFloorBound = entities.create_object(AvalancheFloorBoundHash, AvalancheFloorBoundLoc, 0)
+        table.insert(AvalancheFloors, 3, AvalancheFloorBound)
+        SET_ENTITY_ROTATION(AvalancheFloorBound, AvalancheFloorBoundRot.x, AvalancheFloorBoundRot.y, AvalancheFloorBoundRot.z, 2, true)
+        FREEZE_ENTITY_POSITION(AvalancheFloorBound, true)
+        entities.set_can_migrate(AvalancheFloorBound, false)
+        SET_ENTITY_AS_MISSION_ENTITY(AvalancheFloorBound, true, true)
+
+        SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), 0, -20, 760)
+        SET_RUN_SPRINT_MULTIPLIER_FOR_PLAYER(players.user_ped(), 1.49)
+
+        util.create_tick_handler(function()
+            local state = SLIDE_OBJECT(AvalancheFloor, 0, 22.5, 755, 0, 0.0035, 0, true)
+
+            if state then
+                util.toast("Minimal platform space reached !")
+                return false
+            end
+        end)
+        
+        --util.create_tick_handler(function()
+            --util.yield(100)
+            --AvalancheSnowflakes()
+            --if AvalancheSpawned == 0 then
+            --    return false
+            --end
+        --end)
+
+        util.create_tick_handler(function()
+            util.yield(1000)
+            avalancheTime = avalancheTime + 1
+            util.show_corner_help("Your score so far is " .. avalancheTime .. " seconds ! The minigame will become harder and harder as you survive. The platform getting smaller and more balls falling at once")
+            local playerOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+            if playerOffset.z < 750 then
+                menu.trigger_commands('playAvalanche off')
+                return false
+            end
+
+        end)
+        
+    end
+
+
+    util.yield(1000 - avalancheTime*2)
+    AvalancheSnow()
+
+
+    end, function()
+
+        for i, Element in AvalancheFloors do
+            entities.delete(Element)
+        end
+        AvalancheFloors = {}
+
+        for i, SnowElement in AvalancheSnowElements do
+            entities.delete(SnowElement)
+        end
+        AvalancheSnowElements = {}
+
+        AvalancheSpawned = 0
+        SET_RUN_SPRINT_MULTIPLIER_FOR_PLAYER(players.user_ped(), 1.0)
+
+        if avalancheTime > AvalancheHighscore then
+            AvalancheHighscore = avalancheTime
+        end
+        util.toast("Your highscore is " .. AvalancheHighscore .. " seconds !")
+        util.toast("Your score is " .. avalancheTime .. " seconds !")
+        avalancheTime = 0
+
+    end)
+
+    local AvalancheSnowHashes = {"stt_prop_stunt_bowling_ball", "prop_juicestand", "stt_prop_stunt_soccer_lball"}
+    local AvalancheSnowflakeHashes = {"v_ilev_exball_blue", "v_ilev_exball_grey", "v_res_mexball", "p_ld_am_ball_01", "p_ld_soc_ball_01", "prop_tennis_ball", "v_16_basketball", "prop_beach_volball01", "prop_beach_volball02", "prop_beachball_01", "prop_beachball_02", "prop_bowling_ball", "prop_golf_ball", "prop_golf_ball_p2", "prop_golf_ball_p3", "prop_golf_ball_p4", "prop_poolball_1", "prop_poolball_10", "prop_poolball_11", "prop_poolball_12", "prop_poolball_13", "prop_poolball_14", "prop_poolball_15", "prop_poolball_2", "prop_poolball_3", "prop_poolball_4", "prop_poolball_5", "prop_poolball_6", "prop_poolball_7", "prop_poolball_8", "prop_poolball_9", "prop_poolball_cue", "prop_swiss_ball_01", "imp_prop_bomb_ball", "vw_prop_casino_art_basketball_01a", "vw_prop_casino_art_basketball_02a", "sf_prop_sf_art_basketball_01a", "xm3_prop_xm3_balloon_01a"}
+    
+    function AvalancheSnow()
+
+        
+        local randomSnowLoc = v3.new(math.random(-20, 20), 65, 900)
+        local AvalancheSnowHash = util.joaat(AvalancheSnowHashes[math.random(1, 2)])
+        util.request_model(AvalancheSnowHash)
+        local AvalancheSnow = entities.create_object(AvalancheSnowHash, randomSnowLoc, math.random(-180, 180))
+        table.insert(AvalancheSnowElements, 1, AvalancheSnow)
+        SET_OBJECT_TINT_INDEX(AvalancheSnow, math.random(1, 15))
+        local Offset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(AvalancheSnow, 0, 0, 0)
+        util.create_tick_handler(function()
+            SHOOT_SINGLE_BULLET_BETWEEN_COORDS(Offset.x, Offset.y - 10, Offset.z, Offset.x, Offset.y, Offset.z, 0, false, util.joaat("weapon_heavysniper_mk2"), players.user_ped(), false, false, 1.0)
+            --util.toast("boop")
+            if Offset.z < 850 then
+                return false
+            end
+        end)
+        util.create_tick_handler(function()
+            if Offset.z < 750 then
+                entities.delete(AvalancheSnow)
+                return false
+            end
+
+        end)
+        SET_ENTITY_VELOCITY(AvalancheSnow, 0, 0, -100)
+
+    end
+    function AvalancheSnowflakes()
+
+        
+        local randomSnowLoc = v3.new(math.random(-25, 25), 65, 900)
+        local AvalancheSnowflakeHashes = util.joaat(AvalancheSnowflakeHashes[math.random(1, #AvalancheSnowflakeHashes)])
+        util.request_model(AvalancheSnowflakeHashes)
+        local AvalancheSnow = entities.create_object(AvalancheSnowflakeHashes, randomSnowLoc, math.random(-180, 180))
+        table.insert(AvalancheSnowElements, 1, AvalancheSnow)
+        SET_OBJECT_TINT_INDEX(AvalancheSnow, math.random(1, 15))
+        local Offset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(AvalancheSnow, 0, 0, 0)
+            SHOOT_SINGLE_BULLET_BETWEEN_COORDS(Offset.x, Offset.y - 10, Offset.z, Offset.x, Offset.y, Offset.z, 0, false, util.joaat("weapon_heavysniper_mk2"), players.user_ped(), false, false, 1.0)
+        util.create_tick_handler(function()
+            if Offset.z < 750 then
+                entities.delete(AvalancheSnow)
+                return false
+            end
+
+        end)
+        SET_ENTITY_VELOCITY(AvalancheSnow, math.random(-10, 10), 0, -100)
+
+    end
+
 
    menu.action(myListFunMinigamesSettings, "Flappy flap", {}, "Totally not a rip off of flappy bird that allows you to play using your own car and to flap using the space key", function()
        FlappyFlapminigamestarted = 0
@@ -563,6 +3307,230 @@ end)--]]
        entities.delete(Pillar2)
    
    end
+
+
+
+  --[[ local TronArenaElements = {}
+
+   local TronArenaFloorLocations = {
+    v3.new(0, 0, 600),
+    v3.new(0, 90, 600),
+    v3.new(0, -90, 600),
+    v3.new(90, 0, 600),
+    v3.new(-90, 0, 600),
+    v3.new(90, 90, 600),
+    v3.new(-90, -90, 600),
+    v3.new(-90, 90, 600),
+    v3.new(90, -90, 600)            }
+    
+   local TronBikes = {}
+--   local TronBikesColoursP = {--[[red]]--28, --[[blue]]67, --[[yellow]]89, --[[green]]128}
+--   local TronBikesColoursS = {--[[red]]28, --[[blue]]67, --[[yellow]]89, --[[green]]128}
+--   local TronWallsColours = {--[[red]]2, --[[blue]]0, --[[yellow]]3, --[[green]]1}
+--[[
+menu.toggle_loop(myListFunTronSettings, "Spawn Tron Arena", {}, "Play Tron with your friends !", function()
+
+    local ArenaFloorHash = util.joaat("ar_prop_ar_bblock_huge_04")
+
+        if not DOES_ENTITY_EXIST(TronArenaFloor) then
+            
+            SET_ENTITY_COORDS_NO_OFFSET(players.user_ped(), 0, 0, 603)
+            for i = 1, 9, 1 do
+                local ArenaFloorSpawnLoc = TronArenaFloorLocations[i]
+                util.request_model(ArenaFloorHash)
+                TronArenaFloor = entities.create_object(ArenaFloorHash, ArenaFloorSpawnLoc, 0)
+                table.insert(TronArenaElements, 1, TronArenaFloor)
+                FREEZE_ENTITY_POSITION(TronArenaFloor, true)
+                entities.set_can_migrate(TronArenaFloor, false)
+                SET_ENTITY_AS_MISSION_ENTITY(TronArenaFloor, true, true)
+                util.yield(100)
+            end
+
+        end
+
+   
+end, function()
+
+        for i, element in TronArenaElements do
+            entities.delete(element)
+        end
+        TronArenaElements = {}
+
+end)
+
+menu.toggle_loop(myListFunTronSettings, "Spawn Tron Bikes", {"SpawnTronBikes"}, "Play Tron with your friends !", function()
+
+
+    if DOES_ENTITY_EXIST(TronArenaFloor) then
+        if next(TronBikes) == nil then
+
+            for i = 1, 4, 1 do
+                
+                TronBikeFunc(TronBikesColoursP[i], TronBikesColoursS[i], TronWallsColours[i])
+                
+            end
+
+        end
+    else
+        util.toast("Spawn the Arena first !")
+        menu.trigger_commands('SpawnTronBikes off')
+    end
+    
+   
+end, function()
+
+        for i, bike in TronBikes do
+            entities.delete(bike)
+        end
+        TronBikes = {}
+
+end)
+
+local TronLightWallLoop = 0
+local TronWalls = {}
+
+local function TronWallSpawner(TronWallHash, SpawnOffset, Bike, WallColour, owner, ownername, wallsTable)
+local canSpawnWalls = 0
+if canSpawnWalls == 0 then
+    local TronWall = entities.create_object(TronWallHash, SpawnOffset, 0)
+    SET_OBJECT_TINT_INDEX(TronWall, TronWallsColours[WallColour])
+    table.insert(wallsTable, 1, TronWall)
+    FREEZE_ENTITY_POSITION(TronWall, true)
+    entities.set_can_migrate(TronWall, false)
+    SET_ENTITY_AS_MISSION_ENTITY(TronWall, true, true)
+    local WallRot = GET_ENTITY_ROTATION(Bike, 2)
+    SET_ENTITY_ROTATION(TronWall,  WallRot.x + 90, WallRot.y, WallRot.z)
+
+    local pname
+    local Player
+
+    util.create_tick_handler(function()
+
+        
+
+
+
+        for k,b in pairs(TronBikes) do
+
+            for l,p in pairs(players.list(true, true, true)) do
+                local Pedm = GET_PLAYER_PED(p)
+                if IS_PED_IN_VEHICLE(Pedm, b, false) then
+                    Player = GET_PLAYER_PED_SCRIPT_INDEX(p)
+                    pname = GET_PLAYER_NAME(p)
+               
+                end
+            end
+            
+            if HAS_ENTITY_BEEN_DAMAGED_BY_ENTITY(TronWall, b, 1) then
+                util.toast(pname .. " has hit " .. ownername .. "'s' wall !")
+                --util.toast(ownername)
+                APPLY_DAMAGE_TO_PED(Player, 100000, true, 0)
+                canSpawnWalls = 1
+                for i, wallPart in wallsTable do
+                    entities.delete(wallPart)
+                end
+                wallsTable = {}
+
+                util.yield(5000)
+                canSpawnWalls = 0
+                return false
+            end
+        end
+
+        if not DOES_ENTITY_EXIST(TronWall) then
+            return false
+        end
+    end)
+
+    util.create_tick_handler(function()
+        util.yield(3000)
+        entities.delete(TronWall)
+        return false
+    end)
+end
+end
+
+local function TronLightWalls(pid, PlayerName, Bike, SpawnOffset, WallColour, wallsTable)
+
+    if TronGameStarted == 1 then
+        local TronWallHash = util.joaat("stt_prop_stunt_domino") --stt_prop_stunt_domino stt_prop_corner_sign_13
+
+        util.request_model(TronWallHash)
+        TronWallSpawner(TronWallHash, SpawnOffset, Bike, WallColour, pid, PlayerName, wallsTable)
+        util.yield(40)
+        
+        
+        
+    end
+end
+
+function TronBikeFunc(ColourP, ColourS, WallColour)
+
+    local TronBikeSpawnLocation = v3.new(math.random(-100, 100), math.random(-100, 100), 603)
+    local TronBikeHash = util.joaat("shotaro")
+
+    util.request_model(TronBikeHash)
+    local TronBike = entities.create_vehicle(TronBikeHash, TronBikeSpawnLocation, 0)
+    PLACE_OBJECT_ON_GROUND_OR_OBJECT_PROPERLY(TronBike)
+    table.insert(TronBikes, 1, TronBike)
+    set_entity_face_entity(TronBike, TronArenaElements[9], false)
+    --entities.set_can_migrate(TronBike, false)
+    --SET_ENTITY_AS_MISSION_ENTITY(TronBike, true, true)
+    SET_VEHICLE_COLOURS(TronBike, ColourP, ColourS)
+
+    local Player = 69420
+    local pname = "John Doe"
+    local wallSpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TronBike, 0, 0, 0)
+    local localTronWalls = {}
+
+    util.create_tick_handler(function()
+        for k,p in pairs(players.list(true, true, true)) do
+            local Pedm = GET_PLAYER_PED(p)
+            if IS_PED_IN_VEHICLE(Pedm, TronBike, false) then
+                Player = GET_PLAYER_PED_SCRIPT_INDEX(p)
+                pname = GET_PLAYER_NAME(p)
+                wallSpawnOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(TronBike, 0, -4, -0.5)
+                --util.toast(Player)
+                TronLightWalls(Player, pname, TronBike, wallSpawnOffset, WallColour, localTronWalls)
+           
+            end
+        end
+
+        if not DOES_ENTITY_EXIST(TronBike) then
+            return false
+        end
+        
+    end)
+    
+end
+
+
+
+menu.toggle_loop(myListFunTronSettings, "Play !", {"StartTron"}, "Starts the minigame !", function()
+
+
+    if next(TronBikes) ~= nil then
+
+            TronGameStarted = 1
+
+    else
+        util.toast("Spawn the Arena and Bikes first !")
+        menu.trigger_commands('StartTron off')
+    end
+    
+   
+end, function()
+
+        for i, wall in TronWalls do
+            entities.delete(wall)
+        end
+        TronWalls = {}
+
+        TronLightWallLoop = 0
+
+end) ]]
+
+
 
    enablemissions = menu.action(myListFunMissionsSettings, "Generate Missions", {}, "Generates the missions. This is not done automatically due to it taking time/causing lag.", function()
  
@@ -933,18 +3901,7 @@ end)
 
 --end)
 
-local function set_entity_face_entity(entity, target, usePitch)
-    local pos1 = GET_ENTITY_COORDS(entity, false)
-    local pos2 = GET_ENTITY_COORDS(target, false)
-    local rel = v3.new(pos2)
-    rel:sub(pos1)
-    local rot = rel:toRot()
-    if not usePitch then
-        SET_ENTITY_HEADING(entity, rot.z)
-    else
-        SET_ENTITY_ROTATION(entity, rot.x, rot.y, rot.z, 2, 0)
-    end
-end
+
 
 -- its better to put both of the tables outside the onchange function so u don't create ur 'vehicles' table every onchange that is called
 local SpawnableVehicles = {"Deluxo", "RC Bandito", "Nightmare Issi", "Z-Type", "Bulldozer", "Tropic", "Weaponised Buzzard", "F-160 Raiju", "Inductor" ,"Dump", "Molotok"}
@@ -960,6 +3917,31 @@ myListVehicleSpawner:textslider("Spawn Vehicle", {}, "Spawns the selected vehicl
     SET_PED_INTO_VEHICLE(players.user_ped(), spawnedCar, -1)
 end)
 
+
+
+
+--Horn Boost
+menu.toggle_loop(myListVehicleSettings, "Toggle Horn Boost !", {}, "Horn Boost On/Off", function (on_change)
+    local p = GET_PLAYER_PED_SCRIPT_INDEX(players.user_ped())
+    if IS_PED_IN_ANY_VEHICLE(players.user_ped(), true) and IS_PLAYER_PRESSING_HORN(p) then
+        local car = GET_VEHICLE_PED_IS_IN(players.user_ped())
+        APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(car, 1, 0, 8, 0, 0, true, true, 1)
+    end
+end, function()
+
+end)
+
+menu.toggle_loop(myListVehicleSettings, "Toggle Stick to Walls/Roofs !", {}, "Stick to Walls/Roofs On/Off", function (on_change)
+    if IS_PED_IN_ANY_VEHICLE(players.user_ped(), true) then
+        local car = GET_VEHICLE_PED_IS_IN(players.user_ped())
+        --Took that from LanceScript
+        local vel = GET_ENTITY_VELOCITY(car)
+        vel['z'] = -vel['z']
+        APPLY_FORCE_TO_ENTITY(car, 2, 0, 0, -50 -vel['z'], 0, 0, 0, 0, true, false, true, false, true)
+    end
+end, function()
+
+end)
 
 --Gravity 0 Vehicle
 menu.toggle(myListVehicleSettings, "Toggle Zero Gravity !", {}, "Zero Gravity On/Off", function (on_change)
@@ -1418,7 +4400,7 @@ local SelectedPetAnimal
 
     end)
 
-    local PetNamesList = {"Ako", "Niko", "Izika", "Whiskers", "Nina", "Caramel", "Leonardo", "Jack", "Doodle", "Sonic", "Mario", "Sakuro", "Johnathan", "Therese", "Asuka", "Rei", "Hanna", "Dawn", "Sunshine", "Midnight", "Apauline", "Ernest", "Charles", "Sugar", "Squishy", "boo", "Peepo", "Raphael", "Sebastian", "Orlando", "Alyssa", "Yannis", "Joshua", "Peter", "Soup", "Dracula", "Alucard", "teemo", "yuki", "daboo", "pashoo", "squat", "Felix", "Lola", "Tigris", "Isoa", "Hannah", "Capucine", "Minette", "Tamagochi", "Pikachu", "Eevee", "Evely", "Evelyn"}
+    local PetNamesList = {"Ako", "Niko", "Izika", "Whiskers", "Nina", "Caramel", "Leonardo", "Jack", "Doodle", "Sonic", "Mario", "Sakuro", "Johnathan", "Therese", "Asuka", "Rei", "Hanna", "Dawn", "Sunshine", "Midnight", "Apauline", "Ernest", "Charles", "Sugar", "Squishy", "boo", "Peepo", "Raphael", "Sebastian", "Orlando", "Alyssa", "Yannis", "Joshua", "Peter", "Soup", "Dracula", "Alucard", "teemo", "yuki", "daboo", "pashoo", "squat", "Felix", "Lola", "Tigris", "Isoa", "Hannah", "Capucine", "Minette", "Tamagochi", "Pikachu", "Eevee", "Evely", "Evelyn", "Amygale"}
 
     function SpawnWildAnimal (SelectedWildAnimal)
 
@@ -1992,10 +4974,215 @@ local SelectedPetAnimal
 
     end)
 
+    menu.action(myListFunSettings, "Yacht", {}, "Spawns a controllable yacht", function ()
+    
+        local CoreSpawnPoint = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+        local CoreSpawnHeading = GET_ENTITY_HEADING(players.user_ped())
+
+        local CoreHash = util.joaat("kosatka")
+        util.request_model(CoreHash)
+    
+        local Core = entities.create_vehicle(CoreHash, CoreSpawnPoint, CoreSpawnHeading)
+        SET_PED_INTO_VEHICLE(players.user_ped(), Core, -1)
+
+        SET_ENTITY_VISIBLE(Core, false, false)
+        local YachtHash = util.joaat("prop_cj_big_boat")
+        util.request_model(YachtHash)
+    
+        local Yacht = entities.create_object(YachtHash, CoreSpawnPoint, CoreSpawnHeading)
+
+        ATTACH_ENTITY_TO_ENTITY(Yacht, Core, 0, 0, 0, 0, 0, 0, 0, true, false, false, true, 0, true, 0)
+        SET_ENTITY_COLLISION(Yacht, true, false)
+        SET_ENTITY_COLLISION(Core, false, false)
+            
+
+    end)
+
+menu.action(myListFunSettings, "vehicle Stealer", {}, "-Left arrow key- to steal the nearby vehicle", function ()
+    
+        local FlatbedSpawnPoint = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+        local FlatbedSpawnHeading = GET_ENTITY_HEADING(players.user_ped())
+
+        local FlatbedHash = util.joaat("flatbed")
+        util.request_model(FlatbedHash)
+    
+        local Flatbed = entities.create_vehicle(FlatbedHash, FlatbedSpawnPoint, FlatbedSpawnHeading)
+        SET_PED_INTO_VEHICLE(players.user_ped(), Flatbed, -1)
+
+        
+
+    util.create_tick_handler(function()
+        
+        local FlatbedSpawnPoint = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(Flatbed, 0, 0, 0)
+
+        local SelectedCar = GET_CLOSEST_VEHICLE(FlatbedSpawnPoint.x, FlatbedSpawnPoint.y, FlatbedSpawnPoint.z, 30, 0, 131078);
+        local height = GET_ENTITY_HEIGHT_ABOVE_GROUND(SelectedCar)
+        local Flatbedheight = GET_ENTITY_HEIGHT_ABOVE_GROUND(Flatbed)
+        local Offset = 0
+
+       
+
+        if height > Flatbedheight then
+            Offset = Flatbedheight + 0.5
+        else
+            Offset = 0
+        end
+
+
+        if IS_CONTROL_PRESSED(0, 189) and not IS_ENTITY_ATTACHED(SelectedCar) then
+
+            
+            
+            ATTACH_ENTITY_TO_ENTITY(SelectedCar, Flatbed, 0, 0, -2, 0.5 + height - Offset, 0, 0, 0, true, false, false, true, 0, true, 0)
+            util.yield(500)
+            VEHICLE_START_PARACHUTING(Flatbed, true)
+            end
+
+        
+        if IS_CONTROL_PRESSED(0, 189) and IS_ENTITY_ATTACHED(SelectedCar) then
+            DETACH_ENTITY(SelectedCar, true, true)
+            util.yield(500)
+        end
+        
+
+        if not DOES_ENTITY_EXIST(Flatbed) then
+            return false
+        end
+
+        if not IS_PED_IN_VEHICLE(players.user_ped(), Flatbed) then
+            --return false
+        end
+
+        
+    end)
+
+end)
+
+menu.action(myListFunSettings, "Planet", {}, "Spawns a planet you can drive on at your location", function ()
+
+    local CoreSpawnPoint = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, -25)
+    local GravityCore = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+    local CoreSpawnHeading = GET_ENTITY_HEADING(players.user_ped())
+    local rotOffset = 0
+
+    local RingHash = util.joaat("stt_prop_hoop_tyre_01a")
+    util.request_model(RingHash)
+    
+    local banditoHash = util.joaat("issi3")
+    
+    util.request_model(banditoHash)
+
+    local bandito = entities.create_vehicle(banditoHash, CoreSpawnPoint, CoreSpawnHeading)
+
+    SET_PED_INTO_VEHICLE(players.user_ped(), bandito, -1)
+
+
+    util.create_tick_handler(function()
+
+        local carLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+        local newGravityX = GravityCore.x - carLoc.x
+        local newGravityY = GravityCore.y - carLoc.y
+        local newGravityZ = GravityCore.z - carLoc.z
+        local gravityDivider = 15
+        --util.toast(newGravityX)
+        APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(bandito, 1, newGravityX / gravityDivider, newGravityY / gravityDivider, newGravityZ / gravityDivider, 0, false, true, 1)
+    end)
+
+    for i = 36, 1, -1 do
+        rotOffset = rotOffset + 10
+        util.request_model(RingHash)
+        local wing = entities.create_object(RingHash, CoreSpawnPoint, CoreSpawnHeading)
+        SET_ENTITY_ROTATION(wing, 0, 0, rotOffset)
+        FREEZE_ENTITY_POSITION(wing, true)
+    end
 
 
 
+end)
 
+menu.action(myListFunSettings, "Inverted Planet", {}, "Spawns a planet you can drive on at your location", function ()
+
+    local CoreSpawnPoint = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+    local GravityCore = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+    local CoreSpawnHeading = GET_ENTITY_HEADING(players.user_ped())
+    local rotOffset = 0
+
+    local RingHash = util.joaat("ar_prop_ar_jump_loop")
+    util.request_model(RingHash)
+    
+    local banditoHash = util.joaat("issi3")
+    
+    util.request_model(banditoHash)
+
+    local bandito = entities.create_vehicle(banditoHash, CoreSpawnPoint, CoreSpawnHeading)
+
+    SET_PED_INTO_VEHICLE(players.user_ped(), bandito, -1)
+
+
+    util.create_tick_handler(function()
+
+        local carLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+        local newGravityX = carLoc.x - GravityCore.x
+        local newGravityY = carLoc.y - GravityCore.y
+        local newGravityZ = carLoc.z - GravityCore.z
+        local gravityDivider = 150
+        --util.toast(newGravityX)
+        APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(bandito, 1, newGravityX / gravityDivider, newGravityY / gravityDivider, newGravityZ / gravityDivider, 0, false, true, 1)
+    end)
+
+    for i = 36, 1, -1 do
+        rotOffset = rotOffset + 10
+        util.request_model(RingHash)
+        local wing = entities.create_object(RingHash, CoreSpawnPoint, CoreSpawnHeading)
+        SET_ENTITY_ROTATION(wing, 0, 0, rotOffset)
+        FREEZE_ENTITY_POSITION(wing, true)
+    end
+
+
+
+end)
+
+--[[menu.action(myListFunSettings, "Planet 2", {}, "Spawns a planet you can drive on at your location", function ()
+
+    local CoreSpawnPoint = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, -10)
+    local GravityCore = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+    local CoreSpawnHeading = GET_ENTITY_HEADING(players.user_ped())
+    local rotOffset = 0
+
+    local RingHash = util.joaat("ar_prop_ar_hoop_med_01")
+    util.request_model(RingHash)
+    
+    local banditoHash = util.joaat("issi3")
+    
+    util.request_model(banditoHash)
+
+    local bandito = entities.create_vehicle(banditoHash, CoreSpawnPoint, CoreSpawnHeading)
+
+    SET_PED_INTO_VEHICLE(players.user_ped(), bandito, -1)
+
+
+    util.create_tick_handler(function()
+
+        local carLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(players.user_ped(), 0, 0, 0)
+        local newGravityX = GravityCore.x - carLoc.x
+        local newGravityY = GravityCore.y - carLoc.y
+        local newGravityZ = GravityCore.z - carLoc.z
+        local gravityDivider = 15
+        --util.toast(newGravityX)
+        APPLY_FORCE_TO_ENTITY_CENTER_OF_MASS(bandito, 1, newGravityX / gravityDivider, newGravityY / gravityDivider, newGravityZ / gravityDivider, 0, false, true, 1)
+    end)
+
+    for i = 360, 1, -1 do
+        rotOffset = rotOffset + 1
+        util.request_model(RingHash)
+        local wing = entities.create_object(RingHash, CoreSpawnPoint, CoreSpawnHeading)
+        SET_ENTITY_ROTATION(wing, 0, 0, rotOffset)
+        FREEZE_ENTITY_POSITION(wing, true)
+    end
+
+
+
+end)--]]
 
     menu.action(myListFunAnimalsPetSettings, "Spawn a Pet Clone", {}, "Spawns a pet clone near this player (must spectate or be near of it to work properly)", function ()
 
@@ -9447,6 +12634,23 @@ players.add_command_hook(function(pid, root) --[[you will need the pid for most 
     menu. You can make a divider for the name of your script in the player menu]]
     menu.player_root(pid):divider("Lola Script")
 
+
+    --[[local fx_looped
+        root:toggle("loop", {}, "", function(on)
+            if on then
+                USE_PARTICLE_FX_ASSET("scr_sum2_hal")
+                fx_looped = START_NETWORKED_PARTICLE_FX_LOOPED_ON_ENTITY("scr_sum2_hal_bike_flames_orange", players.user_ped(), 0, 0, 0, 0, 0, 0, 1, false, false, false, 255, 255, 255, 255)
+            else
+                STOP_PARTICLE_FX_LOOPED(fx_looped, false)
+                REMOVE_PARTICLE_FX(fx_looped, false)
+            end
+        end)
+
+        root:toggle_loop("non loop", {}, "", function()
+            USE_PARTICLE_FX_ASSET("scr_bike_adversary")
+            --start_networked_particle_fx_non_looped_at_coord("", 0, 0, 0, 0, 0, 0, 1, false, false, false, false)
+            START_NETWORKED_PARTICLE_FX_NON_LOOPED_ON_ENTITY("scr_adversary_trail_lightning", players.user_ped(), 0, 0, 0, 0, 0, 0, 1, false, false, false)
+        end)]]
     --[[Adding COMMANDPERM_FRIENDLY to the end like it was done here makes it to where if friendly options are set for
     chat commands. ]]
 
@@ -11005,7 +14209,159 @@ end)
     end
         
     end)
+
+
+
+
+
+
+
+
     
+--[[    local spawnElements = 0
+menu.toggle_loop(menu.player_root(pid)--[[myListFunMinigamesSettings]]--, "Wreck It", {}, "You must spawn the arena first ! LolaScript>Fun>Minigames>Wreck it", function()
+
+--[[    local pName = GET_PLAYER_NAME(pid)
+    if spawnElements == 0 then
+        spawnElements = 1
+
+        local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+        local carHash = util.joaat("monster3")
+
+        local randomSpawnLocations = {
+            v3.new(0, 0, 1000)
+        }
+
+        local randomGiftsSpawnLocations = {
+            v3.new(50, 0, 970),
+            v3.new(-50, 0, 970),
+            v3.new(0, 50, 970),
+            v3.new(0, -50, 970),
+        }
+
+        local randomSpawnHeadings = {
+            0,
+        }
+
+        util.request_model(carHash)
+        local pCar = entities.create_vehicle(carHash, randomSpawnLocations[1], randomSpawnHeadings[1])
+        table.insert(playerWreckItElements, 1, pCar)
+        SET_ENTITY_AS_MISSION_ENTITY(pCar, true, true)
+
+        SET_PED_INTO_VEHICLE(pedm, pCar, -1)
+
+        for i = 1, #randomGiftsSpawnLocations, 1 do
+            WIgiftSpawner(pedm, randomGiftsSpawnLocations[i], pCar, pName)
+        end
+
+        local wreckItRocketPUHash = util.joaat("prop_mp_rocket_01")
+        local wreckItRailgunPUHash = util.joaat("prop_mp_spike_01")
+        local wreckItBoostPUHash = util.joaat("prop_mp_boost_01")
+        local wreckItJumpPUHash = util.joaat("prop_mk_arrow_3d")
+
+        local SpawnLoc = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(pCar, 0, 0, 10)
+
+        util.request_model(wreckItRocketPUHash)
+        local RocketPU = entities.create_object(wreckItRocketPUHash, SpawnLoc, 0)
+        table.insert(playerWreckItElements, 1, RocketPU)
+        SET_ENTITY_AS_MISSION_ENTITY(RocketPU, true, true)
+        SET_ENTITY_COLLISION(RocketPU, false, false)
+
+        util.request_model(wreckItRailgunPUHash)
+        local RailGunPU = entities.create_object(wreckItRailgunPUHash, SpawnLoc, 0)
+        table.insert(playerWreckItElements, 1, RailGunPU)
+        SET_ENTITY_AS_MISSION_ENTITY(RailGunPU, true, true)
+        SET_ENTITY_COLLISION(RailGunPU, false, false)
+
+        util.request_model(wreckItBoostPUHash)
+        local BoostPU = entities.create_object(wreckItBoostPUHash, SpawnLoc, 0)
+        table.insert(playerWreckItElements, 1, BoostPU)
+        SET_ENTITY_AS_MISSION_ENTITY(BoostPU, true, true)
+        SET_ENTITY_COLLISION(BoostPU, false, false)
+
+        util.request_model(wreckItJumpPUHash)
+        local JumpPU = entities.create_object(wreckItJumpPUHash, SpawnLoc, 0)
+        table.insert(playerWreckItElements, 1, JumpPU)
+        SET_ENTITY_AS_MISSION_ENTITY(JumpPU, true, true)
+        SET_ENTITY_COLLISION(JumpPU, false, false)
+        
+        local PUiconeHeight = 3
+        
+        ATTACH_ENTITY_TO_ENTITY(RocketPU, pCar, 0, 0, 0, PUiconeHeight, 0, 0, 0, true, false, false, true, 0, true, 0)
+        ATTACH_ENTITY_TO_ENTITY(RailGunPU, pCar, 0, 0, 0, PUiconeHeight, 0, 0, 0, true, false, false, true, 0, true, 0)
+        ATTACH_ENTITY_TO_ENTITY(BoostPU, pCar, 0, 0, 0, PUiconeHeight, 0, 0, 0, true, false, false, true, 0, true, 0)
+        ATTACH_ENTITY_TO_ENTITY(JumpPU, pCar, 0, 0, 0, PUiconeHeight, 0, 0, 0, true, false, false, true, 0, true, 0)
+
+    end
+
+end, function()
+
+
+    for i, element in playerWreckItElements do
+        entities.delete(element)
+    end
+    playerWreckItElements = {}
+
+    spawnElements = 0
+
+end)
+
+
+function WIgiftSpawner(Player, Location, car, name)
+
+    local currentWIpu = 0
+
+    local hash = util.joaat("xm_prop_moderncrate_xplv_01")
+    util.request_model(hash)
+
+    local gift = entities.create_object(hash, Location, 0)
+    table.insert(playerWreckItElements, 1, gift)
+    SET_ENTITY_AS_MISSION_ENTITY(gift, true, true)
+    SET_ENTITY_COLLISION(gift, false, false)
+
+    util.create_tick_handler(function()
+        local pedm = GET_PLAYER_PED_SCRIPT_INDEX(pid)
+        local carVelocityRaw = GET_ENTITY_VELOCITY(car)
+        local carVelocityY = math.abs(carVelocityRaw.y)
+        local carVelocityX = math.abs(carVelocityRaw.x)
+        local SpeedDistanceMultiplier = 0.2
+        local PayerLocation = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(car, 0, 0, 0) 
+    
+        local PlayerOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(Player, 0, 0, 0)
+        local GiftOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(gift, 0, 0, 0)
+
+        if PayerLocation:distance(GiftOffset) < 3 then
+            util.toast(name .. " has collected a gift !")
+            SET_ENTITY_VISIBLE(gift, false, false)
+            currentWIpu = 1 --math.random(1, 4)
+            util.yield(2000)
+            SET_ENTITY_VISIBLE(gift, true, true)
+        end
+
+        if currentWIpu == 1 then
+            --SET_ENTITY_VISIBLE(RocketPU, true, true)
+                local WeaponPlacementOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(car, 0, 3 + SpeedDistanceMultiplier * carVelocityY + SpeedDistanceMultiplier * carVelocityX, 0.5)
+                local WeaponAimOffset = GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(car, 0, 3000, 0)
+                local MissleSpeed = 500 + SpeedDistanceMultiplier * carVelocityY + SpeedDistanceMultiplier * carVelocityX
+                local MissleDamage = 15
+                --util.draw_centred_text(carVelocityY)
+                    util.toast(name)
+                --util.draw_centred_text(carVelocityX)
+                if IS_PLAYER_PRESSING_HORN(pid) then
+                    util.toast("b")
+                    SHOOT_SINGLE_BULLET_BETWEEN_COORDS_IGNORE_ENTITY(WeaponPlacementOffset.x, WeaponPlacementOffset.y, WeaponPlacementOffset.z, WeaponAimOffset.x, WeaponAimOffset.y, WeaponAimOffset.z, MissleDamage, true, 3800181289, p, true, false, MissleSpeed, wreckItCar, true)
+                    --currentWIpu = 0
+                end
+        else
+            --SET_ENTITY_VISIBLE(RocketPU, false, false)
+        end
+
+        if not DOES_ENTITY_EXIST(gift) then
+            --return false
+        end
+    end)
+    
+end]]--
 
 
 
@@ -12157,4 +15513,4 @@ auto_update_config.clean_reinstall = true
 auto_updater.run_auto_update(auto_update_config)
 end)
 menu.hyperlink(script_meta_menu,"Github Source", "https://github.com/LolaThePretty/LolaScript","View source files on Github")
-menu.hyperlink(script_meta_menu,"Discord Server", "https://discord.gg/chAUB6r8EY","Join the community and submit your own ideas as future features !")
+menu.hyperlink(script_meta_menu,"Discord Server", "https://discord.gg/qYu25S2Cqx","Join the community and submit your own ideas as future features !")
